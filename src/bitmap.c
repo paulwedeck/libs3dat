@@ -202,6 +202,27 @@ uint32_t s3dat_extract_shadow(s3dat_t* mem, uint16_t shadow, uint8_t frame, s3da
 	return s3dat_internal_read_bitmap_data(mem, s3dat_alpha, w, h, &to->data);
 }
 
+uint32_t s3dat_extract_landscape2(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, bool blend) {
+	uint32_t error_code = s3dat_extract_landscape(mem, landscape, to);
+
+	if(error_code != S3DAT_READ_SUCCESSFUL) return error_code;
+
+	if(blend) {
+
+		uint32_t pixel_count = to->width*to->height;
+
+		for(uint32_t i = 0;i != pixel_count;i++) {
+			if(to->data[i].red == 0
+				&& to->data[i].green == 0xce
+				&& (to->data[i].blue == 0xff || to->data[i].blue == 0xee)
+				&& to->data[i].alpha == 0xff) to->data[i].alpha = 0;
+		}
+	}
+
+	return S3DAT_READ_SUCCESSFUL;
+}
+
+
 uint32_t s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to) {
 	if(landscape > mem->landscape_index.len) return S3DAT_ERROR_VALUE_HIGHER_THAN_MAX;
 	uint16_t xoff, yoff, w, h;

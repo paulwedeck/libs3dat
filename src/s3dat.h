@@ -124,6 +124,7 @@ uint32_t s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3
 uint32_t s3dat_extract_shadow(s3dat_t* mem, uint16_t shadow, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff);
 uint32_t s3dat_extract_torso(s3dat_t* mem, uint16_t torso, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff);
 uint32_t s3dat_extract_sound(s3dat_t* mem, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to);
+uint32_t s3dat_extract_landscape2(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, bool blend);
 uint32_t s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to);
 uint32_t s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_bitmap_t* to);
 
