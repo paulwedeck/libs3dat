@@ -13,7 +13,7 @@ uint32_t s3dat_internal_read_bitmap_header(s3dat_t* mem, s3dat_content_type type
 s3dat_color_t s3dat_internal_ex(s3dat_t* mem, s3dat_color_type type);
 
 uint32_t s3dat_internal_read_bitmap_header(s3dat_t* mem, s3dat_content_type type, int from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff) {
-	if(type == s3dat_nyi) return S3DAT_ERROR_NYI;
+	if(type == s3dat_animation) return S3DAT_ERROR_INVALID_INPUT;
 	mem->seek_func(mem->io_arg, from, SEEK_SET);
 	uint32_t p = from;
 	uint32_t size = mem->size_func(mem->io_arg);
@@ -84,7 +84,10 @@ uint32_t s3dat_internal_read_bitmap_header(s3dat_t* mem, s3dat_content_type type
 uint32_t s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16_t width, uint16_t height, s3dat_color_t** re_pixdata) {
 	if(width == 0 && height == 0) return S3DAT_ERROR_NULL_IMAGES_ARE_NULL;
 
-	s3dat_color_t trans_color = {0, 0, 0, type == s3dat_alpha ? 0xFF : 0};
+	uint32_t pos = mem->pos_func(mem->io_arg);
+	uint32_t size = mem->size_func(mem->io_arg);
+
+	s3dat_color_t trans_color = {0, 0, 0, type == s3dat_alpha1 ? 0xFF : 0};
 
 	s3dat_color_t* pixdata = NULL;
 	if(re_pixdata) pixdata = mem->alloc_func(mem->mem_arg, width*height*sizeof(s3dat_color_t));
@@ -96,6 +99,8 @@ uint32_t s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, ui
 	uint16_t y = 0;
 
 	do {
+		if(pos+2 > size) return S3DAT_ERROR_FILE_TOO_SHORT;
+			else pos += 2;
 		meta = s3dat_internal_read16LE(mem);
 
 		uint8_t skip = (meta >> 8) & 0x7F;
@@ -111,6 +116,11 @@ uint32_t s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, ui
 
 		uint8_t datalen = meta & 0xFF;
 		while(datalen > 0) {
+			if((type == s3dat_rgb555 || type == s3dat_rgb565) && pos+2 > size) return S3DAT_ERROR_FILE_TOO_SHORT;
+				else pos += 2;
+			if(type == s3dat_gray5 && pos+1 > size) return S3DAT_ERROR_FILE_TOO_SHORT;
+				else pos++;
+
 			if(pixdata) {
 				pixdata[y*width+x] = s3dat_internal_ex(mem, type);
 			} else {
@@ -123,7 +133,6 @@ uint32_t s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, ui
 			}
 			x++;
 		}
-		//if(x+1 == width) {
 		if(meta >> 15 & 1) {
 			y++;
 			x = 0;
@@ -135,7 +144,7 @@ uint32_t s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, ui
 
 s3dat_color_t s3dat_internal_ex(s3dat_t* mem, s3dat_color_type type) {
 	s3dat_color_t color = {0, 0, 0, 0};
-	if(type == s3dat_alpha) return color;
+	if(type == s3dat_alpha1) return color;
 	color.alpha = 0xFF;
 
 	uint16_t raw;
@@ -170,6 +179,7 @@ uint32_t s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3
 
 	if(re != S3DAT_READ_SUCCESSFUL) return re;
 
+	to->type = mem->green_6b ? s3dat_rgb565 : s3dat_rgb555;
 	to->width = w;
 	to->height = h;
 
@@ -183,6 +193,7 @@ uint32_t s3dat_extract_torso(s3dat_t* mem, uint16_t torso, uint8_t frame, s3dat_
 
 	if(re != S3DAT_READ_SUCCESSFUL) return re;
 
+	to->type = s3dat_gray5;
 	to->width = w;
 	to->height = h;
 
@@ -196,10 +207,11 @@ uint32_t s3dat_extract_shadow(s3dat_t* mem, uint16_t shadow, uint8_t frame, s3da
 
 	if(re != S3DAT_READ_SUCCESSFUL) return re;
 
+	to->type = s3dat_alpha1;
 	to->width = w;
 	to->height = h;
 
-	return s3dat_internal_read_bitmap_data(mem, s3dat_alpha, w, h, &to->data);
+	return s3dat_internal_read_bitmap_data(mem, s3dat_alpha1, w, h, &to->data);
 }
 
 uint32_t s3dat_extract_landscape2(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, bool blend) {
@@ -230,6 +242,7 @@ uint32_t s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_
 
 	if(re != S3DAT_READ_SUCCESSFUL) return re;
 
+	to->type = mem->green_6b ? s3dat_rgb565 : s3dat_rgb555;
 	to->width = w;
 	to->height = h;
 
@@ -244,6 +257,7 @@ uint32_t s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_bitmap_t* to) {
 
 	if(re != S3DAT_READ_SUCCESSFUL) return re;
 
+	to->type = mem->green_6b ? s3dat_rgb565 : s3dat_rgb555;
 	to->width = w;
 	to->height = h;
 

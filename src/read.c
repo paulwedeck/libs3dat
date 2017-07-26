@@ -75,10 +75,9 @@ uint32_t s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
 	}
 	seek_func(arg, 4, SEEK_CUR);
 	p += 8;
-	uint32_t sequence_pointers[6];
-	for(uint32_t i = 0;i != 6;i++) sequence_pointers[i] = s3dat_internal_read32LE(mem);
+	uint32_t sequence_pointers[7];
+	for(uint32_t i = 0;i != 7;i++) sequence_pointers[i] = s3dat_internal_read32LE(mem);
 
-	seek_func(arg, 4, SEEK_CUR);
 	p += 28;
 
 	uint8_t header_end[12];
@@ -86,7 +85,7 @@ uint32_t s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
 	if(memcmp(header_end, s3dat_header_end, 12) != 0) return S3DAT_ERROR_CORRUPT_HEADER;
 	p += 12;
 
-	for(uint32_t i = 0;i < 6;i++) {
+	for(uint32_t i = 0;i < 7;i++) {
 		uint32_t return_value = s3dat_internal_read_index(mem, sequence_pointers[i]);
 		if(return_value != S3DAT_READ_SUCCESSFUL) {
 			#ifndef S3DAT_COMPATIBILITY_MODE
@@ -114,10 +113,19 @@ uint32_t s3dat_internal_read_index(s3dat_t* mem, uint32_t index) {
 	uint16_t index_size = s3dat_internal_read16LE(mem);
 	uint16_t index_len = s3dat_internal_read16LE(mem);
 
-	if(index_len*4+8 != index_size || p+index_size > size || (index_type != s3dat_settler && index_type != s3dat_torso && index_type != s3dat_shadow && index_type != s3dat_landscape && index_type != s3dat_gui && index_type != s3dat_nyi)) {
+	if((index_type != s3dat_palette && index_len*4+8 != index_size) ||
+		(index_type == s3dat_palette && index_len*4+12 != index_size) ||
+		p+index_size > size || (index_type != s3dat_settler &&
+		index_type != s3dat_torso && index_type != s3dat_shadow &&
+		index_type != s3dat_landscape && index_type != s3dat_gui &&
+		index_type != s3dat_animation && index_type != s3dat_palette)) {
 		return S3DAT_ERROR_CORRUPT_INDEX;
 	}
-	p += 8;
+
+	if(index_type == s3dat_palette) {
+		mem->seek_func(mem->io_arg, 4, SEEK_CUR);
+		p += 16;
+	} else p += 8;
 
 	if(index_type == s3dat_settler || index_type == s3dat_torso || index_type == s3dat_shadow) {
 		s3dat_seq_index_t* index;
@@ -170,8 +178,11 @@ uint32_t s3dat_internal_read_index(s3dat_t* mem, uint32_t index) {
 			case s3dat_landscape:
 				index = &mem->landscape_index;
 			break;
-			case s3dat_nyi:
-				index = &mem->nyi_index;
+			case s3dat_animation:
+				index = &mem->animation_index;
+			break;
+			case s3dat_palette:
+				index = &mem->palette_index;
 			break;
 		}
 
@@ -252,5 +263,46 @@ uint16_t s3dat_internal_read8(s3dat_t* mem) {
 	uint8_t dat;
 	mem->read_func(mem->io_arg, &dat, 1);
 	return dat;
+}
+
+uint32_t s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to) {
+	if(mem->animation_index.len <= animation) return S3DAT_ERROR_VALUE_HIGHER_THAN_MAX;
+
+	mem->seek_func(mem->io_arg, mem->animation_index.pointers[animation], SEEK_SET);
+	uint32_t pos = mem->pos_func(mem->io_arg);
+	uint32_t size = mem->size_func(mem->io_arg);
+
+	if(pos+4 > size) return S3DAT_ERROR_FILE_TOO_SHORT;
+
+	uint32_t entries = s3dat_internal_read32LE(mem);
+	pos += 4;
+
+	to->src = mem;
+	to->len = entries;
+	to->frames = mem->alloc_func(mem->io_arg, entries*sizeof(s3dat_frame_t));
+	if(pos+entries*24 > size) return S3DAT_ERROR_FILE_TOO_SHORT;
+
+
+	for(uint32_t i = 0;i != entries;i++) {
+		to->frames[i].posx = s3dat_internal_read16LE(mem);
+		to->frames[i].posx = s3dat_internal_read16LE(mem);
+
+		to->frames[i].settler_id = s3dat_internal_read16LE(mem);
+		to->frames[i].settler_file = s3dat_internal_read16LE(mem);
+
+		to->frames[i].torso_id = s3dat_internal_read16LE(mem);
+		to->frames[i].torso_file = s3dat_internal_read16LE(mem);
+
+		to->frames[i].shadow_id = s3dat_internal_read16LE(mem);
+		to->frames[i].shadow_file = s3dat_internal_read16LE(mem);
+
+		to->frames[i].settler_frame = s3dat_internal_read16LE(mem);
+		to->frames[i].torso_frame = s3dat_internal_read16LE(mem);
+
+		to->frames[i].flag1 = s3dat_internal_read16LE(mem);
+		to->frames[i].flag2 = s3dat_internal_read16LE(mem);
+	}
+
+	return S3DAT_READ_SUCCESSFUL;
 }
 

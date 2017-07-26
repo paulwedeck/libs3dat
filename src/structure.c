@@ -8,6 +8,18 @@ void s3dat_internal_delete_index32(s3dat_t* mem, s3dat_index32_t* index);
 void s3dat_internal_delete_seq(s3dat_t* mem, s3dat_seq_index_t* seq);
 void s3dat_internal_delete_seq32(s3dat_t* mem, s3dat_seq_index32_t* seq);
 
+
+s3dat_animation_t* s3dat_new_animation(s3dat_t* parent) {
+	return s3dat_new_animations(parent, 1);
+}
+
+s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count) {
+	s3dat_animation_t* bm = parent->alloc_func(parent->mem_arg, sizeof(s3dat_animation_t)*count);
+	for(uint32_t i = 0;i != count;i++) bm[i].src = parent;
+	return bm;
+}
+
+
 s3dat_bitmap_t* s3dat_new_bitmap(s3dat_t* parent) {
 	return s3dat_new_bitmaps(parent, 1);
 }
@@ -36,10 +48,31 @@ void s3dat_delete(s3dat_t* mem) {
 	s3dat_internal_delete_seq32(mem, &mem->sound_index);
 
 	s3dat_internal_delete_index(mem, &mem->landscape_index);
-	s3dat_internal_delete_index(mem, &mem->nyi_index);
+	s3dat_internal_delete_index(mem, &mem->animation_index);
 	s3dat_internal_delete_index(mem, &mem->gui_index);
 
 	mem->free_func(mem->mem_arg, mem);
+}
+
+void s3dat_delete_animation(s3dat_animation_t* mem) {
+	s3dat_delete_animations(mem, 1);
+}
+void s3dat_delete_animations(s3dat_animation_t* mem, uint32_t count) {
+	s3dat_delete_frames(mem, count);
+	mem->src->free_func(mem->src->mem_arg, mem);
+}
+
+void s3dat_delete_frame(s3dat_animation_t* mem) {
+	s3dat_delete_frames(mem, 1);
+}
+
+void s3dat_delete_frames(s3dat_animation_t* mem, uint32_t count) {
+	for(int i = 0;i != count;i++) {
+		if(mem[i].frames != NULL) {
+			mem[i].src->free_func(mem[i].src->mem_arg, mem[i].frames);
+			mem[i].frames = NULL;
+		}
+	}
 }
 
 void s3dat_delete_bitmap(s3dat_bitmap_t* mem) {
