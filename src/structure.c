@@ -49,6 +49,7 @@ void s3dat_delete(s3dat_t* mem) {
 
 	s3dat_internal_delete_index(mem, &mem->landscape_index);
 	s3dat_internal_delete_index(mem, &mem->animation_index);
+	s3dat_internal_delete_index(mem, &mem->palette_index);
 	s3dat_internal_delete_index(mem, &mem->gui_index);
 
 	mem->free_func(mem->mem_arg, mem);
