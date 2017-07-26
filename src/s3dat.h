@@ -63,21 +63,9 @@ typedef struct {
 
 typedef struct {
 	s3dat_content_type type;
-	uint16_t len;
-	s3dat_bitmap_t* pointers;
-} s3dat_write_index_t;
-
-typedef struct {
-	s3dat_content_type type;
 	uint32_t len;
 	uint32_t* pointers;
 } s3dat_index32_t;
-
-typedef struct {
-	s3dat_content_type type;
-	uint32_t len;
-	s3dat_sound_t* pointers;
-} s3dat_write_index32_t;
 
 typedef struct {
 	s3dat_content_type type;
@@ -88,20 +76,8 @@ typedef struct {
 typedef struct {
 	s3dat_content_type type;
 	uint16_t len;
-	s3dat_write_index_t* sequences;
-} s3dat_write_seq_index_t;
-
-typedef struct {
-	s3dat_content_type type;
-	uint16_t len;
 	s3dat_index32_t* sequences;
 } s3dat_seq_index32_t;
-
-typedef struct {
-	s3dat_content_type type;
-	uint16_t len;
-	s3dat_write_index32_t* sequences;
-} s3dat_write_seq_index32_t;
 
 typedef struct {
 	uint32_t mem_arg;
@@ -125,24 +101,6 @@ typedef struct {
 	s3dat_index_t palette_index;
 
 } s3dat_t;
-
-typedef struct {
-	uint32_t mem_arg;
-	uint32_t io_arg;
-	void (*write_func) (uint32_t, void*, size_t);
-	void* (*alloc_func) (uint32_t, size_t);
-	void (*free_func) (uint32_t, void*);
-
-	bool green_6b;
-
-	s3dat_write_seq_index_t settler_index;
-	s3dat_write_seq_index_t shadow_index;
-	s3dat_write_seq_index_t torso_index;
-	s3dat_write_seq_index32_t sound_index; // SND .dat files only
-	s3dat_write_index_t landscape_index;
-	s3dat_write_index_t gui_index;
-	//s3dat_write_index_t nyi_index;
-} s3dat_write_t;
 
 struct s3dat_sound_t {
 	s3dat_t* src;
@@ -188,9 +146,6 @@ typedef struct {
 	uint32_t len;
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
-
-uint32_t s3dat_writefile_fd_malloc(s3dat_write_t* mem, uint32_t fd);
-uint32_t s3dat_writefile_func(s3dat_write_t* mem, uint32_t io_arg, uint32_t mem_arg, void (*write_func) (uint32_t, void*, size_t), void* (*alloc_func) (uint32_t, size_t), void (*free_func) (uint32_t, void*));
 
 uint32_t s3dat_readfile_fd(s3dat_t* mem, uint32_t file);
 

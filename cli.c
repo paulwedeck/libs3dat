@@ -49,68 +49,40 @@ int main() {
 			printf("[%i] %i torso sequences\n", i, s3dat_mem->torso_index.len);
 			printf("[%i] %i gui entries\n", i, s3dat_mem->gui_index.len);
 			printf("[%i] %i animation entries\n", i, s3dat_mem->animation_index.len);
-			s3dat_mem->seek_func(s3dat_mem->io_arg, 80, SEEK_SET);
-			uint32_t palette_pos;
-			s3dat_mem->read_func(s3dat_mem->io_arg, &palette_pos, 4);
-			printf("[%i] %i palette entries at %u\n", i, s3dat_mem->palette_index.len, palette_pos);
+			printf("[%i] %i palette entries\n", i, s3dat_mem->palette_index.len);
 			printf("[%i] %i landscape entries\n", i, s3dat_mem->landscape_index.len);
 		} else {
 			printf("[%i] %i sound entries\n", i, s3dat_mem->sound_index.len);
 		}
-		if(i+1 != 49) printf("\n");
-
-		if(i == 48) {
-			s3dat_sound_t snd_data;
-			s3dat_extract_sound(s3dat_mem, 0, 0, &snd_data);
-
-			FILE* fw = fopen("snd.raw", "wb");
-			fwrite(snd_data.data, 1, snd_data.len*2, fw);
-			fclose(fw);			
-		}
-
-		/*if(s3dat_mem->palette_index.len > 0) {
-			for(uint32_t p = 0;p != s3dat_mem->palette_index.len;p++) {
-				printf("[%i]"
-			}
-		}*/
 
 		if(s3dat_mem->animation_index.len > 0 && false) {
 			for(uint32_t e = 0;e != s3dat_mem->animation_index.len;e++) {
-				printf("[%i] nyi %i at %i\n", i, e, s3dat_mem->animation_index.pointers[e]);
+				printf("[%i] animation %i at %i\n", i, e, s3dat_mem->animation_index.pointers[e]);
 
-				char dump_name[100];
-				snprintf(dump_name, 100, "nyi-dump-%i-%i.data", i, e);
-				FILE* dump_file = fopen(dump_name, "w");
 				s3dat_mem->seek_func(s3dat_mem->io_arg, s3dat_mem->animation_index.pointers[e], SEEK_SET);
 				uint32_t count;
 				s3dat_mem->read_func(s3dat_mem->io_arg, &count, 4);
-				uint32_t len = (count*24)+4;
-				//fwrite(&count, 4, 1, dump_file);
+
 				for(int d = 0;d != count;d++) {
-					short posx, posy, flag3, flag4;
-					int obid = 0, obfile = 0, torsoid = 0, torsofile = 0, shadowid = 0, shadowfile = 0, obframe = 0, torsoframe = 0;
+					short posx, posy;
+					unsigned short settlerid = 0, settlerfile = 0, torsoid = 0, torsofile = 0, shadowid = 0, shadowfile = 0, settlerframe = 0, torsoframe = 0, flag3 = 0, flag4 = 0;
 					s3dat_mem->read_func(s3dat_mem->io_arg, &posx, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &posy, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &obid, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &obfile, 2);
+					s3dat_mem->read_func(s3dat_mem->io_arg, &settlerid, 2);
+					s3dat_mem->read_func(s3dat_mem->io_arg, &settlerfile, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &torsoid, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &torsofile, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &shadowid, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &shadowfile, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &obframe, 2);
+					s3dat_mem->read_func(s3dat_mem->io_arg, &settlerframe, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &torsoframe, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &flag3, 2);
 					s3dat_mem->read_func(s3dat_mem->io_arg, &flag4, 2);
-					printf("[%i] %hu %hu %i %i %i %i %i %i %i %i %hu %hu\n", i, posx, posy, obid, obfile, shadowid, shadowfile, obframe, torsoframe, flag3, flag4);
-				}
-				fclose(dump_file);
-				/*printf("[%i] nyi entry:%i at %i\n", i, e, s3dat_mem->animation_index.pointers[e]);*/
-
-				if(e+1 != s3dat_mem->animation_index.len) {
-					if(s3dat_mem->animation_index.pointers[e+1]-s3dat_mem->animation_index.pointers[e] != len) printf("WrongWrongWrong %i != %i\n", s3dat_mem->animation_index.pointers[e+1]-s3dat_mem->animation_index.pointers[e], len);
+					printf("[%i] x=%hi y=%hi sfile=%hu sid=%hu sframe=%hu tfile=%hu tid=%hu  tframe=%hu hfile=%hu hid=%hu flags={0x%x,0x%x}\n", i, posx, posy, settlerfile, settlerid, settlerframe, torsofile, torsoid, torsoframe, shadowfile, shadowid, flag3, flag4);
 				}
 			}
 		}
+		if(i+1 != 49) printf("\n");
 
 		close(fd);
 
