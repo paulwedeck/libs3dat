@@ -39,10 +39,14 @@ int main() {
 
 		int fd = open(name, O_RDONLY);
 
-		int error = s3dat_readfile_fd(s3dat_mem, fd);
+		s3dat_exception_t* ex = NULL;
+
+		s3dat_readfile_fd(s3dat_mem, fd, &ex);
 		printf("[%i] new file %s\n", i, name);
-		if(error != 0) {
-			printf("%i\n", error);
+		if(ex != NULL) {
+			s3dat_print_exception(ex);
+			s3dat_delete_exception(s3dat_mem, ex);
+			ex = NULL;
 		} else if(s3dat_mem->sound_index.len == 0) {
 			printf("[%i] %i settler sequences\n", i, s3dat_mem->settler_index.len);
 			printf("[%i] %i shadow sequences\n", i, s3dat_mem->shadow_index.len);
@@ -56,31 +60,20 @@ int main() {
 		}
 
 		if(s3dat_mem->animation_index.len > 0 && false) {
+			s3dat_animation_t* ani = s3dat_new_animation(s3dat_mem);
 			for(uint32_t e = 0;e != s3dat_mem->animation_index.len;e++) {
 				printf("[%i] animation %i at %i\n", i, e, s3dat_mem->animation_index.pointers[e]);
+				s3dat_extract_animation(s3dat_mem, e, ani, &ex);
 
-				s3dat_mem->seek_func(s3dat_mem->io_arg, s3dat_mem->animation_index.pointers[e], SEEK_SET);
-				uint32_t count;
-				s3dat_mem->read_func(s3dat_mem->io_arg, &count, 4);
-
-				for(int d = 0;d != count;d++) {
-					short posx, posy;
-					unsigned short settlerid = 0, settlerfile = 0, torsoid = 0, torsofile = 0, shadowid = 0, shadowfile = 0, settlerframe = 0, torsoframe = 0, flag3 = 0, flag4 = 0;
-					s3dat_mem->read_func(s3dat_mem->io_arg, &posx, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &posy, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &settlerid, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &settlerfile, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &torsoid, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &torsofile, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &shadowid, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &shadowfile, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &settlerframe, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &torsoframe, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &flag3, 2);
-					s3dat_mem->read_func(s3dat_mem->io_arg, &flag4, 2);
-					printf("[%i] x=%hi y=%hi sfile=%hu sid=%hu sframe=%hu tfile=%hu tid=%hu  tframe=%hu hfile=%hu hid=%hu flags={0x%x,0x%x}\n", i, posx, posy, settlerfile, settlerid, settlerframe, torsofile, torsoid, torsoframe, shadowfile, shadowid, flag3, flag4);
+				if(ex != NULL) {
+					s3dat_print_exception(ex);
+					s3dat_delete_exception(s3dat_mem, ex);
+					ex = NULL;
+				} else for(int d = 0;d != ani->len;d++) {
+					printf("[%i] x=%hi y=%hi sfile=%hu sid=%hu sframe=%hu tfile=%hu tid=%hu  tframe=%hu hfile=%hu hid=%hu flags={0x%x,0x%x}\n", i, ani->frames[d].posx, ani->frames[d].posy, ani->frames[d].settler_file, ani->frames[d].settler_id, ani->frames[d].settler_frame, ani->frames[d].torso_file, ani->frames[d].torso_id, ani->frames[d].torso_frame, ani->frames[d].shadow_file, ani->frames[d].shadow_id, ani->frames[d].flag1, ani->frames[d].flag2);
 				}
 			}
+			s3dat_delete_animation(ani);
 		}
 		if(i+1 != 49) printf("\n");
 

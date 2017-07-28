@@ -1,13 +1,7 @@
-#include "s3dat.h"
+#include "s3dat_internal.h"
 
 #include "stdlib.h"
 #include "string.h"
-
-void s3dat_internal_delete_index(s3dat_t* mem, s3dat_index_t* index);
-void s3dat_internal_delete_index32(s3dat_t* mem, s3dat_index32_t* index);
-void s3dat_internal_delete_seq(s3dat_t* mem, s3dat_seq_index_t* seq);
-void s3dat_internal_delete_seq32(s3dat_t* mem, s3dat_seq_index32_t* seq);
-
 
 s3dat_animation_t* s3dat_new_animation(s3dat_t* parent) {
 	return s3dat_new_animations(parent, 1);
@@ -100,9 +94,14 @@ void s3dat_delete_pixdatas(s3dat_bitmap_t* mem, uint32_t count) {
 
 
 void s3dat_internal_delete_index(s3dat_t* mem, s3dat_index_t* index) {
-	if(index->type == 0) return;
+	s3dat_internal_delete_indices(mem, index, 1);
+}
 
-	mem->free_func(mem->mem_arg, index->pointers);
+void s3dat_internal_delete_indices(s3dat_t* mem, s3dat_index_t* indices, uint32_t count) {
+	if(count == 0) return;
+	for(uint32_t i = 0;i != count;i++) {
+		if(indices[i].type != 0) mem->free_func(mem->mem_arg, indices[i].pointers);
+	}
 }
 
 void s3dat_internal_delete_index32(s3dat_t* mem, s3dat_index32_t* index) {

@@ -1,31 +1,15 @@
 #ifndef S3DAT_H
 #define S3DAT_H
 
-//#define S3DAT_COMPATIBILITY_MODE 1
-
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
-#define S3DAT_READ_SUCCESSFUL 0
-#define S3DAT_ERROR_CORRUPT_HEADER 0x100
-#define S3DAT_ERROR_FILE_TOO_SHORT 0x101
-#define S3DAT_UNKNOWN_FILETYPE 0x102
-#define S3DAT_ERROR_CORRUPT_INDEX 0x103
-#define S3DAT_ERROR_INDEX_TYPE_COLLISION 0x104
-#define S3DAT_ERROR_CORRUPT_SEQUENCE 0x105
-#define S3DAT_ERROR_CORRUPT_IMAGE 0x106
-#define S3DAT_ERROR_NYI 0x107
-#define S3DAT_ERROR_CORRUPT_IMAGEDATA 0x108
-#define S3DAT_ERROR_NULL_IMAGES_ARE_NULL 0x109
-#define S3DAT_ERROR_VALUE_HIGHER_THAN_MAX 0x110
+#define S3DAT_SEEK_CUR 0x20
+#define S3DAT_SEEK_SET 0x21
 
-#define S3DAT_WRITE_SUCCESSFUL 0
-#define S3DAT_DATA_VALID 0
-#define S3DAT_ERROR_INVALID_INPUT 0x200
-#define S3DAT_ERROR_WRONG_COLORTYPE 0x201
-#define S3DAT_ERROR_CORRUPT_WIDTH_HEIGHT 0x202
-#define S3DAT_ERROR_CORRUPT_PIXEL 0x203
+typedef struct s3dat_exception_t s3dat_exception_t;
 
 typedef enum {
 	s3dat_snd = 0xFFFF, // SND .dat files only
@@ -84,10 +68,10 @@ typedef struct {
 	uint32_t io_arg;
 	void* (*alloc_func) (uint32_t, size_t);
 	void (*free_func) (uint32_t, void*);
-	void (*read_func) (uint32_t, void*, size_t);
+	bool (*read_func) (uint32_t, void*, size_t);
 	size_t (*size_func) (uint32_t);
 	size_t (*pos_func) (uint32_t);
-	void (*seek_func) (uint32_t, uint32_t, int);
+	bool (*seek_func) (uint32_t, uint32_t, int);
 
 	bool green_6b;
 
@@ -147,28 +131,26 @@ typedef struct {
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
 
-uint32_t s3dat_readfile_fd(s3dat_t* mem, uint32_t file);
+void s3dat_readfile_fd(s3dat_t* mem, uint32_t file, s3dat_exception_t** throws);
 
-uint32_t s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
-	void (*read_func) (uint32_t, void*, size_t),
+void s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
+	bool (*read_func) (uint32_t, void*, size_t),
 	size_t (*size_func) (uint32_t),
 	size_t (*pos_func) (uint32_t),
-	void (*seek_func) (uint32_t, uint32_t, int));
+	bool (*seek_func) (uint32_t, uint32_t, int),
+	s3dat_exception_t** throws_out);
 
-uint32_t s3dat_internal_readsnd(s3dat_t* mem); // io functions must be defined
+void s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
+void s3dat_extract_shadow(s3dat_t* mem, uint16_t shadow, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
+void s3dat_extract_torso(s3dat_t* mem, uint16_t torso, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
+void s3dat_extract_sound(s3dat_t* mem, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to, s3dat_exception_t** throws);
+void s3dat_extract_landscape2(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, bool blend, s3dat_exception_t** throws);
+void s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, s3dat_exception_t** throws);
+void s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_bitmap_t* to, s3dat_exception_t** throws);
+void s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws);
 
-uint32_t s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff);
-uint32_t s3dat_extract_shadow(s3dat_t* mem, uint16_t shadow, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff);
-uint32_t s3dat_extract_torso(s3dat_t* mem, uint16_t torso, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff);
-uint32_t s3dat_extract_sound(s3dat_t* mem, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to);
-uint32_t s3dat_extract_landscape2(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, bool blend);
-uint32_t s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to);
-uint32_t s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_bitmap_t* to);
-uint32_t s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to);
-
-void s3dat_default_read_func(uint32_t arg, void* bfr, size_t len); // system endianness
-void s3dat_default_write_func(uint32_t arg, void* bfr, size_t len); // system endianness
-void s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence);
+bool s3dat_default_read_func(uint32_t arg, void* bfr, size_t len); // system endianness
+bool s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence);
 size_t s3dat_default_pos_func(uint32_t arg);
 size_t s3dat_default_size_func(uint32_t arg);
 void* s3dat_default_alloc_func(uint32_t arg, size_t size);
@@ -186,10 +168,6 @@ s3dat_bitmap_t* s3dat_new_bitmaps(s3dat_t* parent, uint32_t count);
 s3dat_sound_t* s3dat_new_sound(s3dat_t* parent);
 s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count);
 
-uint32_t s3dat_internal_read32LE(s3dat_t* mem);
-uint16_t s3dat_internal_read16LE(s3dat_t* mem);
-uint16_t s3dat_internal_read8(s3dat_t* mem);
-
 void s3dat_delete(s3dat_t* mem);
 void s3dat_delete_animation(s3dat_animation_t* mem);
 void s3dat_delete_animations(s3dat_animation_t* mem, uint32_t count);
@@ -205,6 +183,9 @@ void s3dat_delete_sound(s3dat_sound_t* mem);
 void s3dat_delete_sounds(s3dat_sound_t* mem, uint32_t count);
 void s3dat_delete_snddata(s3dat_sound_t* mem);
 void s3dat_delete_snddatas(s3dat_sound_t* mem, uint32_t count);
+
+void s3dat_print_exception(s3dat_exception_t* ex); // debuging only
+void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex);
 
 #endif /*S3DAT_H*/
 
