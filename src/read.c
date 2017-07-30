@@ -309,7 +309,7 @@ size_t s3dat_default_size_func(uint32_t arg) {
 }
 
 size_t s3dat_default_pos_func(uint32_t arg) {
-	return lseek(arg, 0, S3DAT_SEEK_CUR);
+	return lseek(arg, 0, SEEK_CUR);
 }
 
 void s3dat_internal_seek_func(s3dat_t* mem, uint32_t pos, int whence, s3dat_exception_t** throws) {
