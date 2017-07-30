@@ -43,7 +43,17 @@ int main() {
 	s3dat_t* dat20 = s3dat_new_malloc();
 
 	s3dat_readfile_fd(dat00, dat00_fd, &ex);
+	if(ex != NULL) {
+		s3dat_print_exception(ex);
+		s3dat_delete_exception(dat00, ex);
+		ex = NULL;
+	}
 	s3dat_readfile_fd(dat20, dat20_fd, &ex);
+	if(ex != NULL) {
+		s3dat_print_exception(ex);
+		s3dat_delete_exception(dat00, ex);
+		ex = NULL;
+	}
 
 	glfwInit();
 
@@ -75,7 +85,17 @@ int main() {
 
 	for(int i = 0;i != 72;i++) {
 		s3dat_extract_settler(dat20, ex_s, i, settler_bitmaps+i, settler_xoff+i, settler_yoff+i, &ex);
+		if(ex != NULL) {
+			s3dat_print_exception(ex);
+			s3dat_delete_exception(dat00, ex);
+			ex = NULL;
+		}
 		s3dat_extract_torso(dat20, ex_s, i, torso_bitmaps+i, NULL, NULL, &ex);
+		if(ex != NULL) {
+			s3dat_print_exception(ex);
+			s3dat_delete_exception(dat00, ex);
+			ex = NULL;
+		}
 	}
 
 	bitmaps_to_textures(72, settler_bitmaps, settler_texs);

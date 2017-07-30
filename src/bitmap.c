@@ -88,7 +88,6 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 	s3dat_color_t* pixdata = NULL;
 	if(re_pixdata) {
 		pixdata = mem->alloc_func(mem->mem_arg, width*height*sizeof(s3dat_color_t));
-		memset(pixdata, 0, width*height*4);
 		*re_pixdata = pixdata;
 	}
 
@@ -99,8 +98,9 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 	do {
 		meta = s3dat_internal_read16LE(mem, throws);
 		if(*throws != NULL) {
+			if(pixdata) mem->free_func(mem->mem_arg, pixdata);
+				*re_pixdata = NULL;
 			s3dat_add_to_stack(mem, throws, __FILE__, __LINE__);
-			mem->free_func(mem->mem_arg, pixdata);
 			return;
 		}
 
@@ -109,7 +109,8 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 			if(pixdata) pixdata[y*width+x] = trans_color;
 			skip--;
 			if(x == width) {
-				mem->free_func(mem->mem_arg, pixdata);
+				if(pixdata) mem->free_func(mem->mem_arg, pixdata);
+				*re_pixdata = NULL;
 				s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __LINE__);
 				return;
 			}
@@ -119,7 +120,7 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 		uint8_t datalen = meta & 0xFF;
 		while(datalen > 0) {
 			if(pixdata) {
-				pixdata[y*width+x] = s3dat_internal_ex(mem, type,throws);
+				pixdata[y*width+x] = s3dat_internal_ex(mem, type, throws);
 			} else {
 				s3dat_internal_ex(mem, type, throws);
 			}
@@ -127,7 +128,8 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 
 			datalen--;
 			if(x == width) {
-				mem->free_func(mem->mem_arg, pixdata);
+				if(pixdata) mem->free_func(mem->mem_arg, pixdata);
+				*re_pixdata = NULL;
 				s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __LINE__);
 				return;
 			}
