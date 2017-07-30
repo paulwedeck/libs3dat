@@ -1,0 +1,6 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#cmakedefine USE_ICONV
+
+#endif /*CONFIG_H*/

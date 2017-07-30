@@ -1,5 +1,11 @@
 #include "s3dat.h"
 
+#include "config.h"
+
+#ifdef USE_ICONV
+#include "iconv.h"
+#endif
+
 #ifndef S3DAT_INTERNAL_H
 #define S3DAT_INTERNAL_H
 
@@ -8,6 +14,7 @@
 #define S3DAT_EXCEPTION_CONFLICTING_DATA 0x103
 #define S3DAT_EXCEPTION_INDEXTYPE 0x104
 #define S3DAT_EXCEPTION_OUT_OF_RANGE 0x105
+#define S3DAT_EXCEPTION_ICONV_ERROR 0x106
 
 #define S3DAT_ATTRIBUTE_INDEX 0x200
 

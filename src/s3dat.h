@@ -20,7 +20,19 @@ typedef enum {
 	s3dat_gui = 0x11306,
 	s3dat_animation = 0x21702,
 	s3dat_palette = 0x2607,
+	s3dat_string = 0x1904,
 } s3dat_content_type;
+
+typedef enum {
+	s3dat_german = 0,
+	s3dat_english = 1,
+	s3dat_italian = 2,
+	s3dat_french = 3,
+	s3dat_polish = 4,
+	s3dat_spanish = 5,
+	s3dat_korean = 6,
+	s3dat_japanese = 7,
+} s3dat_language;
 
 typedef struct s3dat_bitmap_t s3dat_bitmap_t;
 typedef struct s3dat_sound_t s3dat_sound_t;
@@ -78,6 +90,7 @@ typedef struct {
 	s3dat_seq_index_t settler_index;
 	s3dat_seq_index_t shadow_index;
 	s3dat_seq_index_t torso_index;
+	s3dat_seq_index_t string_index;
 	s3dat_seq_index32_t sound_index; // SND .dat files only
 	s3dat_index_t landscape_index;
 	s3dat_index_t gui_index;
@@ -127,6 +140,14 @@ typedef struct {
 typedef struct {
 	s3dat_t* src;
 
+	bool original_encoding;
+	s3dat_language language;
+	char* string_data;
+} s3dat_string_t;
+
+typedef struct {
+	s3dat_t* src;
+
 	uint32_t len;
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
@@ -148,6 +169,7 @@ void s3dat_extract_landscape2(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* 
 void s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* to, s3dat_exception_t** throws);
 void s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_bitmap_t* to, s3dat_exception_t** throws);
 void s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws);
+void s3dat_extract_string(s3dat_t* mem, uint16_t text, s3dat_language language, s3dat_string_t* to, bool utf8, s3dat_exception_t** throws);
 
 bool s3dat_default_read_func(uint32_t arg, void* bfr, size_t len); // system endianness
 bool s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence);
@@ -168,6 +190,9 @@ s3dat_bitmap_t* s3dat_new_bitmaps(s3dat_t* parent, uint32_t count);
 s3dat_sound_t* s3dat_new_sound(s3dat_t* parent);
 s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count);
 
+s3dat_string_t* s3dat_new_string(s3dat_t* parent);
+s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count);
+
 void s3dat_delete(s3dat_t* mem);
 void s3dat_delete_animation(s3dat_animation_t* mem);
 void s3dat_delete_animations(s3dat_animation_t* mem, uint32_t count);
@@ -183,6 +208,11 @@ void s3dat_delete_sound(s3dat_sound_t* mem);
 void s3dat_delete_sounds(s3dat_sound_t* mem, uint32_t count);
 void s3dat_delete_snddata(s3dat_sound_t* mem);
 void s3dat_delete_snddatas(s3dat_sound_t* mem, uint32_t count);
+
+void s3dat_delete_string(s3dat_string_t* string);
+void s3dat_delete_strings(s3dat_string_t* strings, uint32_t count);
+void s3dat_delete_stringdata(s3dat_string_t* string);
+void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count);
 
 void s3dat_print_exception(s3dat_exception_t* ex); // debuging only
 void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex);

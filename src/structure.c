@@ -13,6 +13,15 @@ s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count) {
 	return bm;
 }
 
+s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count) {
+	s3dat_string_t* strings = parent->alloc_func(parent->mem_arg, sizeof(s3dat_string_t)*count);
+	for(uint32_t i = 0;i != count;i++) strings[i].src = parent;
+	return strings;
+}
+
+s3dat_string_t* sdat_new_string(s3dat_t* parent) {
+	return s3dat_new_strings(parent, 1);
+}
 
 s3dat_bitmap_t* s3dat_new_bitmap(s3dat_t* parent) {
 	return s3dat_new_bitmaps(parent, 1);
@@ -39,6 +48,7 @@ void s3dat_delete(s3dat_t* mem) {
 	s3dat_internal_delete_seq(mem, &mem->settler_index);
 	s3dat_internal_delete_seq(mem, &mem->shadow_index);
 	s3dat_internal_delete_seq(mem, &mem->torso_index);
+	s3dat_internal_delete_seq(mem, &mem->string_index);
 	s3dat_internal_delete_seq32(mem, &mem->sound_index);
 
 	s3dat_internal_delete_index(mem, &mem->landscape_index);
@@ -129,10 +139,29 @@ void s3dat_internal_delete_seq32(s3dat_t* mem, s3dat_seq_index32_t* seq) {
 	mem->free_func(mem->mem_arg, seq->sequences);
 }
 
+void s3dat_delete_string(s3dat_string_t* string) {
+	s3dat_delete_strings(string, 1);
+}
+
+void s3dat_delete_strings(s3dat_string_t* strings, uint32_t count) {
+	s3dat_delete_stringdatas(strings, count);
+
+	strings->src->free_func(strings->src->mem_arg, strings);
+}
+
+void s3dat_delete_stringdata(s3dat_string_t* string) {
+	s3dat_delete_stringdatas(string, 1);
+}
+void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		if(strings[i].string_data) strings->src->free_func(strings->src->mem_arg, strings[i].string_data);
+	}
+}
 
 void* s3dat_default_alloc_func(uint32_t arg, size_t size) {
 	void* mem = malloc(size);
 	memset(mem, 0, size);
+	return mem;
 }
 
 void s3dat_default_free_func(uint32_t arg, void* mem) {

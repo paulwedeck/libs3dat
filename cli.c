@@ -19,6 +19,7 @@ int main() {
 	struct dirent* ent;
 	while((gfx_dir && (ent = readdir(gfx_dir)) != NULL) || (snd_dir && (ent = readdir(snd_dir)) != NULL)) {
 		if(ent->d_name[0] == '.') continue;
+		if(i != 0) printf("\n");
 
 		int len = strlen(ent->d_name);
 		char name[len+5];
@@ -55,10 +56,29 @@ int main() {
 			printf("[%i] %i animation entries\n", i, s3dat_mem->animation_index.len);
 			printf("[%i] %i palette entries\n", i, s3dat_mem->palette_index.len);
 			printf("[%i] %i landscape entries\n", i, s3dat_mem->landscape_index.len);
+			printf("[%i] %i string entries\n", i, s3dat_mem->string_index.len);
 		} else {
 			printf("[%i] %i sound entries\n", i, s3dat_mem->sound_index.len);
 		}
 
+		if(s3dat_mem->string_index.len > 0 && false) {
+			for(uint32_t s = 0;s != s3dat_mem->string_index.len;s++) {
+				s3dat_string_t* strings = s3dat_new_strings(s3dat_mem, 8);
+				for(uint16_t l = 0;l != 8;l++) {
+					s3dat_extract_string(s3dat_mem, s, l, strings+l, true, &ex);
+					if(ex != NULL) {
+						s3dat_print_exception(ex);
+						s3dat_delete_exception(s3dat_mem, ex);
+						ex = NULL;
+					} else {
+						printf("%s", strings[l].string_data);
+					}
+					if(l != 7) printf("|");
+				}
+				s3dat_delete_strings(strings, 8);
+				printf("\n");
+			}
+		}
 		if(s3dat_mem->animation_index.len > 0 && false) {
 			s3dat_animation_t* ani = s3dat_new_animation(s3dat_mem);
 			for(uint32_t e = 0;e != s3dat_mem->animation_index.len;e++) {
@@ -75,7 +95,6 @@ int main() {
 			}
 			s3dat_delete_animation(ani);
 		}
-		if(i+1 != 49) printf("\n");
 
 		close(fd);
 
