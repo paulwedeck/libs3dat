@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/bin")
+set(CPACK_PACKAGE_NAME "libs3dat")
 
 option(FORCE_ICONV "Force iconv even if no iconv.h is found" OFF)
 option(DISABLE_ICONV "Disables testing for iconv" OFF)
@@ -51,3 +52,8 @@ if(glfw3_FOUND AND OpenGL_FOUND)
 	target_link_libraries(walk s3dat ${OPENGL_LIBRARIES} glfw m)
 	target_include_directories(walk PUBLIC ${OPENGL_INCLUDE_DIRS} ${glfw3_INCLUDE_DIRS})
 endif()
+
+install(TARGETS s3dat DESTINATION lib)
+install(FILES src/s3dat.h DESTINATION include/s3dat)
+
+include(CPack)

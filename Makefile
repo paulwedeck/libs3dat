@@ -13,5 +13,11 @@ all:
 
 release:
 	@mkdir -p release
-	@cd release; cmake .. > /dev/null
+	@cd release; cmake -D CMAKE_INSTALL_PREFIX=/usr .. > /dev/null
 	@make -C release --quiet
+
+install-release: release
+	@make -C release --quiet install
+
+clean-release:
+	@rm -rf release
