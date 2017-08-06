@@ -6,3 +6,4 @@ GFX
 snd.raw
 src/config.h
 release/
+palette_dump*.data

@@ -1,8 +1,10 @@
 #include "s3dat_internal.h"
+#line __LINE__ "exception.c"
 
-void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, int line) {
+void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, const char* func, int line) {
 	s3dat_internal_stack_t* now = mem->alloc_func(mem->mem_arg, sizeof(s3dat_internal_stack_t));
 	now->file = file;
+	now->function = func;
 	now->line = line;
 	now->down = (*throws)->stack;
 	(*throws)->stack = now;
@@ -16,12 +18,12 @@ void s3dat_add_attr(s3dat_t* mem, s3dat_exception_t** throws, uint32_t name, uin
 	(*throws)->attrs = attr;
 }
 
-void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t type, char* file, int line) {
+void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t type, char* file, const char* func, int line) {
 	*throws = mem->alloc_func(mem->mem_arg, sizeof(s3dat_exception_t));
 	(*throws)->type = type;
 	(*throws)->stack = NULL;
 	(*throws)->attrs = NULL;
-	s3dat_add_to_stack(mem, throws, file, line);
+	s3dat_add_to_stack(mem, throws, file, func, line);
 }
 
 void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex) {
@@ -53,7 +55,7 @@ void s3dat_print_exception(s3dat_exception_t* ex) {
 	s3dat_internal_stack_t* stack = ex->stack;
 
 	while(stack != NULL) {
-		printf(" at %s:%i\n", stack->file, stack->line);
+		printf(" at %s(%s:%i)\n", stack->function, stack->file, stack->line);
 		stack = stack->down;
 	}
 }

@@ -4,8 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <libavcodec/avcodec.h>
-#include <libavutil/channel_layout.h>
+#include <string.h>
 
 int main() {
 	DIR* gfx_dir = opendir("GFX");
@@ -54,7 +53,7 @@ int main() {
 			printf("[%i] %i torso sequences\n", i, s3dat_mem->torso_index.len);
 			printf("[%i] %i gui entries\n", i, s3dat_mem->gui_index.len);
 			printf("[%i] %i animation entries\n", i, s3dat_mem->animation_index.len);
-			printf("[%i] %i palette entries\n", i, s3dat_mem->palette_index.len);
+			printf("[%i] %i palette entries with %i bytes per line\n", i, s3dat_mem->palette_index.len, s3dat_mem->palette_line_length);
 			printf("[%i] %i landscape entries\n", i, s3dat_mem->landscape_index.len);
 			printf("[%i] %i string entries\n", i, s3dat_mem->string_index.len);
 		} else {
@@ -79,6 +78,28 @@ int main() {
 				printf("\n");
 			}
 		}
+		if(s3dat_mem->palette_index.len > 0 && false) {
+			for(uint32_t p = 0;p != s3dat_mem->palette_index.len;p++) {
+				s3dat_mem->seek_func(s3dat_mem->io_arg, s3dat_mem->palette_index.pointers[0], S3DAT_SEEK_SET);
+				char name[100];
+				snprintf(name, 100, "palette_dump-%i.data", p);
+				FILE* file = fopen(name, "wb");
+
+				s3dat_bitmap_t bmp;
+				s3dat_extract_palette(s3dat_mem, p, &bmp, &ex);
+				if(ex != NULL) {
+					s3dat_print_exception(ex);
+					s3dat_delete_exception(s3dat_mem, ex);
+					ex = NULL;
+				} else {
+					fwrite(bmp.data, bmp.width*bmp.height, 4, file);
+					s3dat_delete_pixdata(&bmp);
+				}
+
+				fclose(file);
+			}
+		}
+
 		if(s3dat_mem->animation_index.len > 0 && false) {
 			s3dat_animation_t* ani = s3dat_new_animation(s3dat_mem);
 			for(uint32_t e = 0;e != s3dat_mem->animation_index.len;e++) {

@@ -1,4 +1,5 @@
 #include "s3dat_internal.h"
+#line __LINE__ "read.c"
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -42,28 +43,28 @@ void s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
 
 	uint8_t header_part1[33];
 	if(!read_func(arg, header_part1, 16)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	if(memcmp(header_part1, s3dat_internal_snd_header_read_c, 16) == 0) {
 		s3dat_internal_readsnd(mem, throws);
-		if(*throws != NULL) s3dat_add_to_stack(mem, throws, __FILE__, __LINE__);
+		if(*throws != NULL) s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	if(!read_func(arg, header_part1+16, 17)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 	if(memcmp(header_part1, s3dat_header_start_part1, 33) != 0) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	uint8_t header_filetype[5];
 	if(!read_func(arg, header_filetype, 5)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 
@@ -72,59 +73,59 @@ void s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
 	} else if(memcmp(header_filetype, s3dat_header_rgb565, 5) == 0) {
 		mem->green_6b = true;
 	} else {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	uint8_t header_part2[10];
 	if(!read_func(arg, header_part2, 10)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	if(memcmp(header_part2, s3dat_header_start_part2, 10) != 0) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	uint32_t file_size = s3dat_internal_read32LE(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	if(file_size != mem->size_func(mem->io_arg)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	uint32_t sequence_pointers[8];
 	for(uint32_t i = 0;i != 8;i++) {
 		sequence_pointers[i] = s3dat_internal_read32LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	}
 
 	for(uint32_t i = 0;i < 8;i++) {
 		s3dat_internal_read_index(mem, sequence_pointers[i], throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	}
 }
 
 void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t** throws) {
 	s3dat_internal_seek_func(mem, index, S3DAT_SEEK_SET, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint32_t index_type = s3dat_internal_read32LE(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	if(index_type == s3dat_string) {
 		uint32_t index_size = s3dat_internal_read32LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		uint16_t texts = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		uint16_t languages = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		if(languages*texts*4+12 != index_size) {
-			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_CONFLICTING_DATA, __FILE__, __LINE__);
+			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_CONFLICTING_DATA, __FILE__, __func__, __LINE__);
 		}
 
 		mem->string_index.len = texts;
@@ -143,7 +144,6 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 
 				if(*throws != NULL) {
 					s3dat_internal_delete_seq(mem, &mem->string_index);
-					//mem->string_index.type = 0;
 				}
 			}
 		}
@@ -152,14 +152,14 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 	}
 
 	uint16_t index_size = s3dat_internal_read16LE(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint16_t index_len = s3dat_internal_read16LE(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	if((index_type != s3dat_palette && index_len*4+8 != index_size) ||
 		(index_type == s3dat_palette && index_len*4+12 != index_size)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_CONFLICTING_DATA, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_CONFLICTING_DATA, __FILE__, __func__, __LINE__);
 		return;
 	}
 
@@ -167,13 +167,13 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 		index_type != s3dat_shadow && index_type != s3dat_landscape &&
 		index_type != s3dat_gui && index_type != s3dat_animation &&
 		index_type != s3dat_palette) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	if(index_type == s3dat_palette) {
-		s3dat_internal_seek_func(mem, 4, S3DAT_SEEK_CUR, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		mem->palette_line_length = s3dat_internal_read32LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	}
 
 	if(index_type == s3dat_settler || index_type == s3dat_torso || index_type == s3dat_shadow) {
@@ -190,7 +190,7 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 			break;
 		}
 		if(index->type == index_type) {
-			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __LINE__);
+			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 			return;
 		}
 
@@ -199,7 +199,7 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 			pointers[i] = s3dat_internal_read32LE(mem, throws);
 
 			if(*throws != NULL) {
-				s3dat_add_to_stack(mem, throws, __FILE__, __LINE__);
+				s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 				mem->free_func(mem->mem_arg, pointers);
 			}
 		}
@@ -211,7 +211,7 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 			s3dat_internal_read_seq(mem, pointers[i], dead_indices+real_count, throws);
 
 			if(*throws != NULL) {
-				s3dat_add_to_stack(mem, throws, __FILE__, __LINE__);
+				s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 				s3dat_internal_delete_indices(mem, dead_indices, index_len);
 				mem->free_func(mem->mem_arg, dead_indices);
 				mem->free_func(mem->mem_arg, pointers);
@@ -244,12 +244,12 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 				index = &mem->palette_index;
 			break;
 			default:
-				s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __LINE__);
+				s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 			break;
 		}
 
 		if(index->type == index_type) {
-			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __LINE__);
+			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 			return;
 		}
 
@@ -259,29 +259,29 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 		index->pointers = mem->alloc_func(mem->mem_arg, 4*index_len);
 		for(uint16_t i = 0;i != index_len;i++) {
 			index->pointers[i] = s3dat_internal_read32LE(mem, throws);
-			S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+			S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 		}
 	}
 }
 
 void s3dat_internal_read_seq(s3dat_t* mem, uint32_t from, s3dat_index_t* to, s3dat_exception_t** throws) {
 	s3dat_internal_seek_func(mem, from, S3DAT_SEEK_SET, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint8_t seq_start[7];
 
 	if(!mem->read_func(mem->io_arg, seq_start, 7)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	if(memcmp(seq_start, s3dat_seq_start, 7) != 0) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	uint8_t frames = s3dat_internal_read8(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	to->len = frames;
 	to->pointers = mem->alloc_func(mem->mem_arg, 4*frames);
@@ -292,7 +292,7 @@ void s3dat_internal_read_seq(s3dat_t* mem, uint32_t from, s3dat_index_t* to, s3d
 		if(*throws != NULL) {
 			mem->free_func(mem->mem_arg, to->pointers);
 
-			s3dat_add_to_stack(mem, throws, __FILE__, __LINE__);
+			s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 			return;
 		}
 	}
@@ -314,7 +314,7 @@ size_t s3dat_default_pos_func(uint32_t arg) {
 
 void s3dat_internal_seek_func(s3dat_t* mem, uint32_t pos, int whence, s3dat_exception_t** throws) {
 	if(!mem->seek_func(mem->io_arg, pos, whence)) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	}
 }
 
@@ -325,79 +325,79 @@ bool s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence) {
 
 uint32_t s3dat_internal_read32LE(s3dat_t* mem, s3dat_exception_t** throws) {
 	uint32_t dat;
-	if(!mem->read_func(mem->io_arg, &dat, 4)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+	if(!mem->read_func(mem->io_arg, &dat, 4)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	return le32toh(dat);
 }
 
 uint16_t s3dat_internal_read16LE(s3dat_t* mem, s3dat_exception_t** throws) {
 	uint16_t dat;
-	if(!mem->read_func(mem->io_arg, &dat, 2)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+	if(!mem->read_func(mem->io_arg, &dat, 2)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	return le16toh(dat);
 }
 
 uint16_t s3dat_internal_read8(s3dat_t* mem, s3dat_exception_t** throws) {
 	uint8_t dat;
-	if(!mem->read_func(mem->io_arg, &dat, 1)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __LINE__);
+	if(!mem->read_func(mem->io_arg, &dat, 1)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	return dat;
 }
 
 void s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws) {
 	if(mem->animation_index.len <= animation) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	s3dat_internal_seek_func(mem, mem->animation_index.pointers[animation], S3DAT_SEEK_SET, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint32_t entries = s3dat_internal_read32LE(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	to->src = mem;
 	to->len = entries;
-	to->frames = mem->alloc_func(mem->io_arg, entries*sizeof(s3dat_frame_t));
+	to->frames = mem->alloc_func(mem->mem_arg, entries*sizeof(s3dat_frame_t));
 
 	for(uint32_t i = 0;i != entries;i++) {
  		to->frames[i].posx = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		to->frames[i].posx = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 
 		to->frames[i].settler_id = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		to->frames[i].settler_file = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 
 		to->frames[i].torso_id = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		to->frames[i].torso_file = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 
 		to->frames[i].shadow_id = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		to->frames[i].shadow_file = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 
 		to->frames[i].settler_frame = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		to->frames[i].torso_frame = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 
 		to->frames[i].flag1 = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 		to->frames[i].flag2 = s3dat_internal_read16LE(mem, throws);
-		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	}
 }
 
@@ -410,7 +410,7 @@ uint8_t* s3dat_internal_read_cstr(s3dat_t* mem, s3dat_exception_t** throws) {
 	do {
 		bfr[pos] = s3dat_internal_read8(mem, throws);
 		if(*throws != NULL) {
-			s3dat_add_to_stack(mem, throws, __FILE__, __LINE__);
+			s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 			mem->free_func(mem->mem_arg, bfr);
 			return NULL;
 		}
@@ -510,7 +510,7 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 	iconv_t iconv_s = iconv_open("UTF8", charset);
 
 	if(iconv_s == (iconv_t)-1) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 
@@ -522,7 +522,7 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 
 	if(iconv(iconv_s, &instr, &inlen, &utf8s, &outlen) == (size_t)-1) {
 		mem->free_func(mem->mem_arg, *utf8_str);
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
 	}
 	iconv_close(iconv_s);
 }
@@ -530,15 +530,15 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 
 void s3dat_extract_string(s3dat_t* mem, uint16_t text, s3dat_language language, s3dat_string_t* to, bool utf8, s3dat_exception_t** throws) {
 	if(text > mem->string_index.len || language > mem->string_index.sequences[text].len) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __LINE__);
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	s3dat_internal_seek_func(mem, mem->string_index.sequences[text].pointers[language], S3DAT_SEEK_SET, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint8_t* cstr = s3dat_internal_read_cstr(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __LINE__);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	to->original_encoding = true;
 	to->language = language;

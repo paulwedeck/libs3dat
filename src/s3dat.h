@@ -86,6 +86,7 @@ typedef struct {
 	bool (*seek_func) (uint32_t, uint32_t, int);
 
 	bool green_6b;
+	uint32_t palette_line_length;
 
 	s3dat_seq_index_t settler_index;
 	s3dat_seq_index_t shadow_index;
@@ -170,6 +171,8 @@ void s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_bitmap_t* t
 void s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_bitmap_t* to, s3dat_exception_t** throws);
 void s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws);
 void s3dat_extract_string(s3dat_t* mem, uint16_t text, s3dat_language language, s3dat_string_t* to, bool utf8, s3dat_exception_t** throws);
+void s3dat_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_bitmap_t* to, s3dat_exception_t** throws);
+s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
 
 bool s3dat_default_read_func(uint32_t arg, void* bfr, size_t len); // system endianness
 bool s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence);

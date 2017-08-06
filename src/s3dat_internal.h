@@ -18,9 +18,9 @@
 
 #define S3DAT_ATTRIBUTE_INDEX 0x200
 
-#define S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, file, line)  \
+#define S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, file, function, line)  \
 	if(*throws != NULL) { \
-		s3dat_add_to_stack(mem, throws, file, line); \
+		s3dat_add_to_stack(mem, throws, file, function, line); \
 		return; \
 	}
 
@@ -30,6 +30,7 @@ typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
 
 struct s3dat_internal_stack_t {
 	char* file;
+	const char* function;
 	uint32_t line;
 
 	s3dat_internal_stack_t* down;
@@ -73,7 +74,7 @@ uint16_t s3dat_internal_read16LE(s3dat_t* mem, s3dat_exception_t** throws);
 uint16_t s3dat_internal_read8(s3dat_t* mem, s3dat_exception_t** throws);
 void s3dat_internal_readsnd(s3dat_t* mem, s3dat_exception_t** throws);
 
-void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, int line);
-void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t exception, char* file, int line);
+void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, const char* function, int line);
+void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t exception, char* file, const char* function, int line);
 
 #endif /*S3DAT_INTERNAL_H*/

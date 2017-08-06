@@ -1,4 +1,5 @@
 #include "s3dat_internal.h"
+#line __LINE__ "structure.c"
 
 #include "stdlib.h"
 #include "string.h"
