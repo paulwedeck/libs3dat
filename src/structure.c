@@ -35,7 +35,7 @@ s3dat_t* s3dat_new_malloc() {
 	return s3dat_new_func(0, s3dat_default_alloc_func, s3dat_default_free_func);
 }
 
-s3dat_t* s3dat_new_func(uint32_t arg, void* (*alloc_func) (uint32_t, size_t), void (*free_func) (uint32_t, void*)) {
+s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*)) {
 	s3dat_t* s3dat_mem = alloc_func(arg, sizeof(s3dat_t));
 	s3dat_mem->mem_arg = arg;
 	s3dat_mem->alloc_func = alloc_func;
@@ -156,13 +156,13 @@ void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
 	}
 }
 
-void* s3dat_default_alloc_func(uint32_t arg, size_t size) {
+void* s3dat_default_alloc_func(void* arg, size_t size) {
 	void* mem = malloc(size);
 	memset(mem, 0, size);
 	return mem;
 }
 
-void s3dat_default_free_func(uint32_t arg, void* mem) {
+void s3dat_default_free_func(void* arg, void* mem) {
 	free(mem);
 }
 

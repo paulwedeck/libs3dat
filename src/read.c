@@ -18,15 +18,15 @@ uint8_t s3dat_header_rgb565[5] = {248, 0, 0, 224, 7};
 uint8_t s3dat_seq_start[7] = {2, 20, 0, 0, 8, 0, 0};
 
 void s3dat_readfile_fd(s3dat_t* mem, uint32_t file, s3dat_exception_t** throws) {
-	s3dat_readfile_func(mem, file, s3dat_default_read_func,
+	s3dat_readfile_func(mem, &file, s3dat_default_read_func,
 		s3dat_default_size_func, s3dat_default_pos_func, s3dat_default_seek_func, throws);
 }
 
-void s3dat_readfile_func(s3dat_t* mem, uint32_t arg,
-	bool (*read_func) (uint32_t, void*, size_t),
-	size_t (*size_func) (uint32_t),
-	size_t (*pos_func) (uint32_t),
-	bool (*seek_func) (uint32_t, uint32_t, int),
+void s3dat_readfile_func(s3dat_t* mem, void* arg,
+	bool (*read_func) (void*, void*, size_t),
+	size_t (*size_func) (void*),
+	size_t (*pos_func) (void*),
+	bool (*seek_func) (void*, uint32_t, int),
 	s3dat_exception_t** throws) {
 	mem->io_arg = arg;
 	mem->read_func = read_func;
@@ -291,18 +291,18 @@ void s3dat_internal_read_seq(s3dat_t* mem, uint32_t from, s3dat_index_t* to, s3d
 	}
 }
 
-bool s3dat_default_read_func(uint32_t arg, void* bfr, size_t len) {
-	return read(arg, bfr, len) == len;
+bool s3dat_default_read_func(void* arg, void* bfr, size_t len) {
+	return read(*((int*)arg), bfr, len) == len;
 }
 
-size_t s3dat_default_size_func(uint32_t arg) {
+size_t s3dat_default_size_func(void* arg) {
 	struct stat file_stat;
-	fstat(arg, &file_stat);
+	fstat(*((int*)arg), &file_stat);
 	return file_stat.st_size;
 }
 
-size_t s3dat_default_pos_func(uint32_t arg) {
-	return lseek(arg, 0, SEEK_CUR);
+size_t s3dat_default_pos_func(void* arg) {
+	return lseek(*((int*)arg), 0, SEEK_CUR);
 }
 
 void s3dat_internal_seek_func(s3dat_t* mem, uint32_t pos, int whence, s3dat_exception_t** throws) {
@@ -311,9 +311,9 @@ void s3dat_internal_seek_func(s3dat_t* mem, uint32_t pos, int whence, s3dat_exce
 	}
 }
 
-bool s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence) {
+bool s3dat_default_seek_func(void* arg, uint32_t pos, int whence) {
 	int lseek_whence = whence == S3DAT_SEEK_CUR ? SEEK_CUR : SEEK_SET;
-	return lseek(arg, pos,  lseek_whence) != (off_t)-1;
+	return lseek(*((int*)arg), pos,  lseek_whence) != (off_t)-1;
 }
 
 uint32_t s3dat_internal_read32LE(s3dat_t* mem, s3dat_exception_t** throws) {
