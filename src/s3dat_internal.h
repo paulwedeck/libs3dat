@@ -2,6 +2,17 @@
 
 #include "config.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#ifndef _WIN32
+#include <endian.h>
+#endif
+
 #ifdef USE_ICONV
 #include "iconv.h"
 #endif

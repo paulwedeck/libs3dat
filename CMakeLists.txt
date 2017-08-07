@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.2.2)
 project(s3dat)
 
+include(CPack)
+include(TestBigEndian)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/bin")
 set(CPACK_PACKAGE_NAME "libs3dat")
+
+TEST_BIG_ENDIAN(IS_BE)
 
 option(FORCE_ICONV "Force iconv even if no iconv.h is found" OFF)
 option(DISABLE_ICONV "Disables testing for iconv" OFF)
@@ -28,7 +33,7 @@ if(DISABLE_ICONV)
 endif()
 
 if(NOT USE_ICONV)
-	message(WARNING "libs3dat needs iconv for good iso8859-2 (Polish) to utf8 conversion and EUC-KR (Korean) or SHIFT_JIS (Japanese) to utf8 conversion.\nIso8859-1 (western Europa) to utf8 conversion is builtin")
+	message(WARNING "libs3dat needs iconv for good iso8859-2 (Polish) to utf8 conversion and EUC-KR (Korean) or SHIFT_JIS (Japanese) to utf8 conversion.\nISO8859-1 (western Europa) to utf8 conversion is builtin")
 endif()
 
 configure_file(config.h.in ${PROJECT_SOURCE_DIR}/src/config.h)
@@ -56,4 +61,3 @@ endif()
 install(TARGETS s3dat DESTINATION lib)
 install(FILES src/s3dat.h DESTINATION include/s3dat)
 
-include(CPack)

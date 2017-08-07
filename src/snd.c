@@ -1,9 +1,6 @@
 #include "s3dat_internal.h"
 #line __LINE__ "snd.c"
 
-#include <string.h>
-#include <stdio.h>
-#include <endian.h>
 
 uint8_t s3dat_internal_snd_header[16] = { 68, 21, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 0 };
 

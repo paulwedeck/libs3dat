@@ -1,10 +1,6 @@
 #include "s3dat_internal.h"
 #line __LINE__ "bitmap.c"
 
-#include <stdio.h>
-#include <string.h>
-#include <endian.h>
-
 uint8_t s3dat_image_header[4] = {12, 0, 0, 0};
 
 void s3dat_internal_read_bitmap_header(s3dat_t* mem, s3dat_content_type type, int from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws) {

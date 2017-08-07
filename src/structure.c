@@ -1,9 +1,6 @@
 #include "s3dat_internal.h"
 #line __LINE__ "structure.c"
 
-#include "stdlib.h"
-#include "string.h"
-
 s3dat_animation_t* s3dat_new_animation(s3dat_t* parent) {
 	return s3dat_new_animations(parent, 1);
 }

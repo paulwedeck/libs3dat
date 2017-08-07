@@ -2,5 +2,6 @@
 #define CONFIG_H
 
 #cmakedefine USE_ICONV
+#cmakedefine IS_BE
 
 #endif /*CONFIG_H*/

@@ -1,13 +1,6 @@
 #include "s3dat_internal.h"
 #line __LINE__ "read.c"
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <string.h>
-#include <endian.h>
-#include <stdio.h>
-
 uint8_t s3dat_internal_snd_header_read_c[16] = { 68, 21, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 0 };
 
 uint8_t s3dat_header_start_part1[33] = {
@@ -326,13 +319,30 @@ bool s3dat_default_seek_func(uint32_t arg, uint32_t pos, int whence) {
 uint32_t s3dat_internal_read32LE(s3dat_t* mem, s3dat_exception_t** throws) {
 	uint32_t dat;
 	if(!mem->read_func(mem->io_arg, &dat, 4)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
+	#ifdef _WIN32
+		#ifdef IS_BE
+		return ((dat & 0xFF) << 24) | ((dat & 0xFF00) << 8) |
+		((dat & 0xFF0000) >> 8) | ((dat & 0xFF000000) >> 24);
+		#else
+		return dat;
+		#endif
+	#else
 	return le32toh(dat);
+	#endif
 }
 
 uint16_t s3dat_internal_read16LE(s3dat_t* mem, s3dat_exception_t** throws) {
 	uint16_t dat;
 	if(!mem->read_func(mem->io_arg, &dat, 2)) s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
+	#ifdef _WIN32
+		#ifdef IS_BE
+		return ((dat & 0xFF) << 24) | ((dat & 0xFF00) << 8);
+		#else
+		return dat;
+		#endif
+	#else
 	return le16toh(dat);
+	#endif
 }
 
 uint16_t s3dat_internal_read8(s3dat_t* mem, s3dat_exception_t** throws) {
