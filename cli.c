@@ -41,7 +41,7 @@ int main() {
 
 		s3dat_exception_t* ex = NULL;
 
-		s3dat_readfile_fd(s3dat_mem, fd, &ex);
+		s3dat_readfile_fd(s3dat_mem, &fd, &ex);
 		printf("[%i] new file %s\n", i, name);
 		if(ex != NULL) {
 			s3dat_print_exception(ex);

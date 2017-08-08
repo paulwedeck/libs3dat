@@ -50,8 +50,32 @@ void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex) {
 	mem->free_func(mem->mem_arg, ex);
 }
 
+typedef struct {
+	uint32_t type;
+	char* name;
+} s3dat_internal_exception_name_t;
+
+s3dat_internal_exception_name_t exception_map[] = {
+	{S3DAT_EXCEPTION_IOERROR, "IOError"},
+	{S3DAT_EXCEPTION_HEADER, "WrongHeaderError"},
+	{S3DAT_EXCEPTION_CONFLICTING_DATA, "ConflictingDataError"},
+	{S3DAT_EXCEPTION_INDEXTYPE, "IndexTypeError"},
+	{S3DAT_EXCEPTION_OUT_OF_RANGE, "OutOfRangeError"},
+	{S3DAT_EXCEPTION_ICONV_ERROR, "IconvError"},
+	{0, NULL}
+};
+
 void s3dat_print_exception(s3dat_exception_t* ex) {
-	printf("exception caught 0x%x\n", ex->type);
+	char* name = NULL;
+
+	int index = 0;
+	while(exception_map[index].name != NULL) {
+		if(exception_map[index].type == ex->type) name = exception_map[index].name;
+		index++;
+	}
+
+	if(name != NULL) printf("%s caught\n", name);
+				else printf("exception caught 0x%x\n", ex->type);
 	s3dat_internal_stack_t* stack = ex->stack;
 
 	while(stack != NULL) {

@@ -153,7 +153,7 @@ typedef struct {
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
 
-void s3dat_readfile_fd(s3dat_t* mem, uint32_t file, s3dat_exception_t** throws);
+void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws);
 
 void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	bool (*read_func) (void*, void*, size_t),

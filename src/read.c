@@ -17,8 +17,8 @@ uint8_t s3dat_header_rgb565[5] = {248, 0, 0, 224, 7};
 
 uint8_t s3dat_seq_start[7] = {2, 20, 0, 0, 8, 0, 0};
 
-void s3dat_readfile_fd(s3dat_t* mem, uint32_t file, s3dat_exception_t** throws) {
-	s3dat_readfile_func(mem, &file, s3dat_default_read_func,
+void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws) {
+	s3dat_readfile_func(mem, file, s3dat_default_read_func,
 		s3dat_default_size_func, s3dat_default_pos_func, s3dat_default_seek_func, throws);
 }
 

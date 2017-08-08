@@ -42,13 +42,13 @@ int main() {
 	s3dat_t* dat00 = s3dat_new_malloc();
 	s3dat_t* dat20 = s3dat_new_malloc();
 
-	s3dat_readfile_fd(dat00, dat00_fd, &ex);
+	s3dat_readfile_fd(dat00, &dat00_fd, &ex);
 	if(ex != NULL) {
 		s3dat_print_exception(ex);
 		s3dat_delete_exception(dat00, ex);
 		ex = NULL;
 	}
-	s3dat_readfile_fd(dat20, dat20_fd, &ex);
+	s3dat_readfile_fd(dat20, &dat20_fd, &ex);
 	if(ex != NULL) {
 		s3dat_print_exception(ex);
 		s3dat_delete_exception(dat00, ex);
