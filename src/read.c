@@ -96,6 +96,7 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 
 	for(uint32_t i = 0;i < 8;i++) {
 		s3dat_internal_read_index(mem, sequence_pointers[i], throws);
+		S3DAT_INTERNAL_ADD_ATTR(mem, throws, S3DAT_ATTRIBUTE_INDEX, i);
 		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	}
 }
@@ -202,6 +203,7 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 
 		for(uint16_t i = 0;i != index_len;i++) {
 			s3dat_internal_read_seq(mem, pointers[i], dead_indices+real_count, throws);
+			S3DAT_INTERNAL_ADD_ATTR(mem, throws, S3DAT_ATTRIBUTE_SEQ, i);
 
 			if(*throws != NULL) {
 				s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);

@@ -28,6 +28,8 @@
 #define S3DAT_EXCEPTION_ICONV_ERROR 0x106
 
 #define S3DAT_ATTRIBUTE_INDEX 0x200
+#define S3DAT_ATTRIBUTE_SEQ 0x201
+#define S3DAT_ATTRIBUTE_SONG 0x202
 
 #define S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, file, function, line)  \
 	if(*throws != NULL) { \
@@ -35,6 +37,11 @@
 		return; \
 	}
 
+
+#define S3DAT_INTERNAL_ADD_ATTR(mem, throws, attr, value)  \
+	if(*throws != NULL) { \
+		s3dat_add_attr(mem, throws, attr, value); \
+	}
 
 typedef struct s3dat_internal_stack_t s3dat_internal_stack_t;
 typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
@@ -87,5 +94,6 @@ void s3dat_internal_readsnd(s3dat_t* mem, s3dat_exception_t** throws);
 
 void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, const char* function, int line);
 void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t exception, char* file, const char* function, int line);
+void s3dat_add_attr(s3dat_t* mem, s3dat_exception_t** throws, uint32_t name, uint32_t value);
 
 #endif /*S3DAT_INTERNAL_H*/

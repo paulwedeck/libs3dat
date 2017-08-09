@@ -157,9 +157,7 @@ void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
 }
 
 void* s3dat_default_alloc_func(void* arg, size_t size) {
-	void* mem = malloc(size);
-	memset(mem, 0, size);
-	return mem;
+	return calloc(size, 1);
 }
 
 void s3dat_default_free_func(void* arg, void* mem) {
