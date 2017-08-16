@@ -62,6 +62,7 @@ s3dat_internal_map_entry_t exception_map[] = {
 	{S3DAT_EXCEPTION_INDEXTYPE, "IndexTypeError"},
 	{S3DAT_EXCEPTION_OUT_OF_RANGE, "OutOfRangeError"},
 	{S3DAT_EXCEPTION_ICONV_ERROR, "IconvError"},
+	{S3DAT_EXCEPTION_OPEN, "OpenError"},
 	{0, NULL}
 };
 

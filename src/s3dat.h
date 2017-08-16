@@ -75,7 +75,9 @@ typedef struct {
 	s3dat_index32_t* sequences;
 } s3dat_seq_index32_t;
 
-typedef struct {
+typedef struct s3dat_t s3dat_t;
+
+struct s3dat_t {
 	void* mem_arg;
 	void* io_arg;
 	void* (*alloc_func) (void*, size_t);
@@ -84,6 +86,8 @@ typedef struct {
 	size_t (*size_func) (void*);
 	size_t (*pos_func) (void*);
 	bool (*seek_func) (void*, uint32_t, int);
+	void* (*open_func) (s3dat_t*);
+	void (*close_func) (s3dat_t*);
 
 	bool green_6b;
 	uint32_t palette_line_length;
@@ -98,7 +102,7 @@ typedef struct {
 	s3dat_index_t animation_index;
 	s3dat_index_t palette_index;
 
-} s3dat_t;
+};
 
 struct s3dat_sound_t {
 	s3dat_t* src;
@@ -153,6 +157,8 @@ typedef struct {
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
 
+void s3dat_readfile_name(s3dat_t* mem, char* name, s3dat_exception_t** throws);
+
 void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws);
 
 void s3dat_readfile_func(s3dat_t* mem, void* arg,
@@ -160,6 +166,8 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
 	bool (*seek_func) (void*, uint32_t, int),
+	void* (*open_func) (s3dat_t*),
+	void (*close_func) (s3dat_t*),
 	s3dat_exception_t** throws_out);
 
 void s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
@@ -173,6 +181,10 @@ void s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t
 void s3dat_extract_string(s3dat_t* mem, uint16_t text, s3dat_language language, s3dat_string_t* to, bool utf8, s3dat_exception_t** throws);
 void s3dat_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_bitmap_t* to, s3dat_exception_t** throws);
 s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
+
+
+void* s3dat_default_open_func(s3dat_t* from);
+void s3dat_default_close_func(s3dat_t* from);
 
 bool s3dat_default_read_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_default_seek_func(void* arg, uint32_t pos, int whence);

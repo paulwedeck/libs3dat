@@ -19,7 +19,12 @@ uint8_t s3dat_seq_start[7] = {2, 20, 0, 0, 8, 0, 0};
 
 void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws) {
 	s3dat_readfile_func(mem, file, s3dat_default_read_func,
-		s3dat_default_size_func, s3dat_default_pos_func, s3dat_default_seek_func, throws);
+		s3dat_default_size_func, s3dat_default_pos_func, s3dat_default_seek_func, NULL, NULL, throws);
+}
+
+
+void s3dat_readfile_name(s3dat_t* mem, char* name, s3dat_exception_t** throws) {
+	s3dat_readfile_func(mem, name, s3dat_default_read_func, s3dat_default_size_func, s3dat_default_pos_func, s3dat_default_seek_func, s3dat_default_open_func, s3dat_default_close_func, throws);
 }
 
 void s3dat_readfile_func(s3dat_t* mem, void* arg,
@@ -27,15 +32,26 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
 	bool (*seek_func) (void*, uint32_t, int),
+	void* (*open_func) (s3dat_t*),
+	void (*close_func) (s3dat_t*),
 	s3dat_exception_t** throws) {
 	mem->io_arg = arg;
 	mem->read_func = read_func;
 	mem->size_func = size_func;
 	mem->pos_func = pos_func;
 	mem->seek_func = seek_func;
+	mem->open_func = open_func;
+	mem->close_func = close_func;
+
+	if(open_func != NULL) mem->io_arg = open_func(mem);
+
+	if(mem->io_arg == NULL) {
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OPEN, __FILE__, __func__, __LINE__);
+		return;
+	}
 
 	uint8_t header_part1[33];
-	if(!read_func(arg, header_part1, 16)) {
+	if(!read_func(mem->io_arg, header_part1, 16)) {
 		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -46,7 +62,7 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 		return;
 	}
 
-	if(!read_func(arg, header_part1+16, 17)) {
+	if(!read_func(mem->io_arg, header_part1+16, 17)) {
 		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -56,7 +72,7 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	}
 
 	uint8_t header_filetype[5];
-	if(!read_func(arg, header_filetype, 5)) {
+	if(!read_func(mem->io_arg, header_filetype, 5)) {
 		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -71,7 +87,7 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	}
 
 	uint8_t header_part2[10];
-	if(!read_func(arg, header_part2, 10)) {
+	if(!read_func(mem->io_arg, header_part2, 10)) {
 		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -291,6 +307,23 @@ void s3dat_internal_read_seq(s3dat_t* mem, uint32_t from, s3dat_index_t* to, s3d
 			return;
 		}
 	}
+}
+
+void* s3dat_default_open_func(s3dat_t* from) {
+	int fd = open(from->io_arg, O_RDONLY);
+
+	if(fd == -1) {
+		return NULL;
+	}
+
+	int* fd_p = from->alloc_func(from->mem_arg, sizeof(int));
+	*fd_p = fd;
+	return fd_p;
+}
+
+void s3dat_default_close_func(s3dat_t* from) {
+	close(*(int*)(from->io_arg));
+	from->free_func(from->mem_arg, from->io_arg);
 }
 
 bool s3dat_default_read_func(void* arg, void* bfr, size_t len) {

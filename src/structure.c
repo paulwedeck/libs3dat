@@ -43,6 +43,8 @@ s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*f
 }
 
 void s3dat_delete(s3dat_t* mem) {
+	if(mem->close_func != NULL) mem->close_func(mem);
+
 	s3dat_internal_delete_seq(mem, &mem->settler_index);
 	s3dat_internal_delete_seq(mem, &mem->shadow_index);
 	s3dat_internal_delete_seq(mem, &mem->torso_index);

@@ -36,19 +36,17 @@ void bitmaps_to_textures(int c, s3dat_bitmap_t* bitmaps, int* ida) {
 
 int main() {
 	s3dat_exception_t* ex = NULL;
-	int dat00_fd = open("GFX/Siedler3_00.f8007e01f.dat", O_RDONLY);
-	int dat20_fd = open("GFX/Siedler3_10.f8007e01f.dat", O_RDONLY);
 
 	s3dat_t* dat00 = s3dat_new_malloc();
-	s3dat_t* dat20 = s3dat_new_malloc();
+	s3dat_t* dat10 = s3dat_new_malloc();
 
-	s3dat_readfile_fd(dat00, &dat00_fd, &ex);
+	s3dat_readfile_name(dat00, "GFX/Siedler3_00.f8007e01f.dat", &ex);
 	if(ex != NULL) {
 		s3dat_print_exception(ex);
 		s3dat_delete_exception(dat00, ex);
 		ex = NULL;
 	}
-	s3dat_readfile_fd(dat20, &dat20_fd, &ex);
+	s3dat_readfile_name(dat10, "GFX/Siedler3_10.f8007e01f.dat", &ex);
 	if(ex != NULL) {
 		s3dat_print_exception(ex);
 		s3dat_delete_exception(dat00, ex);
@@ -70,8 +68,8 @@ int main() {
 	onresize(wnd, width, height);
 
 	s3dat_bitmap_t* grass_bitmap = s3dat_new_bitmap(dat00);
-	s3dat_bitmap_t* settler_bitmaps = s3dat_new_bitmaps(dat20, 72);
-	s3dat_bitmap_t* torso_bitmaps = s3dat_new_bitmaps(dat20, 72);
+	s3dat_bitmap_t* settler_bitmaps = s3dat_new_bitmaps(dat10, 72);
+	s3dat_bitmap_t* torso_bitmaps = s3dat_new_bitmaps(dat10, 72);
 	s3dat_extract_landscape(dat00, 0, grass_bitmap, &ex);
 
 	short settler_xoff[72];
@@ -84,13 +82,13 @@ int main() {
 	int ex_s = 0;
 
 	for(int i = 0;i != 72;i++) {
-		s3dat_extract_settler(dat20, ex_s, i, settler_bitmaps+i, settler_xoff+i, settler_yoff+i, &ex);
+		s3dat_extract_settler(dat10, ex_s, i, settler_bitmaps+i, settler_xoff+i, settler_yoff+i, &ex);
 		if(ex != NULL) {
 			s3dat_print_exception(ex);
 			s3dat_delete_exception(dat00, ex);
 			ex = NULL;
 		}
-		s3dat_extract_torso(dat20, ex_s, i, torso_bitmaps+i, NULL, NULL, &ex);
+		s3dat_extract_torso(dat10, ex_s, i, torso_bitmaps+i, NULL, NULL, &ex);
 		if(ex != NULL) {
 			s3dat_print_exception(ex);
 			s3dat_delete_exception(dat00, ex);
@@ -195,7 +193,5 @@ int main() {
 	s3dat_delete_bitmaps(torso_bitmaps, 72);
 	s3dat_delete_bitmap(grass_bitmap);
 	s3dat_delete(dat00);
-	s3dat_delete(dat20);
-	close(dat00_fd);
-	close(dat20_fd);
+	s3dat_delete(dat10);
 }

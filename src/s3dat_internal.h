@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #ifndef _WIN32
 #include <endian.h>
@@ -26,6 +27,7 @@
 #define S3DAT_EXCEPTION_INDEXTYPE 0x104
 #define S3DAT_EXCEPTION_OUT_OF_RANGE 0x105
 #define S3DAT_EXCEPTION_ICONV_ERROR 0x106
+#define S3DAT_EXCEPTION_OPEN 0x107
 
 #define S3DAT_ATTRIBUTE_INDEX 0x200
 #define S3DAT_ATTRIBUTE_SEQ 0x201

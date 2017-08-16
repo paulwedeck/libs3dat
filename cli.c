@@ -37,11 +37,9 @@ int main() {
 
 		s3dat_t* s3dat_mem = s3dat_new_malloc();
 
-		int fd = open(name, O_RDONLY);
-
 		s3dat_exception_t* ex = NULL;
 
-		s3dat_readfile_fd(s3dat_mem, &fd, &ex);
+		s3dat_readfile_name(s3dat_mem, name, &ex);
 		printf("[%i] new file %s\n", i, name);
 		if(ex != NULL) {
 			s3dat_print_exception(ex);
@@ -116,8 +114,6 @@ int main() {
 			}
 			s3dat_delete_animation(ani);
 		}
-
-		close(fd);
 
 		s3dat_delete(s3dat_mem);
 
