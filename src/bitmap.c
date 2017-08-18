@@ -88,12 +88,11 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 		*re_pixdata = pixdata;
 	}
 
-	uint16_t meta = 0;
 	uint16_t x = 0;
 	uint16_t y = 0;
 
 	do {
-		meta = s3dat_internal_read16LE(mem, throws);
+		uint16_t meta = s3dat_internal_read16LE(mem, throws);
 		if(*throws != NULL) {
 			if(pixdata) mem->free_func(mem->mem_arg, pixdata);
 				*re_pixdata = NULL;

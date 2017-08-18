@@ -15,7 +15,7 @@
 #endif
 
 #ifdef USE_ICONV
-#include "iconv.h"
+#include <iconv.h>
 #endif
 
 #ifndef S3DAT_INTERNAL_H

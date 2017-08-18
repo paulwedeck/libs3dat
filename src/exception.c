@@ -27,22 +27,22 @@ void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t typ
 }
 
 void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex) {
-	s3dat_internal_stack_t* stack1, *stack2;
+	s3dat_internal_stack_t* stack1;
 
 	stack1 = ex->stack;
 
 	while(stack1 != NULL) {
-		stack2 = stack1;
+		s3dat_internal_stack_t* stack2 = stack1;
 		stack1 = stack1->down;
 		mem->free_func(mem->mem_arg, stack2);
 	}
 
-	s3dat_internal_attribute_t* attr1, *attr2;
+	s3dat_internal_attribute_t* attr1;
 
 	attr1 = ex->attrs;
 
 	while(attr1 != NULL) {
-		attr2 = attr1;
+		s3dat_internal_attribute_t* attr2 = attr1;
 		attr1 = attr1->next;
 		mem->free_func(mem->mem_arg, attr2);
 	}
@@ -95,14 +95,14 @@ void s3dat_print_exception(s3dat_exception_t* ex) {
 		printf("at ");
 		char* attr_name = s3dat_internal_find_entry(attr_map, attr->name);
 		if(attr_name != NULL) printf("%s", attr_name);
-			else printf("%i", attr->name);
-		printf(": %i\n", attr->value);
+			else printf("%u", attr->name);
+		printf(": %u\n", attr->value);
 		attr = attr->next;
 	}
 
 	s3dat_internal_stack_t* stack = ex->stack;
 	while(stack != NULL) {
-		printf(" at %s(%s:%i)\n", stack->function, stack->file, stack->line);
+		printf(" at %s(%s:%u)\n", stack->function, stack->file, stack->line);
 		stack = stack->down;
 	}
 }
