@@ -18,6 +18,10 @@
 #include <iconv.h>
 #endif
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #ifndef S3DAT_INTERNAL_H
 #define S3DAT_INTERNAL_H
 
@@ -28,6 +32,7 @@
 #define S3DAT_EXCEPTION_OUT_OF_RANGE 0x105
 #define S3DAT_EXCEPTION_ICONV_ERROR 0x106
 #define S3DAT_EXCEPTION_OPEN 0x107
+#define S3DAT_EXCEPTION_IOSET 0x108
 
 #define S3DAT_ATTRIBUTE_INDEX 0x200
 #define S3DAT_ATTRIBUTE_SEQ 0x201

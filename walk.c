@@ -6,6 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <math.h>
 
+#include <GL/gl.h>
+
 int width = 640, height = 360;
 
 
@@ -25,11 +27,11 @@ void bitmaps_to_textures(int c, s3dat_bitmap_t* bitmaps, int* ida) {
 
 	for(int i = 0;i != c;i++) {
 		glBindTexture(GL_TEXTURE_2D, ida[i]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmaps[i].width, bitmaps[i].height, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, bitmaps[i].data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmaps[i].width, bitmaps[i].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmaps[i].data);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

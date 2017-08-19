@@ -43,7 +43,7 @@ s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*f
 }
 
 void s3dat_delete(s3dat_t* mem) {
-	if(mem->close_func != NULL) mem->close_func(mem);
+	if(mem->close_func != NULL) mem->close_func(mem->io_arg);
 
 	s3dat_internal_delete_seq(mem, &mem->settler_index);
 	s3dat_internal_delete_seq(mem, &mem->shadow_index);
@@ -62,6 +62,7 @@ void s3dat_delete(s3dat_t* mem) {
 void s3dat_delete_animation(s3dat_animation_t* mem) {
 	s3dat_delete_animations(mem, 1);
 }
+
 void s3dat_delete_animations(s3dat_animation_t* mem, uint32_t count) {
 	s3dat_delete_frames(mem, count);
 	mem->src->free_func(mem->src->mem_arg, mem);
@@ -152,6 +153,7 @@ void s3dat_delete_strings(s3dat_string_t* strings, uint32_t count) {
 void s3dat_delete_stringdata(s3dat_string_t* string) {
 	s3dat_delete_stringdatas(string, 1);
 }
+
 void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
 	for(uint32_t i = 0;i != count;i++) {
 		if(strings[i].string_data) strings->src->free_func(strings->src->mem_arg, strings[i].string_data);

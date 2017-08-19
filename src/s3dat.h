@@ -9,6 +9,13 @@
 #define S3DAT_SEEK_CUR 0x20
 #define S3DAT_SEEK_SET 0x21
 
+#define S3DAT_IOSET_NATIVEOS 0x400
+#define S3DAT_IOSET_LINUX 0x401
+#define S3DAT_IOSET_WIN32 0x402
+
+#define S3DAT_IOSET_DEFAULT 0x500
+#define S3DAT_IOSET_LIBC 0x501
+
 typedef struct s3dat_exception_t s3dat_exception_t;
 
 typedef enum {
@@ -86,8 +93,8 @@ struct s3dat_t {
 	size_t (*size_func) (void*);
 	size_t (*pos_func) (void*);
 	bool (*seek_func) (void*, uint32_t, int);
-	void* (*open_func) (s3dat_t*);
-	void (*close_func) (s3dat_t*);
+	void* (*open_func) (void*);
+	void (*close_func) (void*);
 
 	bool green_6b;
 	uint32_t palette_line_length;
@@ -157,17 +164,29 @@ typedef struct {
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
 
+typedef struct {
+	bool (*read_func) (void*, void*, size_t);
+	size_t (*size_func) (void*);
+	size_t (*pos_func) (void*);
+	bool (*seek_func) (void*, uint32_t, int);
+	void* (*open_func) (void*);
+	void (*close_func) (void*);
+	bool available;
+} s3dat_ioset_t;
+
 void s3dat_readfile_name(s3dat_t* mem, char* name, s3dat_exception_t** throws);
 
 void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws);
+
+void s3dat_readfile_ioset(s3dat_t* mem, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
 
 void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	bool (*read_func) (void*, void*, size_t),
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
 	bool (*seek_func) (void*, uint32_t, int),
-	void* (*open_func) (s3dat_t*),
-	void (*close_func) (s3dat_t*),
+	void* (*open_func) (void*),
+	void (*close_func) (void*),
 	s3dat_exception_t** throws_out);
 
 void s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3dat_bitmap_t* to, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
@@ -183,20 +202,29 @@ void s3dat_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_bitmap_t* to, s
 s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
 
 //linux
-void* s3dat_linux_open_func(s3dat_t* from);
-void s3dat_linux_close_func(s3dat_t* from);
+void* s3dat_linux_open_func(void* arg);
+void s3dat_linux_close_func(void* arg);
 bool s3dat_linux_read_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_linux_pos_func(void* arg);
 size_t s3dat_linux_size_func(void* arg);
 
-void* s3dat_libc_open_func(s3dat_t* from);
-void s3dat_libc_close_func(s3dat_t* from);
+//windows
+void* s3dat_win32_open_func(void* arg);
+void s3dat_win32_close_func(void* arg);
+bool s3dat_win32_read_func(void* arg, void* bfr, size_t len); // system endianness
+bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence);
+size_t s3dat_win32_pos_func(void* arg);
+size_t s3dat_win32_size_func(void* arg);
+
+void* s3dat_libc_open_func(void* arg);
+void s3dat_libc_close_func(void* arg);
 bool s3dat_libc_read_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_libc_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_libc_pos_func(void* arg);
 size_t s3dat_libc_size_func(void* arg);
 
+s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type);
 
 void* s3dat_default_alloc_func(void* arg, size_t size);
 void s3dat_default_free_func(void* arg, void* mem);

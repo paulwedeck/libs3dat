@@ -18,13 +18,21 @@ uint8_t s3dat_header_rgb565[5] = {248, 0, 0, 224, 7};
 uint8_t s3dat_seq_start[7] = {2, 20, 0, 0, 8, 0, 0};
 
 void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws) {
-	s3dat_readfile_func(mem, file, s3dat_linux_read_func,
-		s3dat_linux_size_func, s3dat_linux_pos_func, s3dat_linux_seek_func, NULL, NULL, throws);
+	s3dat_readfile_ioset(mem, file, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), false, throws);
 }
 
 
 void s3dat_readfile_name(s3dat_t* mem, char* name, s3dat_exception_t** throws) {
-	s3dat_readfile_func(mem, name, s3dat_linux_read_func, s3dat_linux_size_func, s3dat_linux_pos_func, s3dat_linux_seek_func, s3dat_linux_open_func, s3dat_linux_close_func, throws);
+	s3dat_readfile_ioset(mem, name, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), true, throws);
+}
+
+void s3dat_readfile_ioset(s3dat_t* mem, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func,  s3dat_exception_t** throws) {
+	if(ioset == NULL || ioset->available == false) {
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_IOSET, __FILE__, __func__, __LINE__);
+		return;
+	}
+
+	s3dat_readfile_func(mem, io_arg, ioset->read_func, ioset->size_func, ioset->pos_func, ioset->seek_func, (use_openclose_func ? ioset->open_func : NULL), (use_openclose_func ? ioset->close_func : NULL), throws);
 }
 
 void s3dat_readfile_func(s3dat_t* mem, void* arg,
@@ -32,8 +40,8 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
 	bool (*seek_func) (void*, uint32_t, int),
-	void* (*open_func) (s3dat_t*),
-	void (*close_func) (s3dat_t*),
+	void* (*open_func) (void*),
+	void (*close_func) (void*),
 	s3dat_exception_t** throws) {
 	mem->io_arg = arg;
 	mem->read_func = read_func;
@@ -43,7 +51,7 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	mem->open_func = open_func;
 	mem->close_func = close_func;
 
-	if(open_func != NULL) mem->io_arg = open_func(mem);
+	if(open_func != NULL) mem->io_arg = open_func(mem->io_arg);
 
 	if(mem->io_arg == NULL) {
 		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OPEN, __FILE__, __func__, __LINE__);
@@ -309,21 +317,22 @@ void s3dat_internal_read_seq(s3dat_t* mem, uint32_t from, s3dat_index_t* to, s3d
 	}
 }
 
-void* s3dat_linux_open_func(s3dat_t* from) {
-	int fd = open(from->io_arg, O_RDONLY);
+#ifdef __linux__
+void* s3dat_linux_open_func(void* arg) {
+	int fd = open(arg, O_RDONLY);
 
 	if(fd == -1) {
 		return NULL;
 	}
 
-	int* fd_p = from->alloc_func(from->mem_arg, sizeof(int));
+	int* fd_p = calloc(1, sizeof(int));
 	*fd_p = fd;
 	return fd_p;
 }
 
-void s3dat_linux_close_func(s3dat_t* from) {
-	close(*(int*)(from->io_arg));
-	from->free_func(from->mem_arg, from->io_arg);
+void s3dat_linux_close_func(void* arg) {
+	close(*(int*)(arg));
+	free(arg);
 }
 
 bool s3dat_linux_read_func(void* arg, void* bfr, size_t len) {
@@ -344,14 +353,66 @@ bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence) {
 	int seek_whence = whence == S3DAT_SEEK_CUR ? SEEK_CUR : SEEK_SET;
 	return lseek(*((int*)arg), pos,  seek_whence) != (off_t)-1;
 }
+#else
+void* s3dat_linux_open_func(void* arg) {}
+void s3dat_linux_close_func(void* arg) {}
+bool s3dat_linux_read_func(void* arg, void* bfr, size_t len) {return 0;}
+bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence) {return 0;}
+size_t s3dat_linux_pos_func(void* arg) {return 0;}
+size_t s3dat_linux_size_func(void* arg) {return 0;}
+#endif
 
+#ifdef _WIN32
+void* s3dat_win32_open_func(void* arg) {
+	HANDLE file_handle = CreateFile(arg,
+		GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-void* s3dat_libc_open_func(s3dat_t* from) {
-	return fopen(from->io_arg, "rb");
+	if(file_handle == INVALID_HANDLE_VALUE) return NULL;
+	else return file_handle;
 }
 
-void s3dat_libc_close_func(s3dat_t* from) {
-	fclose(from->io_arg);
+void s3dat_win32_close_func(void* arg) {
+	CloseHandle(arg);
+}
+
+bool s3dat_win32_read_func(void* arg, void* bfr, size_t len) {
+	//return fread(bfr, 1, len, arg) == len;
+	return ReadFile(arg, bfr, len, NULL, NULL);
+}
+
+bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence) {
+	DWORD seek_whence = whence == S3DAT_SEEK_CUR ? FILE_CURRENT : FILE_BEGIN;
+	return SetFilePointer(arg, pos, NULL, seek_whence) != INVALID_SET_FILE_POINTER;
+}
+
+size_t s3dat_win32_pos_func(void* arg) {
+	return SetFilePointer(arg, 0, NULL, FILE_CURRENT);
+}
+
+size_t s3dat_win32_size_func(void* arg) {
+	DWORD pos = SetFilePointer(arg, 0, NULL, FILE_CURRENT);
+
+	size_t size = SetFilePointer(arg, 0, NULL, FILE_END); // TODO make this portable
+	SetFilePointer(arg, pos, NULL, FILE_BEGIN);
+
+	return size;
+}
+#else
+void* s3dat_win32_open_func(void* arg) {}
+void s3dat_win32_close_func(void* arg) {}
+bool s3dat_win32_read_func(void* arg, void* bfr, size_t len) {return 0;}
+bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence) {return 0;}
+size_t s3dat_win32_pos_func(void* arg) {return 0;}
+size_t s3dat_win32_size_func(void* arg) {return 0;}
+#endif
+
+void* s3dat_libc_open_func(void* arg) {
+	return fopen(arg, "rb");
+}
+
+void s3dat_libc_close_func(void* arg) {
+	fclose(arg);
 }
 
 bool s3dat_libc_read_func(void* arg, void* bfr, size_t len) {
@@ -375,6 +436,62 @@ size_t s3dat_libc_size_func(void* arg) {
 	fseek(arg, pos, SEEK_SET);
 
 	return size;
+}
+
+s3dat_ioset_t s3dat_internal_linux_ioset = {
+	s3dat_linux_read_func,
+	s3dat_linux_size_func,
+	s3dat_linux_pos_func,
+	s3dat_linux_seek_func,
+	s3dat_linux_open_func,
+	s3dat_linux_close_func,
+	#ifdef __linux__
+	true
+	#else
+	false
+	#endif
+};
+
+s3dat_ioset_t s3dat_internal_win32_ioset = {
+	s3dat_win32_read_func,
+	s3dat_win32_size_func,
+	s3dat_win32_pos_func,
+	s3dat_win32_seek_func,
+	s3dat_win32_open_func,
+	s3dat_win32_close_func,
+	#ifdef _WIN32
+	true
+	#else
+	false
+	#endif
+};
+
+s3dat_ioset_t s3dat_internal_libc_ioset = {
+	s3dat_libc_read_func,
+	s3dat_libc_size_func,
+	s3dat_libc_pos_func,
+	s3dat_libc_seek_func,
+	s3dat_libc_open_func,
+	s3dat_libc_close_func,
+	true
+};
+
+s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type) {
+	if(type == S3DAT_IOSET_NATIVEOS) {
+		#ifdef _WIN32
+		return &s3dat_internal_win32_ioset;
+		#elif (defined __linux__)
+		return &s3dat_internal_linux_ioset;
+		#endif
+	} else if(type == S3DAT_IOSET_LINUX) {
+		return &s3dat_internal_linux_ioset;
+	} else if(type == S3DAT_IOSET_WIN32) {
+		return &s3dat_internal_win32_ioset;
+	} else if(type == S3DAT_IOSET_LIBC || type == S3DAT_IOSET_DEFAULT) {
+		return &s3dat_internal_libc_ioset;
+	}
+
+	return NULL;
 }
 
 void s3dat_internal_seek_func(s3dat_t* mem, uint32_t pos, int whence, s3dat_exception_t** throws) {
