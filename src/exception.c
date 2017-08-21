@@ -108,3 +108,12 @@ void s3dat_print_exception(s3dat_exception_t* ex) {
 	}
 }
 
+bool s3dat_catch_exception(s3dat_exception_t** throws, s3dat_t* from) {
+	if(*throws != NULL) {
+		s3dat_print_exception(*throws);
+		s3dat_delete_exception(from, *throws);
+		*throws = NULL;
+		return false;
+	} else return true;
+}
+

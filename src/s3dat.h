@@ -268,5 +268,6 @@ void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count);
 void s3dat_print_exception(s3dat_exception_t* ex); // debuging only
 void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex);
 
+bool s3dat_catch_exception(s3dat_exception_t** throws, s3dat_t* from);
 #endif /*S3DAT_H*/
 

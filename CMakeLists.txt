@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.2.2)
-project(s3dat)
+project(libs3dat)
 
 include(CPack)
+include(CTest)
 include(TestBigEndian)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -60,4 +61,10 @@ endif()
 
 install(TARGETS s3dat DESTINATION lib)
 install(FILES src/s3dat.h DESTINATION include/s3dat)
+
+add_executable(testme test.c)
+target_link_libraries(testme s3dat)
+
+add_test(search_gfx bin/testme search_gfx)
+add_test(open_landscape bin/testme open_landscape)
 
