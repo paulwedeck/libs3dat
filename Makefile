@@ -13,7 +13,7 @@ all:
 
 release:
 	@mkdir -p release
-	@cd release; cmake -D CMAKE_INSTALL_PREFIX=/usr .. > /dev/null
+	@cd release; cmake -D PRIVATE_FILENAME=On -D CMAKE_INSTALL_PREFIX=/usr .. > /dev/null
 	@make -C release --quiet
 
 install-release: release

@@ -38,9 +38,9 @@ if(NOT USE_ICONV)
 	message(WARNING "libs3dat needs iconv for good iso8859-2 (Polish) to utf8 conversion and EUC-KR (Korean) or SHIFT_JIS (Japanese) to utf8 conversion.\nISO8859-1 (western Europa) to utf8 conversion is builtin")
 endif()
 
-configure_file(config.h.in ${PROJECT_SOURCE_DIR}/src/config.h)
+configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
 
-include_directories(src)
+include_directories(src ${PROJECT_BINARY_DIR})
 
 #s3dat
 file(GLOB_RECURSE s3dat_SOURCES "src/*.[ch]")
