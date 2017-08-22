@@ -3,5 +3,6 @@
 
 #cmakedefine USE_ICONV
 #cmakedefine IS_BE
+#cmakedefine PRIVATE_FILENAME
 
 #endif /*CONFIG_H*/

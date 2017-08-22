@@ -18,7 +18,7 @@ int search_gfx() {
 	if(dd == NULL) CRASH("Failed to open GFX directory in your build directory\n");
 
 	end:
-	closedir(dd);
+	if(dd != NULL) closedir(dd);
 	return return_value;
 }
 

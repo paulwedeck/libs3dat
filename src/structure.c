@@ -1,5 +1,7 @@
 #include "s3dat_internal.h"
+#ifdef PRIVATE_FILENAME
 #line __LINE__ "structure.c"
+#endif
 
 s3dat_animation_t* s3dat_new_animation(s3dat_t* parent) {
 	return s3dat_new_animations(parent, 1);
@@ -166,5 +168,15 @@ void* s3dat_default_alloc_func(void* arg, size_t size) {
 
 void s3dat_default_free_func(void* arg, void* mem) {
 	free(mem);
+}
+
+void* s3dat_internal_alloc_func(s3dat_t* mem, size_t size, s3dat_exception_t** throws) {
+	void* mem_block = mem->alloc_func(mem->mem_arg, size);
+
+	if(mem_block == NULL) {
+		S3DAT_INTERNAL_OUT_OF_MEMORY(mem, throws);
+	}
+
+	return mem_block;
 }
 

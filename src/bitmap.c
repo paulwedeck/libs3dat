@@ -1,5 +1,7 @@
 #include "s3dat_internal.h"
+#ifdef PRIVATE_FILENAME
 #line __LINE__ "bitmap.c"
+#endif
 
 uint8_t s3dat_image_header[4] = {12, 0, 0, 0};
 
@@ -84,7 +86,8 @@ void s3dat_internal_read_bitmap_data(s3dat_t* mem, s3dat_color_type type, uint16
 
 	s3dat_color_t* pixdata = NULL;
 	if(re_pixdata) {
-		pixdata = mem->alloc_func(mem->mem_arg, width*height*sizeof(s3dat_color_t));
+		pixdata = s3dat_internal_alloc_func(mem, width*height*sizeof(s3dat_color_t), throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 		*re_pixdata = pixdata;
 	}
 
@@ -297,7 +300,8 @@ void s3dat_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_bitmap_t* to, s
 	uint32_t colors = mem->palette_line_length*8;
 	s3dat_color_type type = mem->green_6b ? s3dat_rgb565 : s3dat_rgb555;
 
-	s3dat_color_t* bmp_data = mem->alloc_func(mem->mem_arg, sizeof(s3dat_color_t)*colors);
+	s3dat_color_t* bmp_data = s3dat_internal_alloc_func(mem, sizeof(s3dat_color_t)*colors, throws);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	for(uint32_t color = 0;color != colors;color++) {
 		bmp_data[color] = s3dat_internal_ex(mem, type, throws);

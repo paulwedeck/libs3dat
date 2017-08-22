@@ -1,8 +1,22 @@
 #include "s3dat_internal.h"
+#ifdef PRIVATE_FILENAME
 #line __LINE__ "exception.c"
+#endif
+
+s3dat_internal_stack_t s3dat_internal_out_of_memory_stack = {NULL, NULL, 0, NULL};
+s3dat_exception_t s3dat_internal_out_of_memory = {S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL};
 
 void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, const char* func, int line) {
-	s3dat_internal_stack_t* now = mem->alloc_func(mem->mem_arg, sizeof(s3dat_internal_stack_t));
+	s3dat_internal_stack_t* now;
+
+	if((*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {
+		if((*throws)->stack != &s3dat_internal_out_of_memory_stack) now = &s3dat_internal_out_of_memory_stack;
+			else return; // only one stack member is supported
+	} else {
+		now = mem->alloc_func(mem->mem_arg, sizeof(s3dat_internal_stack_t));
+		if(now == NULL) return;
+	}
+
 	now->file = file;
 	now->function = func;
 	now->line = line;
@@ -11,7 +25,11 @@ void s3dat_add_to_stack(s3dat_t* mem, s3dat_exception_t** throws, char* file, co
 }
 
 void s3dat_add_attr(s3dat_t* mem, s3dat_exception_t** throws, uint32_t name, uint32_t value) {
+	if((*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) return;
+
 	s3dat_internal_attribute_t* attr = mem->alloc_func(mem->mem_arg, sizeof(s3dat_internal_attribute_t));
+	if(attr == NULL) return;
+
 	attr->name = name;
 	attr->value = value;
 	attr->next = (*throws)->attrs;
@@ -19,14 +37,21 @@ void s3dat_add_attr(s3dat_t* mem, s3dat_exception_t** throws, uint32_t name, uin
 }
 
 void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t type, char* file, const char* func, int line) {
-	*throws = mem->alloc_func(mem->mem_arg, sizeof(s3dat_exception_t));
+	if(type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {
+		*throws = &s3dat_internal_out_of_memory;
+	} else {
+		*throws = mem->alloc_func(mem->mem_arg, sizeof(s3dat_exception_t));
+		if(*throws == NULL) {
+			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0); // out_of_memory has priority
+		}
+		s3dat_add_to_stack(mem, throws, file, func, line);
+	}
 	(*throws)->type = type;
-	(*throws)->stack = NULL;
-	(*throws)->attrs = NULL;
-	s3dat_add_to_stack(mem, throws, file, func, line);
 }
 
 void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex) {
+	if(ex->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) return;
+
 	s3dat_internal_stack_t* stack1;
 
 	stack1 = ex->stack;
@@ -64,6 +89,7 @@ s3dat_internal_map_entry_t exception_map[] = {
 	{S3DAT_EXCEPTION_ICONV_ERROR, "IconvError"},
 	{S3DAT_EXCEPTION_OPEN, "OpenError"},
 	{S3DAT_EXCEPTION_IOSET, "NullIOSetError"},
+	{S3DAT_EXCEPTION_OUT_OF_MEMORY, "OutOfMemoryError"},
 	{0, NULL}
 };
 

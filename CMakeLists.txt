@@ -15,6 +15,7 @@ TEST_BIG_ENDIAN(IS_BE)
 
 option(FORCE_ICONV "Force iconv even if no iconv.h is found" OFF)
 option(DISABLE_ICONV "Disables testing for iconv" OFF)
+option(PRIVATE_FILENAME "stop leaking complete path to file (should be enabled on distribution)" OFF)
 
 if(NOT DISABLE_ICONV AND NOT FORCE_ICONV)
 	INCLUDE (CheckIncludeFiles)
