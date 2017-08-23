@@ -517,6 +517,10 @@ s3dat_ioset_t s3dat_internal_libc_ioset = {
 	true
 };
 
+s3dat_ioset_t s3dat_internal_null_ioset = {
+	NULL, NULL, NULL, NULL, NULL, NULL, false
+};
+
 s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type) {
 	if(type == S3DAT_IOSET_NATIVEOS) {
 		#ifdef _WIN32
@@ -532,7 +536,7 @@ s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type) {
 		return &s3dat_internal_libc_ioset;
 	}
 
-	return NULL;
+	return &s3dat_internal_null_ioset;
 }
 
 void s3dat_internal_seek_func(s3dat_t* mem, uint32_t pos, int whence, s3dat_exception_t** throws) {
