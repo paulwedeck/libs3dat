@@ -111,3 +111,4 @@ void s3dat_add_attr(s3dat_t* mem, s3dat_exception_t** throws, uint32_t name, uin
 void* s3dat_internal_alloc_func(s3dat_t* mem, size_t size, s3dat_exception_t** throws);
 
 #endif /*S3DAT_INTERNAL_H*/
+

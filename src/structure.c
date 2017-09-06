@@ -3,8 +3,18 @@
 #line __LINE__ "structure.c"
 #endif
 
+s3dat_sound_t* s3dat_new_sound(s3dat_t* parent) {
+	return s3dat_new_sounds(parent, 1);
+}
+
 s3dat_animation_t* s3dat_new_animation(s3dat_t* parent) {
 	return s3dat_new_animations(parent, 1);
+}
+
+s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count) {
+	s3dat_sound_t* sounds = parent->alloc_func(parent->mem_arg, sizeof(s3dat_sound_t)*count);
+	for(uint32_t i = 0;i != count;i++) sounds[i].src = parent;
+	return sounds;
 }
 
 s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count) {
@@ -159,6 +169,26 @@ void s3dat_delete_stringdata(s3dat_string_t* string) {
 void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
 	for(uint32_t i = 0;i != count;i++) {
 		if(strings[i].string_data) strings->src->free_func(strings->src->mem_arg, strings[i].string_data);
+	}
+}
+
+void s3dat_delete_sound(s3dat_sound_t* sound) {
+	s3dat_delete_sounds(sound, 1);
+}
+
+void s3dat_delete_sounds(s3dat_sound_t* sounds, uint32_t count) {
+	s3dat_delete_snddatas(sounds, count);
+
+	sounds->src->free_func(sounds->src->mem_arg, sounds);
+}
+
+void s3dat_delete_snddata(s3dat_sound_t* sound) {
+	s3dat_delete_snddatas(sound, 1);
+}
+
+void s3dat_delete_snddatas(s3dat_sound_t* sounds, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		if(sounds[i].data) sounds->src->free_func(sounds->src->mem_arg, sounds[i].data);
 	}
 }
 

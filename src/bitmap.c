@@ -6,7 +6,7 @@
 uint8_t s3dat_image_header[4] = {12, 0, 0, 0};
 
 void s3dat_internal_read_bitmap_header(s3dat_t* mem, s3dat_content_type type, int from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws) {
-	if(type == s3dat_animation || type == s3dat_palette) {
+	if(type == s3dat_animation || type == s3dat_palette || type == s3dat_string) {
 		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -343,5 +343,66 @@ s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_
 	}
 
 	return color;
+}
+
+void s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws) {
+	if(mem->animation_index.len <= animation) {
+		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+		return;
+	}
+
+	s3dat_internal_seek_func(mem, mem->animation_index.pointers[animation], S3DAT_SEEK_SET, throws);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+	uint32_t entries = s3dat_internal_read32LE(mem, throws);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+	to->src = mem;
+	to->len = entries;
+	to->frames = s3dat_internal_alloc_func(mem, entries*sizeof(s3dat_frame_t), throws);
+	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+	for(uint32_t i = 0;i != entries;i++) {
+		to->frames[i].posx = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+		to->frames[i].posx = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+
+		to->frames[i].settler_id = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+		to->frames[i].settler_file = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+
+		to->frames[i].torso_id = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+		to->frames[i].torso_file = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+
+		to->frames[i].shadow_id = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+		to->frames[i].shadow_file = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+
+		to->frames[i].settler_frame = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+		to->frames[i].torso_frame = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+
+		to->frames[i].flag1 = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+
+		to->frames[i].flag2 = s3dat_internal_read16LE(mem, throws);
+		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+	}
 }
 

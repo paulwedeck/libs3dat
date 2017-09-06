@@ -142,3 +142,4 @@ void s3dat_extract_sound(s3dat_t* mem, uint16_t soundtype, uint32_t altindex, s3
 		S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 	}
 }
+
