@@ -25,28 +25,56 @@ int search_gfx() {
 int open_landscape_file() {
 	int return_value = 0;
 	s3dat_exception_t* ex = NULL;
-	DIR* gfx = NULL;
 	s3dat_t* datfile = NULL;
 	s3dat_bitmap_t* bmp = NULL;
 
 
-	gfx = opendir("GFX");
-
-	if(gfx == NULL) CRASH("test skipped, because search_gfx has failed\n");
+	if(search_gfx() != 0) CRASH("test skipped, because search_gfx has failed\n");
 	datfile = s3dat_new_malloc();
 
 	s3dat_readfile_name(datfile, "GFX/Siedler3_00.f8007e01f.dat", &ex);
 	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
 
-	bmp = s3dat_new_bitmap(datfile);
-
-	s3dat_extract_landscape(datfile, 0, bmp, &ex);
+	bmp = s3dat_extract_landscape(datfile, 0, &ex);
 	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract first bitmap\n");
 
 	end:
 	if(bmp != NULL) s3dat_delete_bitmap(bmp);
 	if(datfile != NULL) s3dat_delete(datfile);
-	if(gfx != NULL) closedir(gfx);
+
+	return return_value;
+}
+
+int try_blending() {
+	int return_value = 0;
+	s3dat_exception_t* ex = NULL;
+	s3dat_t* datfile = NULL;
+	s3dat_bitmap_t* bmp = NULL;
+
+	if(search_gfx() != 0) CRASH("test skipped, because search_gfx has failed\n");
+	datfile = s3dat_new_malloc();
+
+	s3dat_readfile_name(datfile, "GFX/Siedler3_00.f8007e01f.dat", &ex);
+	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
+
+	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
+	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract bitmap 0x1B\n");
+
+	if(bmp->data[0].red != 0 || bmp->data[0].green != 0xCE || bmp->data[0].blue != 0xEE || bmp->data[0].alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
+
+	s3dat_delete_bitmap(bmp);
+	bmp = NULL;
+
+	s3dat_add_landscape_blending(datfile);
+
+	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
+	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract bitmap 0x1B two times\n");
+
+	if(bmp->data[0].alpha != 0) CRASH("landscape blending failed\n");
+
+	end:
+	if(bmp != NULL) s3dat_delete_bitmap(bmp);
+	if(datfile != NULL) s3dat_delete(datfile);
 
 	return return_value;
 }
@@ -59,6 +87,7 @@ typedef struct {
 testcase_t tests[] = {
 	{"search_gfx", search_gfx},
 	{"open_landscape", open_landscape_file},
+	{"try_blending", try_blending},
 	{NULL, NULL},
 };
 

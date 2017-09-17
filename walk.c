@@ -22,7 +22,7 @@ void onresize(GLFWwindow* wnd, int w, int h) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void bitmaps_to_textures(int c, s3dat_bitmap_t* bitmaps, int* ida) {
+void bitmaps_to_textures(int c, s3dat_bitmap_t** bitmaps, int* ida) {
 	glGenTextures(c, ida);
 
 	for(int i = 0;i != c;i++) {
@@ -31,7 +31,7 @@ void bitmaps_to_textures(int c, s3dat_bitmap_t* bitmaps, int* ida) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmaps[i].width, bitmaps[i].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmaps[i].data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmaps[i]->width, bitmaps[i]->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmaps[i]->data);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -43,17 +43,10 @@ int main() {
 	s3dat_t* dat10 = s3dat_new_malloc();
 
 	s3dat_readfile_name(dat00, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	if(ex != NULL) {
-		s3dat_print_exception(ex);
-		s3dat_delete_exception(dat00, ex);
-		ex = NULL;
-	}
+	s3dat_catch_exception(&ex, dat00);
+
 	s3dat_readfile_name(dat10, "GFX/Siedler3_10.f8007e01f.dat", &ex);
-	if(ex != NULL) {
-		s3dat_print_exception(ex);
-		s3dat_delete_exception(dat00, ex);
-		ex = NULL;
-	}
+	s3dat_catch_exception(&ex, dat10);
 
 	glfwInit();
 
@@ -69,13 +62,12 @@ int main() {
 
 	onresize(wnd, width, height);
 
-	s3dat_bitmap_t* grass_bitmap = s3dat_new_bitmap(dat00);
-	s3dat_bitmap_t* settler_bitmaps = s3dat_new_bitmaps(dat10, 72);
-	s3dat_bitmap_t* torso_bitmaps = s3dat_new_bitmaps(dat10, 72);
-	s3dat_extract_landscape(dat00, 0, grass_bitmap, &ex);
+	s3dat_bitmap_t* grass_bitmap;
+	s3dat_bitmap_t* settler_bitmaps[72];
+	s3dat_bitmap_t* torso_bitmaps[72];
 
-	short settler_xoff[72];
-	short settler_yoff[72];
+	grass_bitmap = s3dat_extract_landscape(dat00, 0, &ex);
+	s3dat_catch_exception(&ex, dat00);
 
 	int grass_tex;
 	int settler_texs[72];
@@ -84,27 +76,20 @@ int main() {
 	int ex_s = 0;
 
 	for(int i = 0;i != 72;i++) {
-		s3dat_extract_settler(dat10, ex_s, i, settler_bitmaps+i, settler_xoff+i, settler_yoff+i, &ex);
-		if(ex != NULL) {
-			s3dat_print_exception(ex);
-			s3dat_delete_exception(dat00, ex);
-			ex = NULL;
-		}
-		s3dat_extract_torso(dat10, ex_s, i, torso_bitmaps+i, NULL, NULL, &ex);
-		if(ex != NULL) {
-			s3dat_print_exception(ex);
-			s3dat_delete_exception(dat00, ex);
-			ex = NULL;
-		}
+		settler_bitmaps[i] = s3dat_extract_settler(dat10, ex_s, i, &ex);
+		s3dat_catch_exception(&ex, dat10);
+
+		torso_bitmaps[i] = s3dat_extract_torso(dat10, ex_s, i, &ex);
+		s3dat_catch_exception(&ex, dat10);
 	}
 
 	bitmaps_to_textures(72, settler_bitmaps, settler_texs);
 	bitmaps_to_textures(72, torso_bitmaps, torso_texs);
-	bitmaps_to_textures(1, grass_bitmap, &grass_tex);
+	bitmaps_to_textures(1, &grass_bitmap, &grass_tex);
 
-	s3dat_delete_pixdatas(settler_bitmaps, 72);
-	s3dat_delete_pixdatas(torso_bitmaps, 72);
-	s3dat_delete_pixdata(grass_bitmap);
+	//s3dat_delete_pixdatas(settler_bitmaps, 72);
+	//s3dat_delete_pixdatas(torso_bitmaps, 72);
+	//s3dat_delete_pixdata(grass_bitmap);
 
 	int settler_frame = 0xc;
 
@@ -138,23 +123,23 @@ int main() {
 
 		glBindTexture(GL_TEXTURE_2D, settler_texs[settler_frame]);
 		glPushMatrix();
-		glTranslatef(590-move_value+settler_xoff[settler_frame]-settler_xoff[0xc], 100+settler_yoff[settler_frame]-settler_yoff[0xc], 1);
+		glTranslatef(590-move_value+settler_bitmaps[settler_frame]->xoff-settler_bitmaps[0xc]->xoff, 100+settler_bitmaps[settler_frame]->yoff-settler_bitmaps[0xc]->yoff, 1);
 		glBegin(GL_QUADS);
 		glTexCoord2d(0, 0); glVertex2i(0, 0);
-		glTexCoord2d(0, 1); glVertex2i(0, settler_bitmaps[settler_frame].height);
-		glTexCoord2d(1, 1); glVertex2i(settler_bitmaps[settler_frame].width, settler_bitmaps[settler_frame].height);
-		glTexCoord2d(1, 0); glVertex2i(settler_bitmaps[settler_frame].width, 0);
+		glTexCoord2d(0, 1); glVertex2i(0, settler_bitmaps[settler_frame]->height);
+		glTexCoord2d(1, 1); glVertex2i(settler_bitmaps[settler_frame]->width, settler_bitmaps[settler_frame]->height);
+		glTexCoord2d(1, 0); glVertex2i(settler_bitmaps[settler_frame]->width, 0);
 		glEnd();
 		glPopMatrix();
 		glPushMatrix();
 		glColor3f(1, 0, 0);
-		glTranslatef(590-move_value+settler_xoff[settler_frame]-settler_xoff[0xc], 100+settler_yoff[settler_frame]-settler_yoff[0xc], 2);
+		glTranslatef(590-move_value+settler_bitmaps[settler_frame]->xoff-settler_bitmaps[0xc]->xoff, 100+settler_bitmaps[settler_frame]->yoff-settler_bitmaps[0xc]->yoff, 2);
 		glBindTexture(GL_TEXTURE_2D, torso_texs[settler_frame]);
 		glBegin(GL_QUADS);
 		glTexCoord2d(0, 0); glVertex2i(0, 0);
-		glTexCoord2d(0, 1); glVertex2i(0, settler_bitmaps[settler_frame].height);
-		glTexCoord2d(1, 1); glVertex2i(settler_bitmaps[settler_frame].width, settler_bitmaps[settler_frame].height);
-		glTexCoord2d(1, 0); glVertex2i(settler_bitmaps[settler_frame].width, 0);
+		glTexCoord2d(0, 1); glVertex2i(0, settler_bitmaps[settler_frame]->height);
+		glTexCoord2d(1, 1); glVertex2i(settler_bitmaps[settler_frame]->width, settler_bitmaps[settler_frame]->height);
+		glTexCoord2d(1, 0); glVertex2i(settler_bitmaps[settler_frame]->width, 0);
 		glEnd();
 		glPopMatrix();
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -191,9 +176,9 @@ int main() {
 	glfwHideWindow(wnd);
 	glfwDestroyWindow(wnd);
 	glfwTerminate();
-	s3dat_delete_bitmaps(settler_bitmaps, 72);
-	s3dat_delete_bitmaps(torso_bitmaps, 72);
-	s3dat_delete_bitmap(grass_bitmap);
+	//s3dat_delete_bitmaps(settler_bitmaps, 72);
+	//s3dat_delete_bitmaps(torso_bitmaps, 72);
+	//s3dat_delete_bitmap(grass_bitmap);
 	s3dat_delete(dat00);
 	s3dat_delete(dat10);
 }

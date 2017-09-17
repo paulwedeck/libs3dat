@@ -15,7 +15,7 @@ TEST_BIG_ENDIAN(IS_BE)
 
 option(FORCE_ICONV "Force iconv even if no iconv.h is found" OFF)
 option(DISABLE_ICONV "Disables testing for iconv" OFF)
-option(PRIVATE_FILENAME "stop leaking complete path to file (should be enabled on distribution)" OFF)
+option(PRIVATE_FILENAME "stop leaking complete path to file (should be enabled on distribution)" ON)
 
 if(NOT DISABLE_ICONV AND NOT FORCE_ICONV)
 	INCLUDE (CheckIncludeFiles)
@@ -68,4 +68,5 @@ target_link_libraries(testme s3dat)
 
 add_test(search_gfx bin/testme search_gfx)
 add_test(open_landscape bin/testme open_landscape)
+add_test(try_blending bin/testme try_blending)
 

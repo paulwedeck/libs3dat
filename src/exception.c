@@ -36,13 +36,13 @@ void s3dat_add_attr(s3dat_t* mem, s3dat_exception_t** throws, uint32_t name, uin
 	(*throws)->attrs = attr;
 }
 
-void s3dat_internal_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t type, char* file, const char* func, int line) {
+void s3dat_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t type, char* file, const char* func, int line) {
 	if(type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {
 		*throws = &s3dat_internal_out_of_memory;
 	} else {
 		*throws = mem->alloc_func(mem->mem_arg, sizeof(s3dat_exception_t));
 		if(*throws == NULL) {
-			s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0); // out_of_memory has priority
+			s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0); // out_of_memory has priority
 		}
 		s3dat_add_to_stack(mem, throws, file, func, line);
 	}

@@ -1,4 +1,4 @@
-CMAKE_OPTS=-DCMAKE_BUILD_TYPE=Debug
+CMAKE_OPTS=-DCMAKE_BUILD_TYPE=Debug -D PRIVATE_FILENAME=OFF
 
 all:
 	@mkdir -p build
@@ -13,7 +13,7 @@ all:
 
 release:
 	@mkdir -p release
-	@cd release; cmake -D PRIVATE_FILENAME=On -D CMAKE_INSTALL_PREFIX=/usr .. > /dev/null
+	@cd release; cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr .. > /dev/null
 	@make -C release --quiet
 
 install-release: release

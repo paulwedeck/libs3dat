@@ -3,6 +3,19 @@
 #line __LINE__ "structure.c"
 #endif
 
+s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent) {
+	return s3dat_new_exhandlers(parent, 1);
+}
+s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count) {
+	s3dat_extracthandler_t* handlers = parent->alloc_func(parent->mem_arg, sizeof(s3dat_extracthandler_t)*count);
+
+	for(uint32_t i = 0;i != count;i++) {
+		handlers[i].parent = parent;
+	}
+
+	return handlers;
+}
+
 s3dat_sound_t* s3dat_new_sound(s3dat_t* parent) {
 	return s3dat_new_sounds(parent, 1);
 }
@@ -29,7 +42,7 @@ s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count) {
 	return strings;
 }
 
-s3dat_string_t* sdat_new_string(s3dat_t* parent) {
+s3dat_string_t* s3dat_new_string(s3dat_t* parent) {
 	return s3dat_new_strings(parent, 1);
 }
 
@@ -55,6 +68,12 @@ s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*f
 }
 
 void s3dat_delete(s3dat_t* mem) {
+	while(mem->last_handler != NULL) {
+		s3dat_extracthandler_t* tmp = mem->last_handler;
+		mem->last_handler = mem->last_handler->before;
+		s3dat_delete_exhandler(tmp);
+	}
+
 	if(mem->close_func != NULL) mem->close_func(mem->io_arg);
 
 	s3dat_internal_delete_seq(mem, &mem->settler_index);
@@ -190,6 +209,15 @@ void s3dat_delete_snddatas(s3dat_sound_t* sounds, uint32_t count) {
 	for(uint32_t i = 0;i != count;i++) {
 		if(sounds[i].data) sounds->src->free_func(sounds->src->mem_arg, sounds[i].data);
 	}
+}
+
+void s3dat_delete_exhandler(s3dat_extracthandler_t* exhandler) {
+	s3dat_delete_exhandlers(exhandler, 1);
+}
+
+void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) if(exhandlers[i].arg_deref != NULL) exhandlers[i].arg_deref(exhandlers[i].arg);
+	exhandlers->parent->free_func(exhandlers->parent->mem_arg, exhandlers);
 }
 
 void* s3dat_default_alloc_func(void* arg, size_t size) {

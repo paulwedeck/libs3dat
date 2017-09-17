@@ -43,7 +43,7 @@ void s3dat_internal_short(s3dat_t* mem, uint8_t** str) {
 	uint8_t* bfr2 = mem->alloc_func(mem, strlen(bfr)+1);
 	if(bfr2 == NULL) return;
 
-	strcpy(bfr, bfr2);
+	strcpy(bfr2, bfr);
 	mem->free_func(mem->mem_arg, bfr);
 
 	*str = bfr2;
@@ -68,7 +68,7 @@ void s3dat_internal_iso8859_to_utf8(s3dat_t* mem, uint8_t** str, uint32_t len, b
 	}
 
 	uint8_t* bfr2 = s3dat_internal_alloc_func(mem, real_len, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint32_t bfr2_ptr = 0;
 	for(uint32_t bfr_ptr = 0;bfr_ptr != len;bfr_ptr++) {
@@ -103,14 +103,6 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 	char* charset;
 
 	switch(language) {
-		case s3dat_german:
-		case s3dat_english:
-		case s3dat_spanish:
-		case s3dat_italian:
-		case s3dat_french:
-		default:
-			charset = "iso8859-1";
-		break;
 		case s3dat_polish:
 			charset = "iso8859-2";
 		break;
@@ -120,11 +112,14 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 		case s3dat_japanese:
 			charset = "SHIFT_JIS";
 		break;
+		default:
+			charset = "iso8859-1";
+		break;
 	}
 	iconv_t iconv_s = iconv_open("UTF8", charset);
 
 	if(iconv_s == (iconv_t)-1) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
+		s3dat_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
 
@@ -141,51 +136,57 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 
 	if(iconv(iconv_s, &instr, &inlen, &utf8s, &outlen) == (size_t)-1) {
 		mem->free_func(mem->mem_arg, *utf8_str);
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
+		s3dat_throw(mem, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
 	}
 	iconv_close(iconv_s);
 }
 #endif
 
-void s3dat_extract_string(s3dat_t* mem, uint16_t text, s3dat_language language, s3dat_string_t* to, bool utf8, s3dat_exception_t** throws) {
+void s3dat_internal_extract_string(s3dat_t* mem, uint16_t text, uint16_t language, s3dat_string_t* to, s3dat_exception_t** throws) {
 	if(text > mem->string_index.len || language > mem->string_index.sequences[text].len) {
-		s3dat_internal_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+		s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	s3dat_internal_seek_func(mem, mem->string_index.sequences[text].pointers[language], S3DAT_SEEK_SET, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint8_t* cstr = s3dat_internal_read_cstr(mem, throws);
-	S3DAT_INTERNAL_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
+	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	to->original_encoding = true;
 	to->language = language;
 	to->src = mem;
 
-	if(utf8) {
+	s3dat_internal_short(mem, &cstr);
+	to->string_data = cstr;
+}
+
+void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws) {
+	s3dat_t* mem = me->parent;
+
+	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
+
+	if(res->type == s3dat_string) {
+		s3dat_string_t* string = res->resdata;
+
 		#ifdef USE_ICONV
 		uint8_t* utf8_str = NULL;
-		s3dat_internal_iconv_dat_to_utf8(mem, language, cstr, &utf8_str, throws);
+		s3dat_internal_iconv_dat_to_utf8(mem, string->language, string->string_data, &utf8_str, throws);
 
-		if(*throws != NULL) {
-			s3dat_internal_short(mem, &cstr);
-			to->string_data = cstr;
-		} else {
-			mem->free_func(mem->mem_arg, cstr);
-			to->original_encoding = false;
-			to->string_data = utf8_str;
+		if(*throws == NULL) {
+			mem->free_func(mem->mem_arg, string->string_data);
+			string->original_encoding = false;
+			s3dat_internal_short(mem, &utf8_str);
+			string->string_data = utf8_str;
 		}
 		#else
 		if(language != s3dat_japanese && language != s3dat_korean) {
-			s3dat_internal_iso8859_to_utf8(mem, &cstr, strlen(cstr), language == s3dat_polish);
-		}
+			s3dat_internal_iso8859_to_utf8(mem, &(string->string_data), strlen(string->string_data)+1, string->language == s3dat_polish, throws);
 
-		to->string_data = cstr;
+			string->original_encoding = false;
+		}
 		#endif
-	} else {
-		s3dat_internal_short(mem, &cstr);
-		to->string_data = cstr;
 	}
 }
 
