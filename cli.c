@@ -52,21 +52,21 @@ int main() {
 			s3dat_print_exception(ex);
 			s3dat_delete_exception(s3dat_mem, ex);
 			ex = NULL;
-		} else if(s3dat_mem->sound_index.len == 0) {
-			printf("[%i] %i settler sequences\n", i, s3dat_mem->settler_index.len);
-			printf("[%i] %i shadow sequences\n", i, s3dat_mem->shadow_index.len);
-			printf("[%i] %i torso sequences\n", i, s3dat_mem->torso_index.len);
-			printf("[%i] %i gui entries\n", i, s3dat_mem->gui_index.len);
-			printf("[%i] %i animation entries\n", i, s3dat_mem->animation_index.len);
-			printf("[%i] %i palette entries with %i bytes per line\n", i, s3dat_mem->palette_index.len, s3dat_mem->palette_line_length);
-			printf("[%i] %i landscape entries\n", i, s3dat_mem->landscape_index.len);
-			printf("[%i] %i string entries\n", i, s3dat_mem->string_index.len);
+		} else if(s3dat_mem->sound_index->len == 0) {
+			printf("[%i] %i settler sequences\n", i, s3dat_mem->settler_index->len);
+			printf("[%i] %i shadow sequences\n", i, s3dat_mem->shadow_index->len);
+			printf("[%i] %i torso sequences\n", i, s3dat_mem->torso_index->len);
+			printf("[%i] %i gui entries\n", i, s3dat_mem->gui_index->len);
+			printf("[%i] %i animation entries\n", i, s3dat_mem->animation_index->len);
+			printf("[%i] %i palette entries with %i bytes per line\n", i, s3dat_mem->palette_index->len, s3dat_mem->palette_line_length);
+			printf("[%i] %i landscape entries\n", i, s3dat_mem->landscape_index->len);
+			printf("[%i] %i string entries\n", i, s3dat_mem->string_index->len);
 		} else {
-			printf("[%i] %i sound entries\n", i, s3dat_mem->sound_index.len);
+			printf("[%i] %i sound entries\n", i, s3dat_mem->sound_index->len);
 		}
 
-		if(s3dat_mem->string_index.len > 0) {
-			for(uint32_t s = 0;s != s3dat_mem->string_index.len;s++) {
+		if(s3dat_mem->string_index->len > 0) {
+			for(uint32_t s = 0;s != s3dat_mem->string_index->len;s++) {
 				s3dat_string_t* strings[8];
 				for(uint16_t l = 0;l != 8;l++) {
 					strings[l] = s3dat_extract_string(s3dat_mem, s, l, &ex);
@@ -79,9 +79,9 @@ int main() {
 				printf("\n");
 			}
 		}
-		if(s3dat_mem->palette_index.len > 0 && false) {
-			for(uint32_t p = 0;p != s3dat_mem->palette_index.len;p++) {
-				s3dat_mem->seek_func(s3dat_mem->io_arg, s3dat_mem->palette_index.pointers[0], S3DAT_SEEK_SET);
+		if(s3dat_mem->palette_index->len > 0 && false) {
+			for(uint32_t p = 0;p != s3dat_mem->palette_index->len;p++) {
+				s3dat_mem->seek_func(s3dat_mem->io_arg, s3dat_mem->palette_index->pointers[0], S3DAT_SEEK_SET);
 				char name[100];
 				snprintf(name, 100, "palette_dump-%i.data", p);
 				FILE* file = fopen(name, "wb");
@@ -100,9 +100,9 @@ int main() {
 			}
 		}
 
-		if(s3dat_mem->animation_index.len > 0 && false) {
-			for(uint32_t e = 0;e != s3dat_mem->animation_index.len;e++) {
-				printf("[%i] animation %i at %i\n", i, e, s3dat_mem->animation_index.pointers[e]);
+		if(s3dat_mem->animation_index->len > 0 && false) {
+			for(uint32_t e = 0;e != s3dat_mem->animation_index->len;e++) {
+				printf("[%i] animation %i at %i\n", i, e, s3dat_mem->animation_index->pointers[e]);
 				s3dat_animation_t* ani = s3dat_extract_animation(s3dat_mem, e, &ex);
 
 				if(ex != NULL) {

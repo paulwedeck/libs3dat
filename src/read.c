@@ -151,38 +151,38 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 			s3dat_throw(mem, throws, S3DAT_EXCEPTION_CONFLICTING_DATA, __FILE__, __func__, __LINE__);
 		}
 
-		mem->string_index.len = texts;
-		mem->string_index.type = s3dat_string;
-		mem->string_index.sequences = s3dat_internal_alloc_func(mem, texts*sizeof(s3dat_index_t), throws);
+		mem->string_index->len = texts;
+		mem->string_index->type = s3dat_string;
+		mem->string_index->sequences = s3dat_internal_alloc_func(mem, texts*sizeof(s3dat_index_t), throws);
 		if(*throws != NULL) {
 			s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
-			mem->string_index.type = 0;
+			mem->string_index->type = 0;
 			return;
 		}
 
 		for(uint16_t t = 0;t != texts;t++) {
-			mem->string_index.sequences[t].len = languages;
-			mem->string_index.sequences[t].type = s3dat_string;
-			mem->string_index.sequences[t].pointers = s3dat_internal_alloc_func(mem, languages*4, throws);
+			mem->string_index->sequences[t].len = languages;
+			mem->string_index->sequences[t].type = s3dat_string;
+			mem->string_index->sequences[t].pointers = s3dat_internal_alloc_func(mem, languages*4, throws);
 			if(*throws != NULL) {
 				s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 
-				mem->free_func(mem->mem_arg, mem->string_index.sequences);
+				mem->free_func(mem->mem_arg, mem->string_index->sequences);
 				for(uint16_t i = 0;i != (texts-1);i++) {
-					mem->free_func(mem->mem_arg, mem->string_index.sequences[t].pointers);
+					mem->free_func(mem->mem_arg, mem->string_index->sequences[t].pointers);
 				}
 
-				mem->string_index.type = 0;
+				mem->string_index->type = 0;
 				return;
 			}
 		}
 
 		for(uint16_t l = 0;l != languages;l++) {
 			for(uint16_t t = 0;t != texts;t++) {
-				mem->string_index.sequences[t].pointers[l] = s3dat_internal_read32LE(mem, throws);
+				mem->string_index->sequences[t].pointers[l] = s3dat_internal_read32LE(mem, throws);
 
 				if(*throws != NULL) {
-					s3dat_internal_delete_seq(mem, &mem->string_index);
+					s3dat_internal_delete_seq(mem, mem->string_index);
 					return;
 				}
 			}
@@ -218,13 +218,13 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 			s3dat_seq_index_t* index;
 			switch(index_type) {
 				case s3dat_settler:
-					index = &mem->settler_index;
+					index = mem->settler_index;
 				break;
 				case s3dat_torso:
-					index = &mem->torso_index;
+					index = mem->torso_index;
 				break;
 				case s3dat_shadow:
-					index = &mem->shadow_index;
+					index = mem->shadow_index;
 				break;
 			}
 			if(index->type == index_type) {
@@ -284,16 +284,16 @@ void s3dat_internal_read_index(s3dat_t* mem, uint32_t index, s3dat_exception_t**
 			s3dat_index_t* index;
 			switch(index_type) {
 				case s3dat_gui:
-					index = &mem->gui_index;
+					index = mem->gui_index;
 				break;
 				case s3dat_landscape:
-					index = &mem->landscape_index;
+					index = mem->landscape_index;
 				break;
 				case s3dat_animation:
-					index = &mem->animation_index;
+					index = mem->animation_index;
 				break;
 				case s3dat_palette:
-					index = &mem->palette_index;
+					index = mem->palette_index;
 				break;
 				default:
 					s3dat_throw(mem, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);

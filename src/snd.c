@@ -69,20 +69,20 @@ void s3dat_internal_readsnd(s3dat_t* mem, s3dat_exception_t** throws) {
 
 	mem->free_func(mem->mem_arg, pointers);
 
-	mem->sound_index.type = s3dat_snd;
+	mem->sound_index->type = s3dat_snd;
 	if(alive_len != len) {
 		s3dat_index32_t* alive_data = s3dat_internal_alloc_func(mem, alive_len*sizeof(s3dat_index32_t), throws);
 		if(*throws != NULL) {
 			s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 		} else {
 			memcpy(alive_data, indices_data, alive_len*sizeof(s3dat_index32_t));
-			mem->sound_index.sequences = alive_data;
-			mem->sound_index.len = alive_len;
+			mem->sound_index->sequences = alive_data;
+			mem->sound_index->len = alive_len;
 		}
 		mem->free_func(mem->mem_arg, indices_data);
 	} else {
-		mem->sound_index.sequences = indices_data;
-		mem->sound_index.len = len;
+		mem->sound_index->sequences = indices_data;
+		mem->sound_index->len = len;
 	}
 }
 
@@ -111,12 +111,12 @@ void s3dat_internal_readsnd_index(s3dat_t* mem, uint32_t from, s3dat_index32_t* 
 }
 
 void s3dat_internal_extract_sound(s3dat_t* mem, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to, s3dat_exception_t** throws) {
-	if(mem->sound_index.len <= soundtype || mem->sound_index.sequences[soundtype].len <= altindex) {
+	if(mem->sound_index->len <= soundtype || mem->sound_index->sequences[soundtype].len <= altindex) {
 		s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
-	uint32_t from = mem->sound_index.sequences[soundtype].pointers[altindex];
+	uint32_t from = mem->sound_index->sequences[soundtype].pointers[altindex];
 
 	s3dat_internal_seek_func(mem, from, S3DAT_SEEK_SET, throws);
 	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);

@@ -143,12 +143,12 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* mem, s3dat_language language, uin
 #endif
 
 void s3dat_internal_extract_string(s3dat_t* mem, uint16_t text, uint16_t language, s3dat_string_t* to, s3dat_exception_t** throws) {
-	if(text > mem->string_index.len || language > mem->string_index.sequences[text].len) {
+	if(text > mem->string_index->len || language > mem->string_index->sequences[text].len) {
 		s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
-	s3dat_internal_seek_func(mem, mem->string_index.sequences[text].pointers[language], S3DAT_SEEK_SET, throws);
+	s3dat_internal_seek_func(mem, mem->string_index->sequences[text].pointers[language], S3DAT_SEEK_SET, throws);
 	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint8_t* cstr = s3dat_internal_read_cstr(mem, throws);

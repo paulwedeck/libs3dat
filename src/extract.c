@@ -99,11 +99,11 @@ void s3dat_default_extract(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_e
 		res->type == s3dat_settler || res->type == s3dat_landscape) {
 		s3dat_index_t* index = NULL;
 		s3dat_seq_index_t* seq_index = NULL;
-		if(res->type == s3dat_landscape) index = &mem->landscape_index;
-		else if(res->type == s3dat_settler) seq_index = &mem->settler_index;
-		else if(res->type == s3dat_shadow) seq_index = &mem->shadow_index;
-		else if(res->type == s3dat_torso) seq_index = &mem->torso_index;
-		else if(res->type == s3dat_gui) index = &mem->gui_index;
+		if(res->type == s3dat_landscape) index = mem->landscape_index;
+		else if(res->type == s3dat_settler) seq_index = mem->settler_index;
+		else if(res->type == s3dat_shadow) seq_index = mem->shadow_index;
+		else if(res->type == s3dat_torso) seq_index = mem->torso_index;
+		else if(res->type == s3dat_gui) index = mem->gui_index;
 
 		uint16_t index_ptr = res->first_index;
 

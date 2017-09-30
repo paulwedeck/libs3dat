@@ -108,15 +108,15 @@ struct s3dat_t {
 	uint32_t palette_line_length;
 	s3dat_extracthandler_t* last_handler;
 
-	s3dat_seq_index_t settler_index;
-	s3dat_seq_index_t shadow_index;
-	s3dat_seq_index_t torso_index;
-	s3dat_seq_index_t string_index;
-	s3dat_seq_index32_t sound_index; // SND .dat files only
-	s3dat_index_t landscape_index;
-	s3dat_index_t gui_index;
-	s3dat_index_t animation_index;
-	s3dat_index_t palette_index;
+	s3dat_seq_index_t* settler_index;
+	s3dat_seq_index_t* shadow_index;
+	s3dat_seq_index_t* torso_index;
+	s3dat_seq_index_t* string_index;
+	s3dat_seq_index32_t* sound_index; // SND .dat files only
+	s3dat_index_t* landscape_index;
+	s3dat_index_t* gui_index;
+	s3dat_index_t* animation_index;
+	s3dat_index_t* palette_index;
 
 };
 

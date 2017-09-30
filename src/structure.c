@@ -65,6 +65,17 @@ s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*f
 	s3dat_mem->mem_arg = arg;
 	s3dat_mem->alloc_func = alloc_func;
 	s3dat_mem->free_func = free_func;
+
+	s3dat_mem->settler_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	s3dat_mem->shadow_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	s3dat_mem->torso_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	s3dat_mem->string_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	s3dat_mem->sound_index = alloc_func(arg, sizeof(s3dat_seq_index32_t));
+
+	s3dat_mem->landscape_index = alloc_func(arg, sizeof(s3dat_index_t));
+	s3dat_mem->gui_index = alloc_func(arg, sizeof(s3dat_index_t));
+	s3dat_mem->animation_index = alloc_func(arg, sizeof(s3dat_index_t));
+	s3dat_mem->palette_index = alloc_func(arg, sizeof(s3dat_index_t));
 }
 
 void s3dat_delete(s3dat_t* mem) {
@@ -76,16 +87,27 @@ void s3dat_delete(s3dat_t* mem) {
 
 	if(mem->close_func != NULL) mem->close_func(mem->io_arg);
 
-	s3dat_internal_delete_seq(mem, &mem->settler_index);
-	s3dat_internal_delete_seq(mem, &mem->shadow_index);
-	s3dat_internal_delete_seq(mem, &mem->torso_index);
-	s3dat_internal_delete_seq(mem, &mem->string_index);
-	s3dat_internal_delete_seq32(mem, &mem->sound_index);
+	s3dat_internal_delete_seq(mem, mem->settler_index);
+	s3dat_internal_delete_seq(mem, mem->shadow_index);
+	s3dat_internal_delete_seq(mem, mem->torso_index);
+	s3dat_internal_delete_seq(mem, mem->string_index);
+	s3dat_internal_delete_seq32(mem, mem->sound_index);
 
-	s3dat_internal_delete_index(mem, &mem->landscape_index);
-	s3dat_internal_delete_index(mem, &mem->animation_index);
-	s3dat_internal_delete_index(mem, &mem->palette_index);
-	s3dat_internal_delete_index(mem, &mem->gui_index);
+	s3dat_internal_delete_index(mem, mem->landscape_index);
+	s3dat_internal_delete_index(mem, mem->animation_index);
+	s3dat_internal_delete_index(mem, mem->palette_index);
+	s3dat_internal_delete_index(mem, mem->gui_index);
+
+	mem->free_func(mem->mem_arg, mem->settler_index);
+	mem->free_func(mem->mem_arg, mem->shadow_index);
+	mem->free_func(mem->mem_arg, mem->torso_index);
+	mem->free_func(mem->mem_arg, mem->string_index);
+	mem->free_func(mem->mem_arg, mem->sound_index);
+
+	mem->free_func(mem->mem_arg, mem->landscape_index);
+	mem->free_func(mem->mem_arg, mem->animation_index);
+	mem->free_func(mem->mem_arg, mem->palette_index);
+	mem->free_func(mem->mem_arg, mem->gui_index);
 
 	mem->free_func(mem->mem_arg, mem);
 }

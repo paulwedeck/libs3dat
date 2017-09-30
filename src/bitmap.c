@@ -176,12 +176,12 @@ s3dat_color_t s3dat_internal_ex(s3dat_t* mem, s3dat_color_type type, s3dat_excep
 }
 
 void s3dat_internal_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_bitmap_t* to, s3dat_exception_t** throws) {
-	if(palette > mem->palette_index.len) {
+	if(palette > mem->palette_index->len) {
 		s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
-	s3dat_internal_seek_func(mem, mem->palette_index.pointers[palette], S3DAT_SEEK_SET, throws);
+	s3dat_internal_seek_func(mem, mem->palette_index->pointers[palette], S3DAT_SEEK_SET, throws);
 	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint32_t colors = mem->palette_line_length*8;
@@ -212,12 +212,12 @@ void s3dat_internal_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_bitmap
 s3dat_color_t s3dat_internal_error_color = {0, 0, 0, 0};
 
 s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws) {
-	if(palette > mem->palette_index.len) {
+	if(palette > mem->palette_index->len) {
 		s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return s3dat_internal_error_color;
 	}
 
-	s3dat_internal_seek_func(mem, mem->palette_index.pointers[palette]+brightness*mem->palette_line_length+x, S3DAT_SEEK_SET, throws);
+	s3dat_internal_seek_func(mem, mem->palette_index->pointers[palette]+brightness*mem->palette_line_length+x, S3DAT_SEEK_SET, throws);
 	if(*throws != NULL) {
 		s3dat_add_to_stack(mem, throws, __FILE__, __func__, __LINE__);
 		return s3dat_internal_error_color;
@@ -233,12 +233,12 @@ s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_
 }
 
 void s3dat_internal_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws) {
-	if(mem->animation_index.len <= animation) {
+	if(mem->animation_index->len <= animation) {
 		s3dat_throw(mem, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
 	}
 
-	s3dat_internal_seek_func(mem, mem->animation_index.pointers[animation], S3DAT_SEEK_SET, throws);
+	s3dat_internal_seek_func(mem, mem->animation_index->pointers[animation], S3DAT_SEEK_SET, throws);
 	S3DAT_HANDLE_EXCEPTION(mem, throws, __FILE__, __func__, __LINE__);
 
 	uint32_t entries = s3dat_internal_read32LE(mem, throws);
