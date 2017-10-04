@@ -1,4 +1,7 @@
 #include "s3dat_internal.h"
+#ifdef PRIVATE_FILENAME
+#line __LINE__ "ioset.c"
+#endif
 
 #ifdef __linux__
 void* s3dat_linux_open_func(void* arg) {

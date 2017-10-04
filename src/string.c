@@ -1,4 +1,7 @@
 #include "s3dat_internal.h"
+#ifdef PRIVATE_FILENAME
+#line __LINE__ "string.c"
+#endif
 
 uint8_t* s3dat_internal_read_cstr(s3dat_t* mem, s3dat_exception_t** throws) {
 	#define STRING_BUFFER 1024
