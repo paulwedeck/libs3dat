@@ -22,6 +22,10 @@
 #include <windows.h>
 #endif
 
+#ifdef __linux__
+#include <sys/mman.h>
+#endif
+
 #ifndef S3DAT_INTERNAL_H
 #define S3DAT_INTERNAL_H
 

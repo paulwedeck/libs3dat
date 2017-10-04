@@ -181,7 +181,7 @@ void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s
 			string->string_data = utf8_str;
 		}
 		#else
-		if(language != s3dat_japanese && language != s3dat_korean) {
+		if(string->language != s3dat_japanese && string->language != s3dat_korean) {
 			s3dat_internal_iso8859_to_utf8(mem, &(string->string_data), strlen(string->string_data)+1, string->language == s3dat_polish, throws);
 
 			string->original_encoding = false;

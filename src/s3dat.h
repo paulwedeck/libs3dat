@@ -16,6 +16,13 @@
 #define S3DAT_IOSET_DEFAULT 0x500
 #define S3DAT_IOSET_LIBC 0x501
 
+//memory mapped file
+#define S3DAT_IOSET_NATIVEOS_MMF 0x600
+#define S3DAT_IOSET_LINUX_MMF 0x601
+#define S3DAT_IOSET_WIN32_MMF 0x602
+#define S3DAT_IOSET_LINUX_MMF_FD 0x603
+#define S3DAT_IOSET_WIN32_MMF_HANDLE 0x604
+
 #define S3DAT_EXHANDLER_CALL(me, res, throws, file, func, line) \
 	do { \
 		me->before->call(me->before, res, throws); \
@@ -92,6 +99,15 @@ typedef struct {
 
 typedef struct s3dat_t s3dat_t;
 
+typedef struct {
+	void* addr;
+	uint32_t pos;
+	uint32_t len;
+	bool fork;
+
+	void* additional_data; // win32 handles
+} s3dat_mmf_t;
+
 struct s3dat_t {
 	void* mem_arg;
 	void* io_arg;
@@ -103,6 +119,7 @@ struct s3dat_t {
 	bool (*seek_func) (void*, uint32_t, int);
 	void* (*open_func) (void*);
 	void (*close_func) (void*);
+	void* (*fork_func) (void*);
 
 	bool green_6b;
 	uint32_t palette_line_length;
@@ -183,6 +200,7 @@ typedef struct {
 	bool (*seek_func) (void*, uint32_t, int);
 	void* (*open_func) (void*);
 	void (*close_func) (void*);
+	void* (*fork_func) (void*);
 	bool available;
 } s3dat_ioset_t;
 
@@ -216,6 +234,7 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	bool (*seek_func) (void*, uint32_t, int),
 	void* (*open_func) (void*),
 	void (*close_func) (void*),
+	void* (*fork_func) (void*),
 	s3dat_exception_t** throws_out);
 
 void s3dat_add_extracthandler(s3dat_t* mem, s3dat_extracthandler_t* exhandler);
@@ -241,6 +260,9 @@ s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_
 
 void s3dat_add_utf8_encoding(s3dat_t* mem);
 void s3dat_add_landscape_blending(s3dat_t* mem);
+
+s3dat_t* s3dat_fork(s3dat_t* mem);
+void s3dat_delete_fork(s3dat_t* mem);
 
 //linux
 void* s3dat_linux_open_func(void* arg);

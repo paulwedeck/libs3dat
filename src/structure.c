@@ -85,8 +85,6 @@ void s3dat_delete(s3dat_t* mem) {
 		s3dat_delete_exhandler(tmp);
 	}
 
-	if(mem->close_func != NULL) mem->close_func(mem->io_arg);
-
 	s3dat_internal_delete_seq(mem, mem->settler_index);
 	s3dat_internal_delete_seq(mem, mem->shadow_index);
 	s3dat_internal_delete_seq(mem, mem->torso_index);
@@ -109,7 +107,7 @@ void s3dat_delete(s3dat_t* mem) {
 	mem->free_func(mem->mem_arg, mem->palette_index);
 	mem->free_func(mem->mem_arg, mem->gui_index);
 
-	mem->free_func(mem->mem_arg, mem);
+	s3dat_delete_fork(mem);
 }
 
 void s3dat_delete_animation(s3dat_animation_t* mem) {
@@ -258,5 +256,21 @@ void* s3dat_internal_alloc_func(s3dat_t* mem, size_t size, s3dat_exception_t** t
 	}
 
 	return mem_block;
+}
+
+s3dat_t* s3dat_fork(s3dat_t* mem) {
+	if(mem->fork_func == NULL) return NULL;
+
+	s3dat_t* fork = mem->alloc_func(mem->mem_arg, sizeof(s3dat_t));
+	memcpy(fork, mem, sizeof(s3dat_t));
+
+	fork->io_arg = mem->fork_func(mem->io_arg);
+
+	return fork;
+}
+
+void s3dat_delete_fork(s3dat_t* mem) {
+	if(mem->close_func != NULL) mem->close_func(mem->io_arg);
+	mem->free_func(mem->mem_arg, mem);
 }
 
