@@ -145,16 +145,16 @@ void* s3dat_mmf_linux_name_open_func(void* arg) {
 	return mmf;
 }
 
-void s3dat_mmf_linux_close_func(void* varg) {
-	s3dat_mmf_t* arg = varg;
+void s3dat_mmf_linux_close_func(void* arg) {
+	s3dat_mmf_t* mmf = arg;
 
-	if(!arg->fork) munmap(arg->addr, arg->len);
-	free(arg);
+	if(!mmf->fork) munmap(mmf->addr, mmf->len);
+	free(mmf);
 }
 #else
 void* s3dat_mmf_linux_fd_open_func(void* arg) {}
 void* s3dat_mmf_linux_name_open_func(void* arg) {}
-void s3dat_mmf_linux_close_func(void* varg) {}
+void s3dat_mmf_linux_close_func(void* arg) {}
 #endif
 
 #ifdef _WIN32
@@ -188,18 +188,18 @@ void* s3dat_mmf_win32_name_open_func(void* arg) {
 	return mmf;
 }
 
-void s3dat_mmf_win32_close_func(void* varg) {
-	s3dat_mmf_t* arg = varg;
+void s3dat_mmf_win32_close_func(void* arg) {
+	s3dat_mmf_t* mmf = arg;
 
-	if(!arg->fork) {
-		UnmapViewOfFile(arg->addr);
+	if(!mmf->fork) {
+		UnmapViewOfFile(mmf->addr);
 
-		CloseHandle(((s3dat_win32_add_t*)arg->additional_data)->win32fm);
-		if(((s3dat_win32_add_t*)arg->additional_data)->file) CloseHandle(((s3dat_win32_add_t*)arg->additional_data)->file);
+		CloseHandle(((s3dat_win32_add_t*)mmf->additional_data)->win32fm);
+		if(((s3dat_win32_add_t*)mmf->additional_data)->file) CloseHandle(((s3dat_win32_add_t*)mmf->additional_data)->file);
 
-		free(arg->additional_data);
+		free(mmf->additional_data);
 	}
-	free(arg);
+	free(mmf);
 }
 #else
 void* s3dat_mmf_win32_handle_open_func(void* arg) {}
@@ -207,43 +207,44 @@ void* s3dat_mmf_win32_name_open_func(void* arg) {}
 void s3dat_mmf_win32_close_func(void* arg) {}
 #endif
 
-bool s3dat_mmf_read_func(void* varg, void* bfr, size_t len) {
-	s3dat_mmf_t* arg = varg;
+bool s3dat_mmf_read_func(void* arg, void* bfr, size_t len) {
+	s3dat_mmf_t* mmf = arg;
 
-	if(arg->len < arg->pos+len) return false;
+	if(mmf->len < mmf->pos+len) return false;
 
-	memcpy(bfr, arg->addr+arg->pos, len);
+	memcpy(bfr, mmf->addr+mmf->pos, len);
 
-	arg->pos += len;
-
-	return true;
-}
-
-bool s3dat_mmf_seek_func(void* varg, uint32_t pos, int whence) {
-	s3dat_mmf_t* arg = varg;
-
-	uint32_t from = whence == S3DAT_SEEK_SET ? 0 : arg->pos;
-
-	if(arg->len < (pos+from)) return false;
-	arg->pos = pos+from;
+	mmf->pos += len;
 
 	return true;
 }
 
-size_t s3dat_mmf_pos_func(void* varg) {
-	s3dat_mmf_t* arg = varg;
-	return arg->pos;
+bool s3dat_mmf_seek_func(void* arg, uint32_t pos, int whence) {
+	s3dat_mmf_t* mmf = arg;
+
+	uint32_t from = whence == S3DAT_SEEK_SET ? 0 : mmf->pos;
+
+	if(mmf->len < (pos+from)) return false;
+	mmf->pos = pos+from;
+
+	return true;
 }
 
-size_t s3dat_mmf_size_func(void* varg) {
-	s3dat_mmf_t* arg = varg;
-	return arg->len;
+size_t s3dat_mmf_pos_func(void* arg) {
+	s3dat_mmf_t* mmf = arg;
+	return mmf->pos;
 }
 
-void* s3dat_mmf_fork_func(void* varg) {
-	s3dat_mmf_t* arg = varg;
+size_t s3dat_mmf_size_func(void* arg) {
+	s3dat_mmf_t* mmf = arg;
+	return mmf->len;
+}
+
+void* s3dat_mmf_fork_func(void* arg) {
+	s3dat_mmf_t* mmf = arg;
 
 	s3dat_mmf_t* fork = calloc(1, sizeof(s3dat_mmf_t));
+	memcpy(fork, mmf, sizeof(s3dat_mmf_t));
 
 	fork->fork = true;
 

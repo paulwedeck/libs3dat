@@ -272,6 +272,10 @@ bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_linux_pos_func(void* arg);
 size_t s3dat_linux_size_func(void* arg);
 
+void* s3dat_mmf_linux_fd_open_func(void* arg);
+void* s3dat_mmf_linux_name_open_func(void* arg);
+void s3dat_mmf_linux_close_func(void* arg);
+
 //windows
 void* s3dat_win32_open_func(void* arg);
 void s3dat_win32_close_func(void* arg);
@@ -280,12 +284,22 @@ bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_win32_pos_func(void* arg);
 size_t s3dat_win32_size_func(void* arg);
 
+void* s3dat_mmf_win32_handle_open_func(void* arg);
+void* s3dat_mmf_win32_name_open_func(void* arg);
+void s3dat_mmf_win32_close_func(void* arg);
+
 void* s3dat_libc_open_func(void* arg);
 void s3dat_libc_close_func(void* arg);
 bool s3dat_libc_read_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_libc_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_libc_pos_func(void* arg);
 size_t s3dat_libc_size_func(void* arg);
+
+bool s3dat_mmf_read_func(void* arg, void* bfr, size_t len);
+bool s3dat_mmf_seek_func(void* arg, uint32_t pos, int whence);
+size_t s3dat_mmf_pos_func(void* arg);
+size_t s3dat_mmf_size_func(void* arg);
+void* s3dat_mmf_fork_func(void* arg);
 
 s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type);
 
