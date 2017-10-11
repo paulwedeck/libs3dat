@@ -26,7 +26,7 @@
 #define S3DAT_EXHANDLER_CALL(me, res, throws, file, func, line) \
 	do { \
 		me->before->call(me->before, res, throws); \
-		S3DAT_HANDLE_EXCEPTION(mem, throws, file, func, line); \
+		S3DAT_HANDLE_EXCEPTION(handle, throws, file, func, line); \
 	} while(0);
 
 typedef struct s3dat_exception_t s3dat_exception_t;
@@ -221,13 +221,13 @@ struct  s3dat_extracthandler_t {
 	s3dat_extracthandler_t* before;
 };
 
-void s3dat_readfile_name(s3dat_t* mem, char* name, s3dat_exception_t** throws);
+void s3dat_readfile_name(s3dat_t* handle, char* name, s3dat_exception_t** throws);
 
-void s3dat_readfile_fd(s3dat_t* mem, uint32_t* file, s3dat_exception_t** throws);
+void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
 
-void s3dat_readfile_ioset(s3dat_t* mem, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
+void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
 
-void s3dat_readfile_func(s3dat_t* mem, void* arg,
+void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	bool (*read_func) (void*, void*, size_t),
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
@@ -237,32 +237,32 @@ void s3dat_readfile_func(s3dat_t* mem, void* arg,
 	void* (*fork_func) (void*),
 	s3dat_exception_t** throws_out);
 
-void s3dat_add_extracthandler(s3dat_t* mem, s3dat_extracthandler_t* exhandler);
-bool s3dat_remove_extracthandler(s3dat_t* mem, uint32_t steps_back);
-bool s3dat_remove_last_extracthandler(s3dat_t* mem);
+void s3dat_add_extracthandler(s3dat_t* handle, s3dat_extracthandler_t* exhandler);
+bool s3dat_remove_extracthandler(s3dat_t* handle, uint32_t steps_back);
+bool s3dat_remove_last_extracthandler(s3dat_t* handle);
 
-void s3dat_extract(s3dat_t* mem, s3dat_res_t* res, s3dat_exception_t** throws);
+void s3dat_extract(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
 
-s3dat_bitmap_t* s3dat_extract_settler(s3dat_t* mem, uint16_t settler, uint8_t frame, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_shadow(s3dat_t* mem, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_torso(s3dat_t* mem, uint16_t torso, uint8_t frame, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3dat_exception_t** throws);
 
-s3dat_bitmap_t* s3dat_extract_landscape(s3dat_t* mem, uint16_t landscape, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_gui(s3dat_t* mem, uint16_t gui, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3dat_exception_t** throws);
 
-s3dat_animation_t* s3dat_extract_animation(s3dat_t* mem, uint16_t animation, s3dat_exception_t** throws);
-s3dat_string_t* s3dat_extract_string(s3dat_t* mem, uint16_t text, uint16_t language, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_palette(s3dat_t* mem, uint16_t palette, s3dat_exception_t** throws);
-s3dat_string_t* s3dat_extract_sound(s3dat_t* mem, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws);
+s3dat_animation_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_exception_t** throws);
+s3dat_string_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_exception_t** throws);
+s3dat_string_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws);
 
 
-s3dat_color_t s3dat_extract_palette_color(s3dat_t* mem, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
+s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
 
-void s3dat_add_utf8_encoding(s3dat_t* mem);
-void s3dat_add_landscape_blending(s3dat_t* mem);
+void s3dat_add_utf8_encoding(s3dat_t* handle);
+void s3dat_add_landscape_blending(s3dat_t* handle);
 
-s3dat_t* s3dat_fork(s3dat_t* mem);
-void s3dat_delete_fork(s3dat_t* mem);
+s3dat_t* s3dat_fork(s3dat_t* handle);
+void s3dat_delete_fork(s3dat_t* handle);
 
 //linux
 void* s3dat_linux_open_func(void* arg);
@@ -324,7 +324,7 @@ s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count);
 s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent);
 s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count);
 
-void s3dat_delete(s3dat_t* mem);
+void s3dat_delete(s3dat_t* handle);
 
 
 void s3dat_delete_animation(s3dat_animation_t* ani);
@@ -367,8 +367,8 @@ void s3dat_delete_exhandler(s3dat_extracthandler_t* exhandler);
 void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count);
 
 void s3dat_print_exception(s3dat_exception_t* ex); // debugging only
-void s3dat_delete_exception(s3dat_t* mem, s3dat_exception_t* ex);
-void s3dat_throw(s3dat_t* mem, s3dat_exception_t** throws, uint32_t exception, char* file, const char* function, int line);
+void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex);
+void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t exception, char* file, const char* function, int line);
 bool s3dat_catch_exception(s3dat_exception_t** throws, s3dat_t* from);
 #endif /*S3DAT_H*/
 

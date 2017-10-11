@@ -206,90 +206,92 @@ s3dat_t* s3dat_new_malloc() {
 }
 
 s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*)) {
-	s3dat_t* s3dat_mem = alloc_func(arg, sizeof(s3dat_t));
-	s3dat_mem->mem_arg = arg;
-	s3dat_mem->alloc_func = alloc_func;
-	s3dat_mem->free_func = free_func;
+	s3dat_t* handle = alloc_func(arg, sizeof(s3dat_t));
+	handle->mem_arg = arg;
+	handle->alloc_func = alloc_func;
+	handle->free_func = free_func;
 
-	s3dat_mem->settler_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
-	s3dat_mem->shadow_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
-	s3dat_mem->torso_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
-	s3dat_mem->string_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
-	s3dat_mem->sound_index = alloc_func(arg, sizeof(s3dat_seq_index32_t));
+	handle->settler_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	handle->shadow_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	handle->torso_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	handle->string_index = alloc_func(arg, sizeof(s3dat_seq_index_t));
+	handle->sound_index = alloc_func(arg, sizeof(s3dat_seq_index32_t));
 
-	s3dat_mem->landscape_index = alloc_func(arg, sizeof(s3dat_index_t));
-	s3dat_mem->gui_index = alloc_func(arg, sizeof(s3dat_index_t));
-	s3dat_mem->animation_index = alloc_func(arg, sizeof(s3dat_index_t));
-	s3dat_mem->palette_index = alloc_func(arg, sizeof(s3dat_index_t));
+	handle->landscape_index = alloc_func(arg, sizeof(s3dat_index_t));
+	handle->gui_index = alloc_func(arg, sizeof(s3dat_index_t));
+	handle->animation_index = alloc_func(arg, sizeof(s3dat_index_t));
+	handle->palette_index = alloc_func(arg, sizeof(s3dat_index_t));
+
+	return handle;
 }
 
-void s3dat_delete(s3dat_t* mem) {
-	while(mem->last_handler != NULL) {
-		s3dat_extracthandler_t* tmp = mem->last_handler;
-		mem->last_handler = mem->last_handler->before;
+void s3dat_delete(s3dat_t* handle) {
+	while(handle->last_handler != NULL) {
+		s3dat_extracthandler_t* tmp = handle->last_handler;
+		handle->last_handler = handle->last_handler->before;
 		s3dat_delete_exhandler(tmp);
 	}
 
-	s3dat_internal_delete_seq(mem, mem->settler_index);
-	s3dat_internal_delete_seq(mem, mem->shadow_index);
-	s3dat_internal_delete_seq(mem, mem->torso_index);
-	s3dat_internal_delete_seq(mem, mem->string_index);
-	s3dat_internal_delete_seq32(mem, mem->sound_index);
+	s3dat_internal_delete_seq(handle, handle->settler_index);
+	s3dat_internal_delete_seq(handle, handle->shadow_index);
+	s3dat_internal_delete_seq(handle, handle->torso_index);
+	s3dat_internal_delete_seq(handle, handle->string_index);
+	s3dat_internal_delete_seq32(handle, handle->sound_index);
 
-	s3dat_internal_delete_index(mem, mem->landscape_index);
-	s3dat_internal_delete_index(mem, mem->animation_index);
-	s3dat_internal_delete_index(mem, mem->palette_index);
-	s3dat_internal_delete_index(mem, mem->gui_index);
+	s3dat_internal_delete_index(handle, handle->landscape_index);
+	s3dat_internal_delete_index(handle, handle->animation_index);
+	s3dat_internal_delete_index(handle, handle->palette_index);
+	s3dat_internal_delete_index(handle, handle->gui_index);
 
-	mem->free_func(mem->mem_arg, mem->settler_index);
-	mem->free_func(mem->mem_arg, mem->shadow_index);
-	mem->free_func(mem->mem_arg, mem->torso_index);
-	mem->free_func(mem->mem_arg, mem->string_index);
-	mem->free_func(mem->mem_arg, mem->sound_index);
+	handle->free_func(handle->mem_arg, handle->settler_index);
+	handle->free_func(handle->mem_arg, handle->shadow_index);
+	handle->free_func(handle->mem_arg, handle->torso_index);
+	handle->free_func(handle->mem_arg, handle->string_index);
+	handle->free_func(handle->mem_arg, handle->sound_index);
 
-	mem->free_func(mem->mem_arg, mem->landscape_index);
-	mem->free_func(mem->mem_arg, mem->animation_index);
-	mem->free_func(mem->mem_arg, mem->palette_index);
-	mem->free_func(mem->mem_arg, mem->gui_index);
+	handle->free_func(handle->mem_arg, handle->landscape_index);
+	handle->free_func(handle->mem_arg, handle->animation_index);
+	handle->free_func(handle->mem_arg, handle->palette_index);
+	handle->free_func(handle->mem_arg, handle->gui_index);
 
-	s3dat_delete_fork(mem);
+	s3dat_delete_fork(handle);
 }
 
 
-void s3dat_internal_delete_index(s3dat_t* mem, s3dat_index_t* index) {
-	s3dat_internal_delete_indices(mem, index, 1);
+void s3dat_internal_delete_index(s3dat_t* handle, s3dat_index_t* index) {
+	s3dat_internal_delete_indices(handle, index, 1);
 }
 
-void s3dat_internal_delete_indices(s3dat_t* mem, s3dat_index_t* indices, uint32_t count) {
+void s3dat_internal_delete_indices(s3dat_t* handle, s3dat_index_t* indices, uint32_t count) {
 	if(count == 0) return;
 	for(uint32_t i = 0;i != count;i++) {
-		if(indices[i].type != 0) mem->free_func(mem->mem_arg, indices[i].pointers);
+		if(indices[i].type != 0) handle->free_func(handle->mem_arg, indices[i].pointers);
 	}
 }
 
-void s3dat_internal_delete_index32(s3dat_t* mem, s3dat_index32_t* index) {
+void s3dat_internal_delete_index32(s3dat_t* handle, s3dat_index32_t* index) {
 	if(index->type == 0) return;
 
-	mem->free_func(mem->mem_arg, index->pointers);
+	handle->free_func(handle->mem_arg, index->pointers);
 }
 
 
-void s3dat_internal_delete_seq(s3dat_t* mem, s3dat_seq_index_t* seq) {
+void s3dat_internal_delete_seq(s3dat_t* handle, s3dat_seq_index_t* seq) {
 	if(seq->type == 0) return;
 
 	for(uint16_t i = 0;i != seq->len;i++) {
-		s3dat_internal_delete_index(mem, seq->sequences+i);
+		s3dat_internal_delete_index(handle, seq->sequences+i);
 	}
-	mem->free_func(mem->mem_arg, seq->sequences);
+	handle->free_func(handle->mem_arg, seq->sequences);
 }
 
-void s3dat_internal_delete_seq32(s3dat_t* mem, s3dat_seq_index32_t* seq) {
+void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq) {
 	if(seq->type == 0) return;
 
 	for(uint16_t i = 0;i != seq->len;i++) {
-		s3dat_internal_delete_index32(mem, seq->sequences+i);
+		s3dat_internal_delete_index32(handle, seq->sequences+i);
 	}
-	mem->free_func(mem->mem_arg, seq->sequences);
+	handle->free_func(handle->mem_arg, seq->sequences);
 }
 
 void* s3dat_default_alloc_func(void* arg, size_t size) {
@@ -301,29 +303,29 @@ void s3dat_default_free_func(void* arg, void* mem) {
 	if(mem != NULL) free(mem);
 }
 
-void* s3dat_internal_alloc_func(s3dat_t* mem, size_t size, s3dat_exception_t** throws) {
-	void* new_block = mem->alloc_func(mem->mem_arg, size);
+void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws) {
+	void* new_block = handle->alloc_func(handle->mem_arg, size);
 
 	if(new_block == NULL) {
-		S3DAT_INTERNAL_OUT_OF_MEMORY(mem, throws);
+		S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws);
 	}
 
 	return new_block;
 }
 
-s3dat_t* s3dat_fork(s3dat_t* mem) {
-	if(mem->fork_func == NULL) return NULL;
+s3dat_t* s3dat_fork(s3dat_t* handle) {
+	if(handle->fork_func == NULL) return NULL;
 
-	s3dat_t* fork = mem->alloc_func(mem->mem_arg, sizeof(s3dat_t));
-	memcpy(fork, mem, sizeof(s3dat_t));
+	s3dat_t* fork = handle->alloc_func(handle->mem_arg, sizeof(s3dat_t));
+	memcpy(fork, handle, sizeof(s3dat_t));
 
-	fork->io_arg = mem->fork_func(mem->io_arg);
+	fork->io_arg = handle->fork_func(handle->io_arg);
 
 	return fork;
 }
 
-void s3dat_delete_fork(s3dat_t* mem) {
-	if(mem->close_func != NULL) mem->close_func(mem->io_arg);
-	mem->free_func(mem->mem_arg, mem);
+void s3dat_delete_fork(s3dat_t* handle) {
+	if(handle->close_func != NULL) handle->close_func(handle->io_arg);
+	handle->free_func(handle->mem_arg, handle);
 }
 
