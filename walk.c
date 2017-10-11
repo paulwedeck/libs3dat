@@ -176,9 +176,9 @@ int main() {
 	glfwHideWindow(wnd);
 	glfwDestroyWindow(wnd);
 	glfwTerminate();
-	//s3dat_delete_bitmaps(settler_bitmaps, 72);
-	//s3dat_delete_bitmaps(torso_bitmaps, 72);
-	//s3dat_delete_bitmap(grass_bitmap);
+	s3dat_delete_bitmap_array(settler_bitmaps, 72);
+	s3dat_delete_bitmap_array(torso_bitmaps, 72);
+	s3dat_delete_bitmap(grass_bitmap);
 	s3dat_delete(dat00);
 	s3dat_delete(dat10);
 }

@@ -75,7 +75,7 @@ int main() {
 					}
 					if(l != 7) printf("|");
 				}
-				//s3dat_delete_strings(strings, 8);
+				s3dat_delete_string_array(strings, 8);
 				printf("\n");
 			}
 		}

@@ -3,17 +3,28 @@
 #line __LINE__ "structure.c"
 #endif
 
+//exhandler
 s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent) {
 	return s3dat_new_exhandlers(parent, 1);
 }
 s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count) {
 	s3dat_extracthandler_t* handlers = parent->alloc_func(parent->mem_arg, sizeof(s3dat_extracthandler_t)*count);
-
-	for(uint32_t i = 0;i != count;i++) {
-		handlers[i].parent = parent;
-	}
-
+	for(uint32_t i = 0;i != count;i++) handlers[i].parent = parent;
 	return handlers;
+}
+
+void s3dat_delete_exhandler(s3dat_extracthandler_t* exhandler) {
+	s3dat_delete_exhandlers(exhandler, 1);
+}
+
+void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) if(exhandlers[i].arg_deref != NULL) exhandlers[i].arg_deref(exhandlers[i].arg);
+	exhandlers->parent->free_func(exhandlers->parent->mem_arg, exhandlers);
+}
+
+
+s3dat_string_t* s3dat_new_string(s3dat_t* parent) {
+	return s3dat_new_strings(parent, 1);
 }
 
 s3dat_sound_t* s3dat_new_sound(s3dat_t* parent) {
@@ -24,17 +35,11 @@ s3dat_animation_t* s3dat_new_animation(s3dat_t* parent) {
 	return s3dat_new_animations(parent, 1);
 }
 
-s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count) {
-	s3dat_sound_t* sounds = parent->alloc_func(parent->mem_arg, sizeof(s3dat_sound_t)*count);
-	for(uint32_t i = 0;i != count;i++) sounds[i].src = parent;
-	return sounds;
+s3dat_bitmap_t* s3dat_new_bitmap(s3dat_t* parent) {
+	return s3dat_new_bitmaps(parent, 1);
 }
 
-s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count) {
-	s3dat_animation_t* bm = parent->alloc_func(parent->mem_arg, sizeof(s3dat_animation_t)*count);
-	for(uint32_t i = 0;i != count;i++) bm[i].src = parent;
-	return bm;
-}
+
 
 s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count) {
 	s3dat_string_t* strings = parent->alloc_func(parent->mem_arg, sizeof(s3dat_string_t)*count);
@@ -42,20 +47,160 @@ s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count) {
 	return strings;
 }
 
-s3dat_string_t* s3dat_new_string(s3dat_t* parent) {
-	return s3dat_new_strings(parent, 1);
+s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count) {
+	s3dat_sound_t* sounds = parent->alloc_func(parent->mem_arg, sizeof(s3dat_sound_t)*count);
+	for(uint32_t i = 0;i != count;i++) sounds[i].src = parent;
+	return sounds;
 }
 
-s3dat_bitmap_t* s3dat_new_bitmap(s3dat_t* parent) {
-	return s3dat_new_bitmaps(parent, 1);
+s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count) {
+	s3dat_animation_t* anis = parent->alloc_func(parent->mem_arg, sizeof(s3dat_animation_t)*count);
+	for(uint32_t i = 0;i != count;i++) anis[i].src = parent;
+	return anis;
 }
 
 s3dat_bitmap_t* s3dat_new_bitmaps(s3dat_t* parent, uint32_t count) {
-	s3dat_bitmap_t* bm = parent->alloc_func(parent->mem_arg, sizeof(s3dat_bitmap_t)*count);
-	for(uint32_t i = 0;i != count;i++) bm[i].src = parent;
-	return bm;
+	s3dat_bitmap_t* bmps = parent->alloc_func(parent->mem_arg, sizeof(s3dat_bitmap_t)*count);
+	for(uint32_t i = 0;i != count;i++) bmps[i].src = parent;
+	return bmps;
 }
 
+
+void s3dat_delete_string(s3dat_string_t* string) {
+	s3dat_delete_strings(string, 1);
+}
+
+void s3dat_delete_sound(s3dat_sound_t* sound) {
+	s3dat_delete_sounds(sound, 1);
+}
+
+void s3dat_delete_animation(s3dat_animation_t* ani) {
+	s3dat_delete_animations(ani, 1);
+}
+
+void s3dat_delete_bitmap(s3dat_bitmap_t* bmp) {
+	s3dat_delete_bitmaps(bmp, 1);
+}
+
+
+void s3dat_delete_strings(s3dat_string_t* strings, uint32_t count) {
+	s3dat_delete_stringdatas(strings, count);
+	strings->src->free_func(strings->src->mem_arg, strings);
+}
+
+void s3dat_delete_sounds(s3dat_sound_t* sounds, uint32_t count) {
+	s3dat_delete_snddatas(sounds, count);
+	sounds->src->free_func(sounds->src->mem_arg, sounds);
+}
+
+void s3dat_delete_animations(s3dat_animation_t* anis, uint32_t count) {
+	s3dat_delete_frames(anis, count);
+	anis->src->free_func(anis->src->mem_arg, anis);
+}
+
+void s3dat_delete_bitmaps(s3dat_bitmap_t* bmps, uint32_t count) {
+	s3dat_delete_pixdatas(bmps, count);
+	bmps->src->free_func(bmps->src->mem_arg, bmps);
+}
+
+
+void s3dat_delete_string_array(s3dat_string_t** strings, uint32_t count) {
+	s3dat_delete_stringdata_array(strings, count);
+	for(uint32_t i = 0;i != count;i++) strings[i]->src->free_func(strings[i]->src->mem_arg, strings[i]);
+}
+
+void s3dat_delete_sound_array(s3dat_sound_t** sounds, uint32_t count) {
+	s3dat_delete_snddata_array(sounds, count);
+	for(uint32_t i = 0;i != count;i++) sounds[i]->src->free_func(sounds[i]->src->mem_arg, sounds[i]);
+}
+
+void s3dat_delete_animation_array(s3dat_animation_t** anis, uint32_t count) {
+	s3dat_delete_frame_array(anis, count);
+	for(uint32_t i = 0;i != count;i++) anis[i]->src->free_func(anis[i]->src->mem_arg, anis[i]);
+}
+
+void s3dat_delete_bitmap_array(s3dat_bitmap_t** bmps, uint32_t count) {
+	s3dat_delete_pixdata_array(bmps, count);
+	for(uint32_t i = 0;i != count;i++) bmps[i]->src->free_func(bmps[i]->src->mem_arg, bmps[i]);
+}
+
+
+void s3dat_delete_stringdata(s3dat_string_t* string) {
+	s3dat_delete_stringdatas(string, 1);
+}
+
+void s3dat_delete_snddata(s3dat_sound_t* sound) {
+	s3dat_delete_snddatas(sound, 1);
+}
+
+void s3dat_delete_frame(s3dat_animation_t* ani) {
+	s3dat_delete_frames(ani, 1);
+}
+
+void s3dat_delete_pixdata(s3dat_bitmap_t* ani) {
+	s3dat_delete_pixdatas(ani, 1);
+}
+
+
+void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		strings->src->free_func(strings->src->mem_arg, strings[i].string_data);
+		strings[i].string_data = NULL;
+	}
+}
+
+void s3dat_delete_snddatas(s3dat_sound_t* sounds, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		sounds->src->free_func(sounds->src->mem_arg, sounds[i].data);
+		sounds[i].data = NULL;
+	}
+}
+
+void s3dat_delete_frames(s3dat_animation_t* anis, uint32_t count) {
+	for(int i = 0;i != count;i++) {
+		anis[i].src->free_func(anis[i].src->mem_arg, anis[i].frames);
+		anis[i].frames = NULL;
+	}
+}
+
+void s3dat_delete_pixdatas(s3dat_bitmap_t* bmps, uint32_t count) {
+	for(int i = 0;i != count;i++) {
+		bmps[i].src->free_func(bmps[i].src->mem_arg, bmps[i].data);
+		bmps[i].data = NULL;
+	}
+}
+
+
+void s3dat_delete_stringdata_array(s3dat_string_t** strings, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		strings[i]->src->free_func(strings[i]->src->mem_arg, strings[i]->string_data);
+		strings[i]->string_data = NULL;
+	}
+}
+
+void s3dat_delete_snddata_array(s3dat_sound_t** sounds, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		sounds[i]->src->free_func(sounds[i]->src->mem_arg, sounds[i]->data);
+		sounds[i]->data = NULL;
+	}
+}
+
+void s3dat_delete_frame_array(s3dat_animation_t** anis, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		anis[i]->src->free_func(anis[i]->src->mem_arg, anis[i]->frames);
+		anis[i]->frames = NULL;
+	}
+}
+
+void s3dat_delete_pixdata_array(s3dat_bitmap_t** bmps, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		bmps[i]->src->free_func(bmps[i]->src->mem_arg, bmps[i]->data);
+		bmps[i]->data = NULL;
+	}
+}
+
+
+// s3dat_t
 s3dat_t* s3dat_new_malloc() {
 	return s3dat_new_func(0, s3dat_default_alloc_func, s3dat_default_free_func);
 }
@@ -110,50 +255,6 @@ void s3dat_delete(s3dat_t* mem) {
 	s3dat_delete_fork(mem);
 }
 
-void s3dat_delete_animation(s3dat_animation_t* mem) {
-	s3dat_delete_animations(mem, 1);
-}
-
-void s3dat_delete_animations(s3dat_animation_t* mem, uint32_t count) {
-	s3dat_delete_frames(mem, count);
-	mem->src->free_func(mem->src->mem_arg, mem);
-}
-
-void s3dat_delete_frame(s3dat_animation_t* mem) {
-	s3dat_delete_frames(mem, 1);
-}
-
-void s3dat_delete_frames(s3dat_animation_t* mem, uint32_t count) {
-	for(int i = 0;i != count;i++) {
-		if(mem[i].frames != NULL) {
-			mem[i].src->free_func(mem[i].src->mem_arg, mem[i].frames);
-			mem[i].frames = NULL;
-		}
-	}
-}
-
-void s3dat_delete_bitmap(s3dat_bitmap_t* mem) {
-	s3dat_delete_bitmaps(mem, 1);
-}
-
-void s3dat_delete_bitmaps(s3dat_bitmap_t* mem, uint32_t count) {
-	s3dat_delete_pixdatas(mem, count);
-	mem->src->free_func(mem->src->mem_arg, mem);
-}
-
-void s3dat_delete_pixdata(s3dat_bitmap_t* mem) {
-	s3dat_delete_pixdatas(mem, 1);
-}
-
-void s3dat_delete_pixdatas(s3dat_bitmap_t* mem, uint32_t count) {
-	for(int i = 0;i != count;i++) {
-		if(mem[i].data != NULL) {
-			mem[i].src->free_func(mem[i].src->mem_arg, mem[i].data);
-			mem[i].data = NULL;
-		}
-	}
-}
-
 
 void s3dat_internal_delete_index(s3dat_t* mem, s3dat_index_t* index) {
 	s3dat_internal_delete_indices(mem, index, 1);
@@ -191,71 +292,23 @@ void s3dat_internal_delete_seq32(s3dat_t* mem, s3dat_seq_index32_t* seq) {
 	mem->free_func(mem->mem_arg, seq->sequences);
 }
 
-void s3dat_delete_string(s3dat_string_t* string) {
-	s3dat_delete_strings(string, 1);
-}
-
-void s3dat_delete_strings(s3dat_string_t* strings, uint32_t count) {
-	s3dat_delete_stringdatas(strings, count);
-
-	strings->src->free_func(strings->src->mem_arg, strings);
-}
-
-void s3dat_delete_stringdata(s3dat_string_t* string) {
-	s3dat_delete_stringdatas(string, 1);
-}
-
-void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count) {
-	for(uint32_t i = 0;i != count;i++) {
-		if(strings[i].string_data) strings->src->free_func(strings->src->mem_arg, strings[i].string_data);
-	}
-}
-
-void s3dat_delete_sound(s3dat_sound_t* sound) {
-	s3dat_delete_sounds(sound, 1);
-}
-
-void s3dat_delete_sounds(s3dat_sound_t* sounds, uint32_t count) {
-	s3dat_delete_snddatas(sounds, count);
-
-	sounds->src->free_func(sounds->src->mem_arg, sounds);
-}
-
-void s3dat_delete_snddata(s3dat_sound_t* sound) {
-	s3dat_delete_snddatas(sound, 1);
-}
-
-void s3dat_delete_snddatas(s3dat_sound_t* sounds, uint32_t count) {
-	for(uint32_t i = 0;i != count;i++) {
-		if(sounds[i].data) sounds->src->free_func(sounds->src->mem_arg, sounds[i].data);
-	}
-}
-
-void s3dat_delete_exhandler(s3dat_extracthandler_t* exhandler) {
-	s3dat_delete_exhandlers(exhandler, 1);
-}
-
-void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count) {
-	for(uint32_t i = 0;i != count;i++) if(exhandlers[i].arg_deref != NULL) exhandlers[i].arg_deref(exhandlers[i].arg);
-	exhandlers->parent->free_func(exhandlers->parent->mem_arg, exhandlers);
-}
-
 void* s3dat_default_alloc_func(void* arg, size_t size) {
+
 	return calloc(size, 1);
 }
 
 void s3dat_default_free_func(void* arg, void* mem) {
-	free(mem);
+	if(mem != NULL) free(mem);
 }
 
 void* s3dat_internal_alloc_func(s3dat_t* mem, size_t size, s3dat_exception_t** throws) {
-	void* mem_block = mem->alloc_func(mem->mem_arg, size);
+	void* new_block = mem->alloc_func(mem->mem_arg, size);
 
-	if(mem_block == NULL) {
+	if(new_block == NULL) {
 		S3DAT_INTERNAL_OUT_OF_MEMORY(mem, throws);
 	}
 
-	return mem_block;
+	return new_block;
 }
 
 s3dat_t* s3dat_fork(s3dat_t* mem) {
