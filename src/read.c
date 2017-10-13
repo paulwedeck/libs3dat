@@ -12,8 +12,6 @@ uint8_t s3dat_header_start_part1[33] = {
 
 uint8_t s3dat_header_start_part2[10] = {0, 0, 31, 0, 0, 0, 0, 0, 0, 0};
 
-uint8_t s3dat_header_end[12] = {4, 25, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0};
-
 uint8_t s3dat_header_rgb5[5] = {124, 0, 0, 224, 3};
 uint8_t s3dat_header_rgb565[5] = {248, 0, 0, 224, 7};
 
