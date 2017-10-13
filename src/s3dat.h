@@ -222,10 +222,13 @@ struct  s3dat_extracthandler_t {
 };
 
 void s3dat_readfile_name(s3dat_t* handle, char* name, s3dat_exception_t** throws);
+void s3dat_init_name(s3dat_t* handle, char* name); //name must be vaild until s3dat_readfile has ended
 
 void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
+void s3dat_init_fd(s3dat_t* handle, uint32_t* file); //file must be vaild until s3dat_readfile has ended
 
 void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
+bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func);
 
 void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	bool (*read_func) (void*, void*, size_t),
@@ -235,7 +238,18 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	void* (*open_func) (void*),
 	void (*close_func) (void*),
 	void* (*fork_func) (void*),
-	s3dat_exception_t** throws_out);
+	s3dat_exception_t** throws);
+
+void s3dat_init_func(s3dat_t* handle, void* arg,
+	bool (*read_func) (void*, void*, size_t),
+	size_t (*size_func) (void*),
+	size_t (*pos_func) (void*),
+	bool (*seek_func) (void*, uint32_t, int),
+	void* (*open_func) (void*),
+	void (*close_func) (void*),
+	void* (*fork_func) (void*));
+
+void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws);
 
 void s3dat_add_extracthandler(s3dat_t* handle, s3dat_extracthandler_t* exhandler);
 bool s3dat_remove_extracthandler(s3dat_t* handle, uint32_t steps_back);

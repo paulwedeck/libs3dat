@@ -18,21 +18,59 @@ uint8_t s3dat_header_rgb565[5] = {248, 0, 0, 224, 7};
 uint8_t s3dat_seq_start[7] = {2, 20, 0, 0, 8, 0, 0};
 
 void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws) {
-	s3dat_readfile_ioset(handle, file, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), false, throws);
+	s3dat_init_fd(handle, file);
+	s3dat_readfile(handle, throws);
+}
+
+void s3dat_init_fd(s3dat_t* handle, uint32_t* file) {
+	s3dat_init_ioset(handle, file, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), false);
 }
 
 
 void s3dat_readfile_name(s3dat_t* handle, char* name, s3dat_exception_t** throws) {
-	s3dat_readfile_ioset(handle, name, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), true, throws);
+	s3dat_init_name(handle, name);
+	s3dat_readfile(handle, throws);
 }
 
+void s3dat_init_name(s3dat_t* handle, char* name) {
+	s3dat_init_ioset(handle, name, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), true);
+}
+
+
 void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func,  s3dat_exception_t** throws) {
-	if(ioset == NULL || ioset->available == false) {
+	if(!s3dat_init_ioset(handle, io_arg, ioset, use_openclose_func)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOSET, __FILE__, __func__, __LINE__);
 		return;
 	}
 
-	s3dat_readfile_func(handle, io_arg, ioset->read_func, ioset->size_func, ioset->pos_func, ioset->seek_func, (use_openclose_func ? ioset->open_func : NULL), (use_openclose_func ? ioset->close_func : NULL), ioset->fork_func, throws);
+	s3dat_readfile(handle, throws);
+}
+
+bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func) {
+	if(ioset == NULL || ioset->available == false) return false;
+
+	s3dat_init_func(handle, io_arg, ioset->read_func, ioset->size_func, ioset->pos_func, ioset->seek_func, (use_openclose_func ? ioset->open_func : NULL), (use_openclose_func ? ioset->close_func : NULL), ioset->fork_func);
+
+	return true;
+}
+
+
+void s3dat_init_func(s3dat_t* handle, void* arg,
+	bool (*read_func) (void*, void*, size_t),
+	size_t (*size_func) (void*),
+	size_t (*pos_func) (void*),
+	bool (*seek_func) (void*, uint32_t, int),
+	void* (*open_func) (void*),
+	void (*close_func) (void*),
+	void* (*fork_func) (void*)) {
+	handle->io_arg = arg;
+	handle->read_func = read_func;
+	handle->size_func = size_func;
+	handle->pos_func = pos_func;
+	handle->seek_func = seek_func;
+	handle->open_func = open_func;
+	handle->close_func = close_func;
+	handle->fork_func = fork_func;
 }
 
 void s3dat_readfile_func(s3dat_t* handle, void* arg,
@@ -44,19 +82,15 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	void (*close_func) (void*),
 	void* (*fork_func) (void*),
 	s3dat_exception_t** throws) {
-	handle->io_arg = arg;
-	handle->read_func = read_func;
-	handle->size_func = size_func;
-	handle->pos_func = pos_func;
-	handle->seek_func = seek_func;
-	handle->open_func = open_func;
-	handle->close_func = close_func;
-	handle->fork_func = fork_func;
+	s3dat_init_func(handle, arg, read_func, size_func, pos_func, seek_func, open_func, close_func, fork_func);
+	s3dat_readfile(handle, throws);
+}
 
+void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws) {
 	handle->last_handler = s3dat_new_exhandler(handle);
 	handle->last_handler->call = s3dat_default_extract;
 
-	if(open_func != NULL) handle->io_arg = open_func(handle->io_arg);
+	if(handle->open_func != NULL) handle->io_arg = handle->open_func(handle->io_arg);
 
 	if(handle->io_arg == NULL) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_OPEN, __FILE__, __func__, __LINE__);
@@ -64,7 +98,7 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	}
 
 	uint8_t header_part1[33];
-	if(!read_func(handle->io_arg, header_part1, 16)) {
+	if(!handle->read_func(handle->io_arg, header_part1, 16)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -75,7 +109,7 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 		return;
 	}
 
-	if(!read_func(handle->io_arg, header_part1+16, 17)) {
+	if(!handle->read_func(handle->io_arg, header_part1+16, 17)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -85,7 +119,7 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	}
 
 	uint8_t header_filetype[5];
-	if(!read_func(handle->io_arg, header_filetype, 5)) {
+	if(!handle->read_func(handle->io_arg, header_filetype, 5)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -100,7 +134,7 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	}
 
 	uint8_t header_part2[10];
-	if(!read_func(handle->io_arg, header_part2, 10)) {
+	if(!handle->read_func(handle->io_arg, header_part2, 10)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 		return;
 	}
