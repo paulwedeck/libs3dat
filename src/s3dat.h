@@ -114,10 +114,11 @@ struct s3dat_t {
 	void* (*alloc_func) (void*, size_t);
 	void (*free_func) (void*, void*);
 	bool (*read_func) (void*, void*, size_t);
+	bool (*write_func) (void*, void*, size_t);
 	size_t (*size_func) (void*);
 	size_t (*pos_func) (void*);
 	bool (*seek_func) (void*, uint32_t, int);
-	void* (*open_func) (void*);
+	void* (*open_func) (void*, bool);
 	void (*close_func) (void*);
 	void* (*fork_func) (void*);
 
@@ -195,10 +196,11 @@ typedef struct {
 
 typedef struct {
 	bool (*read_func) (void*, void*, size_t);
+	bool (*write_func) (void*, void*, size_t);
 	size_t (*size_func) (void*);
 	size_t (*pos_func) (void*);
 	bool (*seek_func) (void*, uint32_t, int);
-	void* (*open_func) (void*);
+	void* (*open_func) (void*, bool);
 	void (*close_func) (void*);
 	void* (*fork_func) (void*);
 	bool available;
@@ -232,20 +234,22 @@ bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool 
 
 void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	bool (*read_func) (void*, void*, size_t),
+	bool (*write_func) (void*, void*, size_t),
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
 	bool (*seek_func) (void*, uint32_t, int),
-	void* (*open_func) (void*),
+	void* (*open_func) (void*, bool),
 	void (*close_func) (void*),
 	void* (*fork_func) (void*),
 	s3dat_exception_t** throws);
 
 void s3dat_init_func(s3dat_t* handle, void* arg,
 	bool (*read_func) (void*, void*, size_t),
+	bool (*write_func) (void*, void*, size_t),
 	size_t (*size_func) (void*),
 	size_t (*pos_func) (void*),
 	bool (*seek_func) (void*, uint32_t, int),
-	void* (*open_func) (void*),
+	void* (*open_func) (void*, bool),
 	void (*close_func) (void*),
 	void* (*fork_func) (void*));
 
@@ -279,37 +283,41 @@ s3dat_t* s3dat_fork(s3dat_t* handle);
 void s3dat_delete_fork(s3dat_t* handle);
 
 //linux
-void* s3dat_linux_open_func(void* arg);
+void* s3dat_linux_open_func(void* arg, bool write);
 void s3dat_linux_close_func(void* arg);
 bool s3dat_linux_read_func(void* arg, void* bfr, size_t len); // system endianness
+bool s3dat_linux_write_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_linux_pos_func(void* arg);
 size_t s3dat_linux_size_func(void* arg);
 
-void* s3dat_mmf_linux_fd_open_func(void* arg);
-void* s3dat_mmf_linux_name_open_func(void* arg);
+void* s3dat_mmf_linux_fd_open_func(void* arg, bool write);
+void* s3dat_mmf_linux_name_open_func(void* arg, bool write);
 void s3dat_mmf_linux_close_func(void* arg);
 
 //windows
-void* s3dat_win32_open_func(void* arg);
+void* s3dat_win32_open_func(void* arg, bool write);
 void s3dat_win32_close_func(void* arg);
 bool s3dat_win32_read_func(void* arg, void* bfr, size_t len); // system endianness
+bool s3dat_win32_write_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_win32_pos_func(void* arg);
 size_t s3dat_win32_size_func(void* arg);
 
-void* s3dat_mmf_win32_handle_open_func(void* arg);
-void* s3dat_mmf_win32_name_open_func(void* arg);
+void* s3dat_mmf_win32_handle_open_func(void* arg, bool write);
+void* s3dat_mmf_win32_name_open_func(void* arg, bool write);
 void s3dat_mmf_win32_close_func(void* arg);
 
-void* s3dat_libc_open_func(void* arg);
+void* s3dat_libc_open_func(void* arg, bool write);
 void s3dat_libc_close_func(void* arg);
 bool s3dat_libc_read_func(void* arg, void* bfr, size_t len); // system endianness
+bool s3dat_libc_write_func(void* arg, void* bfr, size_t len); // system endianness
 bool s3dat_libc_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_libc_pos_func(void* arg);
 size_t s3dat_libc_size_func(void* arg);
 
 bool s3dat_mmf_read_func(void* arg, void* bfr, size_t len);
+bool s3dat_mmf_write_func(void* arg, void* bfr, size_t len);
 bool s3dat_mmf_seek_func(void* arg, uint32_t pos, int whence);
 size_t s3dat_mmf_pos_func(void* arg);
 size_t s3dat_mmf_size_func(void* arg);

@@ -4,8 +4,8 @@
 #endif
 
 #ifdef __linux__
-void* s3dat_linux_open_func(void* arg) {
-	int fd = open(arg, O_RDONLY);
+void* s3dat_linux_open_func(void* arg, bool write) {
+	int fd = open(arg, write ? O_WRONLY : O_RDONLY);
 
 	if(fd == -1) {
 		return NULL;
@@ -27,6 +27,10 @@ bool s3dat_linux_read_func(void* arg, void* bfr, size_t len) {
 	return read(*((int*)arg), bfr, len) == len;
 }
 
+bool s3dat_linux_write_func(void* arg, void* bfr, size_t len) {
+	return write(*((int*)arg), bfr, len) == len;
+}
+
 size_t s3dat_linux_size_func(void* arg) {
 	struct stat file_stat;
 	fstat(*((int*)arg), &file_stat);
@@ -42,18 +46,19 @@ bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence) {
 	return lseek(*((int*)arg), pos,  seek_whence) != (off_t)-1;
 }
 #else
-void* s3dat_linux_open_func(void* arg) {}
+void* s3dat_linux_open_func(void* arg, bool write) {}
 void s3dat_linux_close_func(void* arg) {}
 bool s3dat_linux_read_func(void* arg, void* bfr, size_t len) {return 0;}
+bool s3dat_linux_write_func(void* arg, void* bfr, size_t len) {return 0;}
 bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence) {return 0;}
 size_t s3dat_linux_pos_func(void* arg) {return 0;}
 size_t s3dat_linux_size_func(void* arg) {return 0;}
 #endif
 
 #ifdef _WIN32
-void* s3dat_win32_open_func(void* arg) {
+void* s3dat_win32_open_func(void* arg, bool write) {
 	HANDLE file_handle = CreateFile(arg,
-		GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		write ? GENERIC_WRITE : GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(file_handle == INVALID_HANDLE_VALUE) return NULL;
@@ -65,8 +70,11 @@ void s3dat_win32_close_func(void* arg) {
 }
 
 bool s3dat_win32_read_func(void* arg, void* bfr, size_t len) {
-	//return fread(bfr, 1, len, arg) == len;
 	return ReadFile(arg, bfr, len, NULL, NULL);
+}
+
+bool s3dat_win32_write_func(void* arg, void* bfr, size_t len) {
+	return WriteFile(arg, bfr, len, NULL, NULL);
 }
 
 bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence) {
@@ -87,16 +95,17 @@ size_t s3dat_win32_size_func(void* arg) {
 	return size;
 }
 #else
-void* s3dat_win32_open_func(void* arg) {}
+void* s3dat_win32_open_func(void* arg, bool write) {}
 void s3dat_win32_close_func(void* arg) {}
 bool s3dat_win32_read_func(void* arg, void* bfr, size_t len) {return 0;}
+bool s3dat_win32_write_func(void* arg, void* bfr, size_t len) {return 0;}
 bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence) {return 0;}
 size_t s3dat_win32_pos_func(void* arg) {return 0;}
 size_t s3dat_win32_size_func(void* arg) {return 0;}
 #endif
 
-void* s3dat_libc_open_func(void* arg) {
-	return fopen(arg, "rb");
+void* s3dat_libc_open_func(void* arg, bool write) {
+	return fopen(arg, write ? "wb" : "rb");
 }
 
 void s3dat_libc_close_func(void* arg) {
@@ -105,6 +114,10 @@ void s3dat_libc_close_func(void* arg) {
 
 bool s3dat_libc_read_func(void* arg, void* bfr, size_t len) {
 	return fread(bfr, 1, len, arg) == len;
+}
+
+bool s3dat_libc_write_func(void* arg, void* bfr, size_t len) {
+	return fwrite(bfr, 1, len, arg) == len;
 }
 
 bool s3dat_libc_seek_func(void* arg, uint32_t pos, int whence) {
@@ -127,19 +140,21 @@ size_t s3dat_libc_size_func(void* arg) {
 }
 
 #ifdef __linux__
-void* s3dat_mmf_linux_fd_open_func(void* arg) {
+void* s3dat_mmf_linux_fd_open_func(void* arg, bool write) {
+	if(write) return NULL; // we can not calculate the file mapping size
+
 	s3dat_mmf_t* mmf = calloc(1, sizeof(s3dat_mmf_t));
 	mmf->len = s3dat_linux_size_func(arg);
-	mmf->addr = mmap(NULL, mmf->len, PROT_READ, MAP_PRIVATE, *(int*)arg, 0);
+	mmf->addr = mmap(NULL, mmf->len, write ? PROT_WRITE : PROT_READ, MAP_PRIVATE, *(int*)arg, 0);
 
 	return mmf;
 }
 
-void* s3dat_mmf_linux_name_open_func(void* arg) {
+void* s3dat_mmf_linux_name_open_func(void* arg, bool write) {
 	int fd = open(arg, O_RDONLY);
 	if(fd == -1) return NULL;
 
-	s3dat_mmf_t* mmf = s3dat_mmf_linux_fd_open_func(&fd);
+	s3dat_mmf_t* mmf = s3dat_mmf_linux_fd_open_func(&fd, write);
 	close(fd);
 
 	return mmf;
@@ -152,8 +167,8 @@ void s3dat_mmf_linux_close_func(void* arg) {
 	free(mmf);
 }
 #else
-void* s3dat_mmf_linux_fd_open_func(void* arg) {}
-void* s3dat_mmf_linux_name_open_func(void* arg) {}
+void* s3dat_mmf_linux_fd_open_func(void* arg, bool write) {}
+void* s3dat_mmf_linux_name_open_func(void* arg, bool write) {}
 void s3dat_mmf_linux_close_func(void* arg) {}
 #endif
 
@@ -163,12 +178,14 @@ typedef struct {
 	HANDLE file;
 } s3dat_win32_add_t;
 
-void* s3dat_mmf_win32_handle_open_func(void* arg) {
-	HANDLE win32fm = CreateFileMapping(arg, NULL, PAGE_READONLY, 0, 0, NULL);
+void* s3dat_mmf_win32_handle_open_func(void* arg, bool write) {
+	if(write) return NULL; // we can not calculate the file mapping size
+
+	HANDLE win32fm = CreateFileMapping(arg, NULL, write ? PAGE_READWRITE : PAGE_READONLY, 0, 0, NULL);
 
 	s3dat_mmf_t* mmf = calloc(1, sizeof(s3dat_mmf_t));
 
-	mmf->addr = MapViewOfFile(win32fm, FILE_MAP_READ, 0, 0, 0);
+	mmf->addr = MapViewOfFile(win32fm, write ? FILE_MAP_WRITE : FILE_MAP_READ, 0, 0, 0);
 	mmf->len = s3dat_win32_size_func(arg);
 	mmf->additional_data = calloc(1, sizeof(s3dat_win32_add_t));
 	((s3dat_win32_add_t*)mmf->additional_data)->win32fm = win32fm;
@@ -177,11 +194,11 @@ void* s3dat_mmf_win32_handle_open_func(void* arg) {
 	return mmf;
 }
 
-void* s3dat_mmf_win32_name_open_func(void* arg) {
-	HANDLE file = s3dat_win32_open_func(arg);
+void* s3dat_mmf_win32_name_open_func(void* arg, bool write) {
+	HANDLE file = s3dat_win32_open_func(arg, write);
 	if(file == NULL) return NULL;
 
-	s3dat_mmf_t* mmf = s3dat_mmf_win32_handle_open_func(file);
+	s3dat_mmf_t* mmf = s3dat_mmf_win32_handle_open_func(file, write);
 	if(mmf == NULL) return NULL;
 
 	((s3dat_win32_add_t*)mmf->additional_data)->file = file;
@@ -202,8 +219,8 @@ void s3dat_mmf_win32_close_func(void* arg) {
 	free(mmf);
 }
 #else
-void* s3dat_mmf_win32_handle_open_func(void* arg) {}
-void* s3dat_mmf_win32_name_open_func(void* arg) {}
+void* s3dat_mmf_win32_handle_open_func(void* arg, bool write) {}
+void* s3dat_mmf_win32_name_open_func(void* arg, bool write) {}
 void s3dat_mmf_win32_close_func(void* arg) {}
 #endif
 
@@ -218,6 +235,19 @@ bool s3dat_mmf_read_func(void* arg, void* bfr, size_t len) {
 
 	return true;
 }
+
+bool s3dat_mmf_write_func(void* arg, void* bfr, size_t len) {
+	s3dat_mmf_t* mmf = arg;
+
+	if(mmf->len < mmf->pos+len) return false;
+
+	memcpy(mmf->addr+mmf->pos, bfr, len);
+
+	mmf->pos += len;
+
+	return true;
+}
+
 
 bool s3dat_mmf_seek_func(void* arg, uint32_t pos, int whence) {
 	s3dat_mmf_t* mmf = arg;
@@ -253,6 +283,7 @@ void* s3dat_mmf_fork_func(void* arg) {
 
 s3dat_ioset_t s3dat_internal_linux_ioset = {
 	s3dat_linux_read_func,
+	s3dat_linux_write_func,
 	s3dat_linux_size_func,
 	s3dat_linux_pos_func,
 	s3dat_linux_seek_func,
@@ -268,6 +299,7 @@ s3dat_ioset_t s3dat_internal_linux_ioset = {
 
 s3dat_ioset_t s3dat_internal_mmf_linux_name_ioset = {
 	s3dat_mmf_read_func,
+	s3dat_mmf_write_func,
 	s3dat_mmf_size_func,
 	s3dat_mmf_pos_func,
 	s3dat_mmf_seek_func,
@@ -283,6 +315,7 @@ s3dat_ioset_t s3dat_internal_mmf_linux_name_ioset = {
 
 s3dat_ioset_t s3dat_internal_mmf_linux_fd_ioset = {
 	s3dat_mmf_read_func,
+	s3dat_mmf_write_func,
 	s3dat_mmf_size_func,
 	s3dat_mmf_pos_func,
 	s3dat_mmf_seek_func,
@@ -299,6 +332,7 @@ s3dat_ioset_t s3dat_internal_mmf_linux_fd_ioset = {
 
 s3dat_ioset_t s3dat_internal_win32_ioset = {
 	s3dat_win32_read_func,
+	s3dat_win32_write_func,
 	s3dat_win32_size_func,
 	s3dat_win32_pos_func,
 	s3dat_win32_seek_func,
@@ -314,6 +348,7 @@ s3dat_ioset_t s3dat_internal_win32_ioset = {
 
 s3dat_ioset_t s3dat_internal_mmf_win32_name_ioset = {
 	s3dat_mmf_read_func,
+	s3dat_mmf_write_func,
 	s3dat_mmf_size_func,
 	s3dat_mmf_pos_func,
 	s3dat_mmf_seek_func,
@@ -329,6 +364,7 @@ s3dat_ioset_t s3dat_internal_mmf_win32_name_ioset = {
 
 s3dat_ioset_t s3dat_internal_mmf_win32_handle_ioset = {
 	s3dat_mmf_read_func,
+	s3dat_mmf_write_func,
 	s3dat_mmf_size_func,
 	s3dat_mmf_pos_func,
 	s3dat_mmf_seek_func,
@@ -345,6 +381,7 @@ s3dat_ioset_t s3dat_internal_mmf_win32_handle_ioset = {
 
 s3dat_ioset_t s3dat_internal_libc_ioset = {
 	s3dat_libc_read_func,
+	s3dat_libc_write_func,
 	s3dat_libc_size_func,
 	s3dat_libc_pos_func,
 	s3dat_libc_seek_func,
@@ -355,7 +392,7 @@ s3dat_ioset_t s3dat_internal_libc_ioset = {
 };
 
 s3dat_ioset_t s3dat_internal_null_ioset = {
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, false
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, false
 };
 
 s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type) {
