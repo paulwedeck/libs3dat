@@ -12,7 +12,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	void* header;
-	int header_size = 12;
+	uint32_t header_size = 12;
 	if(res->type == s3dat_gui) header_size = 6;
 	if(res->type == s3dat_landscape) header_size = 5;
 
@@ -45,7 +45,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 		return;
 	}
 
-	int pixel_size = 2;
+	uint32_t pixel_size = 2;
 	if(res->type == s3dat_shadow) pixel_size = 0;
 	if(res->type == s3dat_torso) pixel_size = 1;
 

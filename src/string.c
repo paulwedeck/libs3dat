@@ -128,16 +128,16 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* handle, s3dat_language language, 
 
 	size_t inlen = strlen(cstr);
 	size_t outlen = inlen*4+4;
-	char* utf8s = s3dat_internal_alloc_func(handle, outlen, throws);
+	uint8_t* utf8s = s3dat_internal_alloc_func(handle, outlen, throws);
 	if(*throws != NULL) {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	*utf8_str = utf8s;
-	char* instr = cstr;
+	uint8_t* instr = cstr;
 
-	if(iconv(iconv_s, &instr, &inlen, &utf8s, &outlen) == (size_t)-1) {
+	if(iconv(iconv_s, (char**)&instr, &inlen, (char**)&utf8s, &outlen) == (size_t)-1) {
 		handle->free_func(handle->mem_arg, *utf8_str);
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_ICONV_ERROR, __FILE__, __func__, __LINE__);
 	}

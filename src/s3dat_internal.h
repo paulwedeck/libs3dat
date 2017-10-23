@@ -65,8 +65,8 @@ typedef struct s3dat_internal_stack_t s3dat_internal_stack_t;
 typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
 
 struct s3dat_internal_stack_t {
-	char* file;
-	const char* function;
+	uint8_t* file;
+	const uint8_t* function;
 	uint32_t line;
 
 	s3dat_internal_stack_t* down;
@@ -98,7 +98,7 @@ void s3dat_internal_delete_seq(s3dat_t* handle, s3dat_seq_index_t* seq);
 void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq);
 
 void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uint16_t width, uint16_t height, s3dat_color_t** re_pixdata, s3dat_exception_t** throws);
-void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, int from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
+void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, uint32_t from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
 s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 
 
@@ -131,7 +131,7 @@ uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws);
 uint16_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws);
 void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws);
 
-void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, char* file, const char* function, int line);
+void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* file, const uint8_t* function, uint32_t line);
 void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, uint32_t value);
 
 void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws);

@@ -203,7 +203,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		uint16_t yoff;
 
 		s3dat_color_type color_type;
-		int pixel_size;
+		uint32_t pixel_size;
 
 		if(res->type == s3dat_torso) {
 			color_type = s3dat_gray5;

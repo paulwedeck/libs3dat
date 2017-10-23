@@ -157,14 +157,14 @@ void s3dat_delete_snddatas(s3dat_sound_t* sounds, uint32_t count) {
 }
 
 void s3dat_delete_frames(s3dat_animation_t* anis, uint32_t count) {
-	for(int i = 0;i != count;i++) {
+	for(uint32_t i = 0;i != count;i++) {
 		anis[i].src->free_func(anis[i].src->mem_arg, anis[i].frames);
 		anis[i].frames = NULL;
 	}
 }
 
 void s3dat_delete_pixdatas(s3dat_bitmap_t* bmps, uint32_t count) {
-	for(int i = 0;i != count;i++) {
+	for(uint32_t i = 0;i != count;i++) {
 		bmps[i].src->free_func(bmps[i].src->mem_arg, bmps[i].data);
 		bmps[i].data = NULL;
 	}

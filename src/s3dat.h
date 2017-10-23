@@ -210,6 +210,7 @@ typedef struct {
 	uint16_t first_index;
 	uint32_t second_index;
 	s3dat_content_type type;
+	uint8_t* restype;
 	void* resdata;
 } s3dat_res_t;
 
@@ -228,8 +229,8 @@ typedef struct {
 	void* data;
 } s3dat_packed_t;
 
-void s3dat_readfile_name(s3dat_t* handle, char* name, s3dat_exception_t** throws);
-void s3dat_init_name(s3dat_t* handle, char* name); //name must be vaild until s3dat_readfile has ended
+void s3dat_readfile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws);
+void s3dat_init_name(s3dat_t* handle, uint8_t* name); //name must be vaild until s3dat_readfile has ended
 
 void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
 void s3dat_init_fd(s3dat_t* handle, uint32_t* file); //file must be vaild until s3dat_readfile has ended
@@ -395,7 +396,7 @@ void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count)
 
 void s3dat_print_exception(s3dat_exception_t* ex); // debugging only
 void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex);
-void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t exception, char* file, const char* function, int line);
+void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t exception, uint8_t* file, const uint8_t* function, uint32_t line);
 bool s3dat_catch_exception(s3dat_exception_t** throws, s3dat_t* from);
 #endif /*S3DAT_H*/
 

@@ -27,12 +27,12 @@ void s3dat_init_fd(s3dat_t* handle, uint32_t* file) {
 }
 
 
-void s3dat_readfile_name(s3dat_t* handle, char* name, s3dat_exception_t** throws) {
+void s3dat_readfile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws) {
 	s3dat_init_name(handle, name);
 	s3dat_readfile(handle, throws);
 }
 
-void s3dat_init_name(s3dat_t* handle, char* name) {
+void s3dat_init_name(s3dat_t* handle, uint8_t* name) {
 	s3dat_init_ioset(handle, name, s3dat_get_default_ioset(S3DAT_IOSET_DEFAULT), true);
 }
 

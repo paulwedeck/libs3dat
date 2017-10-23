@@ -6,7 +6,7 @@
 s3dat_internal_stack_t s3dat_internal_out_of_memory_stack = {NULL, NULL, 0, NULL};
 s3dat_exception_t s3dat_internal_out_of_memory = {S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL};
 
-void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, char* file, const char* func, int line) {
+void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* file, const uint8_t* func, uint32_t line) {
 	s3dat_internal_stack_t* now;
 
 	if((*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {
@@ -36,7 +36,7 @@ void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, 
 	(*throws)->attrs = attr;
 }
 
-void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t type, char* file, const char* func, int line) {
+void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t type, uint8_t* file, const uint8_t* func, uint32_t line) {
 	if(type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {
 		*throws = &s3dat_internal_out_of_memory;
 	} else {
@@ -77,7 +77,7 @@ void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex) {
 
 typedef struct {
 	uint32_t type;
-	char* name;
+	uint8_t* name;
 } s3dat_internal_map_entry_t;
 
 s3dat_internal_map_entry_t exception_map[] = {
@@ -100,9 +100,9 @@ s3dat_internal_map_entry_t attr_map[] = {
 	{0, NULL}
 };
 
-char* s3dat_internal_find_entry(s3dat_internal_map_entry_t* map, uint32_t type) {
-	char* re_value = NULL;
-	int index = 0;
+uint8_t* s3dat_internal_find_entry(s3dat_internal_map_entry_t* map, uint32_t type) {
+	uint8_t* re_value = NULL;
+	uint32_t index = 0;
 	while(map[index].name != NULL) {
 		if(map[index].type == type) re_value = map[index].name;
 		index++;
@@ -112,7 +112,7 @@ char* s3dat_internal_find_entry(s3dat_internal_map_entry_t* map, uint32_t type) 
 }
 
 void s3dat_print_exception(s3dat_exception_t* ex) {
-	char* name = s3dat_internal_find_entry(exception_map, ex->type);
+	uint8_t* name = s3dat_internal_find_entry(exception_map, ex->type);
 
 	if(name != NULL) printf("%s caught\n", name);
 				else printf("exception caught 0x%x\n", ex->type);
@@ -120,7 +120,7 @@ void s3dat_print_exception(s3dat_exception_t* ex) {
 	s3dat_internal_attribute_t* attr = ex->attrs;
 	while(attr != NULL) {
 		printf("at ");
-		char* attr_name = s3dat_internal_find_entry(attr_map, attr->name);
+		uint8_t* attr_name = s3dat_internal_find_entry(attr_map, attr->name);
 		if(attr_name != NULL) printf("%s", attr_name);
 			else printf("%u", attr->name);
 		printf(": %u\n", attr->value);
