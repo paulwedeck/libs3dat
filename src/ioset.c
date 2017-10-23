@@ -43,7 +43,7 @@ size_t s3dat_linux_pos_func(void* arg) {
 
 bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence) {
 	int seek_whence = whence == S3DAT_SEEK_CUR ? SEEK_CUR : SEEK_SET;
-	return lseek(*((int*)arg), pos,  seek_whence) != (off_t)-1;
+	return lseek(*((int*)arg), pos, seek_whence) != (off_t)-1;
 }
 #else
 void* s3dat_linux_open_func(void* arg, bool write) {}

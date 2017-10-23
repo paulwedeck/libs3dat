@@ -214,7 +214,7 @@ typedef struct {
 } s3dat_res_t;
 
 
-struct  s3dat_extracthandler_t {
+struct s3dat_extracthandler_t {
 	void (*call) (s3dat_extracthandler_t*, s3dat_res_t*, s3dat_exception_t**);
 	void* arg;
 	void (*arg_deref) (void*);
@@ -222,6 +222,11 @@ struct  s3dat_extracthandler_t {
 
 	s3dat_extracthandler_t* before;
 };
+
+typedef struct {
+	uint32_t len;
+	void* data;
+} s3dat_packed_t;
 
 void s3dat_readfile_name(s3dat_t* handle, char* name, s3dat_exception_t** throws);
 void s3dat_init_name(s3dat_t* handle, char* name); //name must be vaild until s3dat_readfile has ended

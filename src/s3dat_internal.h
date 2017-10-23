@@ -58,6 +58,8 @@
 #define S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws) \
 	s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0)
 
+#define S3DAT_SAFE_READ(to, len, file, function, line) \
+		if(!handle->read_func(handle->io_arg, to, len)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, file, function, line);
 
 typedef struct s3dat_internal_stack_t s3dat_internal_stack_t;
 typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
@@ -97,21 +99,32 @@ void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq);
 
 void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uint16_t width, uint16_t height, s3dat_color_t** re_pixdata, s3dat_exception_t** throws);
 void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, int from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
-s3dat_color_t s3dat_internal_ex(s3dat_t* handle, s3dat_color_type type, s3dat_exception_t** throws);
+s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 
 
 void s3dat_internal_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to, s3dat_exception_t** throws);
 void s3dat_internal_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws);
 void s3dat_internal_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_bitmap_t* to, s3dat_exception_t** throws);
-void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_string_t* to, s3dat_exception_t** throws);
+void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, void** to, s3dat_exception_t** throws);
+void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 
 
-void s3dat_default_extract(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
+void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
+void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 
 void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_t* to, s3dat_exception_t** throws);
 
 void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3dat_exception_t** throws);
+
+
+uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
+
+uint32_t le32(uint32_t le32_int);
+uint16_t le16(uint16_t le16_int);
+
+uint32_t le32p(uint32_t* le32_int);
+uint16_t le16p(uint16_t* le16_int);
 
 uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws);
 uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws);

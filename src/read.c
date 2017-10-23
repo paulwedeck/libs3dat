@@ -91,7 +91,9 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 
 void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws) {
 	handle->last_handler = s3dat_new_exhandler(handle);
-	handle->last_handler->call = s3dat_default_extract;
+	handle->last_handler->call = s3dat_unpack_handler;
+	handle->last_handler->before = s3dat_new_exhandler(handle);
+	handle->last_handler->before->call = s3dat_read_packed_handler;
 
 	if(handle->open_func != NULL) handle->io_arg = handle->open_func(handle->io_arg, false);
 
@@ -272,7 +274,7 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 			uint32_t* pointers = s3dat_internal_alloc_func(handle, 4*index_len, throws);
 			S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
-			for(uint16_t i = 0;i != index_len;i++)  {
+			for(uint16_t i = 0;i != index_len;i++) {
 				pointers[i] = s3dat_internal_read32LE(handle, throws);
 
 				if(*throws != NULL) {
@@ -403,38 +405,105 @@ void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3dat_e
 	}
 }
 
+uint32_t le32(uint32_t le32_int) {
+	#ifdef _WIN32
+		#ifdef IS_BE
+		return ((le32_int & 0xFF) << 24) | ((le32_int & 0xFF00) << 8) |
+		((le32_int & 0xFF0000) >> 8) | ((le32_int & 0xFF000000) >> 24);
+		#else
+		return le32_int;
+		#endif
+	#else
+	return le32toh(le32_int);
+	#endif
+}
+
+uint32_t le32p(uint32_t* le32_int) {
+	return le32(*((uint32_t*)le32_int));
+}
+
 uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint32_t dat;
 	if(!handle->read_func(handle->io_arg, &dat, 4)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
+	return le32(dat);
+
+}
+
+uint16_t le16(uint16_t le16_int) {
 	#ifdef _WIN32
 		#ifdef IS_BE
-		return ((dat & 0xFF) << 24) | ((dat & 0xFF00) << 8) |
-		((dat & 0xFF0000) >> 8) | ((dat & 0xFF000000) >> 24);
+		return ((le16_int & 0xFF) << 24) | ((le16_int & 0xFF00) << 8);
 		#else
-		return dat;
+		return le16_int;
 		#endif
 	#else
-	return le32toh(dat);
+	return le16toh(le16_int);
 	#endif
 }
+
+uint16_t le16p(uint16_t* le16_int) {
+	return le16(*((uint16_t*)le16_int));
+}
+
 
 uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint16_t dat;
 	if(!handle->read_func(handle->io_arg, &dat, 2)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
-	#ifdef _WIN32
-		#ifdef IS_BE
-		return ((dat & 0xFF) << 24) | ((dat & 0xFF00) << 8);
-		#else
-		return dat;
-		#endif
-	#else
-	return le16toh(dat);
-	#endif
+	return le16(dat);
 }
 
 uint16_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint8_t dat;
 	if(!handle->read_func(handle->io_arg, &dat, 1)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	return dat;
+}
+
+uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws) {
+	uint32_t from;
+
+	if(res->type == s3dat_snd) {
+		if(handle->sound_index->len <= res->first_index || handle->sound_index->sequences[res->first_index].len <= res->second_index) {
+			s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+			return 0;
+		}
+
+		from = handle->sound_index->sequences[res->first_index].pointers[res->second_index];
+	} else {
+		s3dat_seq_index_t* seq_index = NULL;
+		s3dat_index_t* index = NULL;
+
+		uint16_t index_ptr = (res->type == s3dat_settler || res->type == s3dat_shadow || res->type == s3dat_torso) ? res->second_index : res->first_index;
+
+		if(res->type == s3dat_settler) seq_index = handle->settler_index;
+		if(res->type == s3dat_shadow) seq_index = handle->shadow_index;
+		if(res->type == s3dat_string) seq_index = handle->string_index;
+		if(res->type == s3dat_torso) seq_index = handle->torso_index;
+
+		if(res->type == s3dat_animation) index = handle->animation_index;
+		if(res->type == s3dat_landscape) index = handle->landscape_index;
+		if(res->type == s3dat_palette) index = handle->palette_index;
+		if(res->type == s3dat_gui) index = handle->gui_index;
+
+		if(seq_index) {
+			if(seq_index->len <= res->first_index) {
+				s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+				return 0;
+			}
+
+			index = seq_index->sequences+res->first_index;
+		}
+
+		if(index->len <= index_ptr) {
+			s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
+			return 0;
+		}
+
+		from = index->pointers[index_ptr];
+	}
+
+
+	s3dat_internal_seek_func(handle, from, S3DAT_SEEK_SET, throws);
+	if(*throws != NULL) s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
+	return from;
 }
 

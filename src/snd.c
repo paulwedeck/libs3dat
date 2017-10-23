@@ -12,7 +12,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint8_t header[16];
 	handle->read_func(handle->io_arg, header, 16);
 
-	if(memcmp(s3dat_internal_snd_header, header, 16) != 0)  {
+	if(memcmp(s3dat_internal_snd_header, header, 16) != 0) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
 	}
