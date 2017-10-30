@@ -29,7 +29,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 
 	uint16_t* img_meta;
 
-	if(header_size == 12 || header_size == 12+1) {
+	if(res->type != s3dat_gui && res->type != s3dat_landscape) {
 		if(memcmp(header, s3dat_image_header, 4) != 0) {
 			s3dat_throw(handle, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 			return;

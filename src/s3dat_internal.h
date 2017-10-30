@@ -101,10 +101,6 @@ void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uin
 void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, uint32_t from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
 s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 
-
-void s3dat_internal_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to, s3dat_exception_t** throws);
-void s3dat_internal_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_animation_t* to, s3dat_exception_t** throws);
-void s3dat_internal_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_bitmap_t* to, s3dat_exception_t** throws);
 void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, void** to, s3dat_exception_t** throws);
 void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 

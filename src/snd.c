@@ -110,36 +110,3 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 	to->pointers = pointers;
 }
 
-void s3dat_internal_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_sound_t* to, s3dat_exception_t** throws) {
-	if(handle->sound_index->len <= soundtype || handle->sound_index->sequences[soundtype].len <= altindex) {
-		s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
-		return;
-	}
-
-	uint32_t from = handle->sound_index->sequences[soundtype].pointers[altindex];
-
-	s3dat_internal_seek_func(handle, from, S3DAT_SEEK_SET, throws);
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-	uint32_t len = s3dat_internal_read32LE(handle, throws)/2-16;
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-	to->len = len;
-	s3dat_internal_seek_func(handle, 8, S3DAT_SEEK_CUR, throws);
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-	to->freq = s3dat_internal_read32LE(handle, throws);
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-	s3dat_internal_seek_func(handle, 4, S3DAT_SEEK_CUR, throws);
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-	to->data = s3dat_internal_alloc_func(handle->mem_arg, len*2, throws);
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-	for(uint32_t i = 0;i != len;i++) {
-		to->data[i] = s3dat_internal_read16LE(handle, throws);
-		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-	}
-}
-
