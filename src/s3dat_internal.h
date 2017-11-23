@@ -43,13 +43,6 @@
 #define S3DAT_ATTRIBUTE_SEQ 0x201
 #define S3DAT_ATTRIBUTE_SONG 0x202
 
-#define S3DAT_HANDLE_EXCEPTION(handle, throws, file, function, line)  \
-	if(*throws != NULL) { \
-		s3dat_add_to_stack(handle, throws, file, function, line); \
-		return; \
-	}
-
-
 #define S3DAT_INTERNAL_ADD_ATTR(handle, throws, attr, value)  \
 	if(*throws != NULL) { \
 		s3dat_add_attr(handle, throws, attr, value); \
@@ -57,9 +50,6 @@
 
 #define S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws) \
 	s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0)
-
-#define S3DAT_SAFE_READ(to, len, file, function, line) \
-		if(!handle->read_func(handle->io_arg, to, len)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, file, function, line);
 
 typedef struct s3dat_internal_stack_t s3dat_internal_stack_t;
 typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
@@ -104,6 +94,13 @@ s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, void** to, s3dat_exception_t** throws);
 void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 
+void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_packed_t* packed, s3dat_exception_t** throws);
+void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t* packed, s3dat_exception_t** throws);
+void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_type type, s3dat_packed_t* packed, s3dat_exception_t** throws);
+void s3dat_pack_string(s3dat_t* handle, s3dat_string_t* string, s3dat_packed_t* packed, s3dat_exception_t** throws);
+void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* packed, s3dat_exception_t** throws);
+
+void s3dat_internal_8b_to_native(s3dat_color_t* color, void* to, s3dat_color_type type);
 
 void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
@@ -124,10 +121,14 @@ uint16_t le16p(uint16_t* le16_int);
 
 uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws);
 uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws);
-uint16_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws);
+uint8_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws);
+
+void s3dat_internal_write32LE(s3dat_t* handle, uint32_t b32_int, s3dat_exception_t** throws);
+void s3dat_internal_write16LE(s3dat_t* handle, uint16_t b16_int, s3dat_exception_t** throws);
+void s3dat_internal_write8(s3dat_t* handle, uint8_t b8_int, s3dat_exception_t** throws);
+
 void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws);
 
-void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* file, const uint8_t* function, uint32_t line);
 void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, uint32_t value);
 
 void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws);

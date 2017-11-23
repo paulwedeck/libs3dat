@@ -45,27 +45,24 @@ int main() {
 
 		s3dat_readfile_name(handle, name, &ex);
 		s3dat_add_utf8_encoding(handle);
-		s3dat_catch_exception(&ex, handle);
 
 		printf("[%i] new file %s\n", i, name);
-		if(ex != NULL) {
-			s3dat_print_exception(ex);
-			s3dat_delete_exception(handle, ex);
-			ex = NULL;
-		} else if(handle->sound_index->len == 0) {
-			printf("[%i] %i settler sequences\n", i, handle->settler_index->len);
-			printf("[%i] %i shadow sequences\n", i, handle->shadow_index->len);
-			printf("[%i] %i torso sequences\n", i, handle->torso_index->len);
-			printf("[%i] %i gui entries\n", i, handle->gui_index->len);
-			printf("[%i] %i animation entries\n", i, handle->animation_index->len);
-			printf("[%i] %i palette entries with %i bytes per line\n", i, handle->palette_index->len, handle->palette_line_length);
-			printf("[%i] %i landscape entries\n", i, handle->landscape_index->len);
-			printf("[%i] %i string entries\n", i, handle->string_index->len);
-		} else {
-			printf("[%i] %i sound entries\n", i, handle->sound_index->len);
+		if(s3dat_catch_exception(&ex, handle)) {
+			if(handle->sound_index->len == 0) {
+				printf("[%i] %i settler sequences\n", i, handle->settler_index->len);
+				printf("[%i] %i shadow sequences\n", i, handle->shadow_index->len);
+				printf("[%i] %i torso sequences\n", i, handle->torso_index->len);
+				printf("[%i] %i gui entries\n", i, handle->gui_index->len);
+				printf("[%i] %i animation entries\n", i, handle->animation_index->len);
+				printf("[%i] %i palette entries with %i bytes per line\n", i, handle->palette_index->len, handle->palette_line_length);
+				printf("[%i] %i landscape entries\n", i, handle->landscape_index->len);
+				printf("[%i] %i string entries\n", i, handle->string_index->len);
+			} else {
+				printf("[%i] %i sound entries\n", i, handle->sound_index->len);
+			}
 		}
 
-		if(handle->string_index->len > 0) {
+		/*if(handle->string_index->len > 0 && false) {
 			for(uint32_t s = 0;s != handle->string_index->len;s++) {
 				s3dat_string_t* strings[8];
 				for(uint16_t l = 0;l != 8;l++) {
@@ -115,6 +112,27 @@ int main() {
 				s3dat_delete_animation(ani);
 			}
 		}
+		if(handle->sound_index->len > 0 && false) {
+			for(uint32_t p = 0;p != handle->sound_index->len;p++) {
+				for(uint32_t sp = 0;sp != handle->sound_index->sequences[p].len;sp++) {
+					handle->seek_func(handle->io_arg, handle->sound_index->sequences[p].pointers[sp], S3DAT_SEEK_SET);
+					printf("sound %i|%i at %u: %u, %u, %u, %u\n", p, sp, handle->sound_index->sequences[p].pointers[sp], s3dat_internal_read32LE(handle, NULL), s3dat_internal_read32LE(handle, NULL), s3dat_internal_read32LE(handle, NULL), s3dat_internal_read32LE(handle, NULL));
+				}
+			}
+		}
+		if(handle->gui_index->len > 0 && false) {
+			for(uint16_t gui = 0;gui != handle->gui_index->len;gui++) {
+				s3dat_bitmap_t* bmp = s3dat_extract_gui(handle, gui, &ex);
+				if(s3dat_catch_exception(&ex, handle)) {
+					printf("%02hx: ", gui);
+					for(int32_t pi = 31;pi >= 0;pi--) {
+							printf("%i", (bmp->gui_type>>pi)&1);
+					}
+					printf(" (%i)\n", bmp->gui_type);
+					s3dat_delete_bitmap(bmp);
+				}
+			}
+		}*/
 
 		s3dat_delete(handle);
 

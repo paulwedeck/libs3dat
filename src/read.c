@@ -151,6 +151,7 @@ void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws) {
 
 	uint32_t file_size = s3dat_internal_read32LE(handle, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
 	if(file_size != handle->size_func(handle->io_arg)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_HEADER, __FILE__, __func__, __LINE__);
 		return;
@@ -162,7 +163,7 @@ void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws) {
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 	}
 
-	for(uint32_t i = 0;i < 8;i++) {
+	for(uint32_t i = 0;i != 8;i++) {
 		s3dat_internal_read_index(handle, sequence_pointers[i], throws);
 		S3DAT_INTERNAL_ADD_ATTR(handle, throws, S3DAT_ATTRIBUTE_INDEX, i);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
@@ -189,6 +190,8 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 		if(languages*texts*4+12 != index_size) {
 			s3dat_throw(handle, throws, S3DAT_EXCEPTION_CONFLICTING_DATA, __FILE__, __func__, __LINE__);
 		}
+
+		if(texts == 0 || languages == 0) return;
 
 		handle->string_index->len = texts;
 		handle->string_index->type = s3dat_string;
@@ -429,6 +432,11 @@ uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws) {
 
 }
 
+void s3dat_internal_write32LE(s3dat_t* handle, uint32_t b32_int, s3dat_exception_t** throws) {
+	uint32_t le32_int = le32(b32_int);
+	if(!handle->write_func(handle->io_arg, &le32_int, 4)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
+}
+
 uint16_t le16(uint16_t le16_int) {
 	#ifdef _WIN32
 		#ifdef IS_BE
@@ -452,10 +460,19 @@ uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws) {
 	return le16(dat);
 }
 
-uint16_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws) {
+void s3dat_internal_write16LE(s3dat_t* handle, uint16_t b16_int, s3dat_exception_t** throws) {
+	uint16_t le16_int = le16(b16_int);
+	if(!handle->write_func(handle->io_arg, &le16_int, 2)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
+}
+
+uint8_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint8_t dat;
 	if(!handle->read_func(handle->io_arg, &dat, 1)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	return dat;
+}
+
+void s3dat_internal_write8(s3dat_t* handle, uint8_t b8_int, s3dat_exception_t** throws) {
+	if(!handle->write_func(handle->io_arg, &b8_int, 1)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 }
 
 uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws) {

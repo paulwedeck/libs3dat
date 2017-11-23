@@ -93,7 +93,7 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 	uint32_t len = s3dat_internal_read32LE(handle, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
-	uint32_t* pointers = s3dat_internal_alloc_func(handle->mem_arg, len*4, throws);
+	uint32_t* pointers = s3dat_internal_alloc_func(handle, len*4, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	for(uint32_t i = 0;i != len;i++) {
@@ -108,5 +108,21 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 	to->type = s3dat_snd;
 	to->len = len;
 	to->pointers = pointers;
+}
+
+void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* packed, s3dat_exception_t** throws) {
+	packed->data = handle->alloc_func(handle->mem_arg, (sound->len*2)+16);
+	packed->len = (sound->len*2)+16;
+
+	uint32_t* ptr32 = packed->data;
+	ptr32[0] = le32(packed->len);
+	ptr32[1] = le32(0x1010);
+	ptr32[2] = le32(sound->freq/2);
+	ptr32[3] = le32(sound->freq);
+	uint16_t* ptr16 = packed->data+16;
+
+	for(uint32_t i = 0;i != sound->len;i++) {
+		ptr16[i] = le16(sound->data[i]);
+	}
 }
 

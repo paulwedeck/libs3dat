@@ -19,6 +19,8 @@ void* s3dat_linux_open_func(void* arg, bool write) {
 }
 
 void s3dat_linux_close_func(void* arg) {
+	if(!arg) return;
+
 	close(*(int*)(arg));
 	free(arg);
 }
@@ -66,7 +68,7 @@ void* s3dat_win32_open_func(void* arg, bool write) {
 }
 
 void s3dat_win32_close_func(void* arg) {
-	CloseHandle(arg);
+	if(arg) CloseHandle(arg);
 }
 
 bool s3dat_win32_read_func(void* arg, void* bfr, size_t len) {
@@ -109,7 +111,7 @@ void* s3dat_libc_open_func(void* arg, bool write) {
 }
 
 void s3dat_libc_close_func(void* arg) {
-	fclose(arg);
+	if(arg) fclose(arg);
 }
 
 bool s3dat_libc_read_func(void* arg, void* bfr, size_t len) {
@@ -161,6 +163,8 @@ void* s3dat_mmf_linux_name_open_func(void* arg, bool write) {
 }
 
 void s3dat_mmf_linux_close_func(void* arg) {
+	if(!arg) return;
+
 	s3dat_mmf_t* mmf = arg;
 
 	if(!mmf->fork) munmap(mmf->addr, mmf->len);
@@ -206,6 +210,8 @@ void* s3dat_mmf_win32_name_open_func(void* arg, bool write) {
 }
 
 void s3dat_mmf_win32_close_func(void* arg) {
+	if(!mmf) return;
+
 	s3dat_mmf_t* mmf = arg;
 
 	if(!mmf->fork) {

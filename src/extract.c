@@ -111,9 +111,8 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		s3dat_sound_t* sound = s3dat_new_sound(handle);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
-		sound->len = package->len/2-16;
-		uint32_t* freq = package->data+12;
-		sound->freq = *freq;
+		sound->len = (package->len-16)/2;
+		sound->freq = le32p(package->data+12);
 
 		uint16_t* data = s3dat_internal_alloc_func(handle, package->len-16, throws);
 		if(data) {
@@ -197,10 +196,12 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		}
 	} else if(res->type == s3dat_gui || res->type == s3dat_torso || res->type == s3dat_shadow ||
 		res->type == s3dat_settler || res->type == s3dat_landscape) {
-		uint16_t width;
-		uint16_t height;
-		uint16_t xoff;
-		uint16_t yoff;
+		uint16_t width = 0;
+		uint16_t height = 0;
+		int16_t xoff = 0;
+		int16_t yoff = 0;
+		uint16_t landscape_type = 0;
+		uint32_t gui_type = 0;
 
 		s3dat_color_type color_type;
 		uint32_t pixel_size;
@@ -208,7 +209,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		if(res->type == s3dat_torso) {
 			color_type = s3dat_gray5;
 			pixel_size = 1;
-		} else if(res->type == s3dat_alpha1) {
+		} else if(res->type == s3dat_shadow) {
 			color_type = s3dat_alpha1;
 			pixel_size = 0;
 		} else {
@@ -237,19 +238,20 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			data_ptr += 2;
 
 			height = le16p(data_ptr);
+			data_ptr += 2;
+
+			gui_type = le32p(data_ptr);
 			data_ptr += 4;
 		} else {
 			width = le16p(data_ptr);
 			data_ptr += 2;
 
 			height = le16p(data_ptr);
-			data_ptr += 3;
+			data_ptr += 2;
+
+			landscape_type = le16p(data_ptr);
+			data_ptr += 2;
 		}
-
-		uint32_t addr = s3dat_internal_seek_to(handle, res, throws) + (res->type == s3dat_landscape ? 1 : 0);
-		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-
-		if(addr % 2 == 1) data_ptr++;
 
 		uint16_t x = 0;
 		uint16_t y = 0;
@@ -288,6 +290,8 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 
 		image->width = width;
 		image->height = height;
+		image->landscape_type = landscape_type;
+		image->gui_type = gui_type;
 		image->xoff = xoff;
 		image->yoff = yoff;
 		image->type = color_type;

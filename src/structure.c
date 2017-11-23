@@ -329,3 +329,12 @@ void s3dat_delete_fork(s3dat_t* handle) {
 	handle->free_func(handle->mem_arg, handle);
 }
 
+s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg) {
+	s3dat_t* fork = handle->alloc_func(handle->mem_arg, sizeof(s3dat_t));
+	memcpy(fork, handle, sizeof(s3dat_t));
+
+	fork->io_arg = io_arg;
+
+	return fork;
+}
+

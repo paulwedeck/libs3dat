@@ -13,10 +13,9 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 
 	void* header;
 	uint32_t header_size = 12;
-	if(res->type == s3dat_gui) header_size = 6;
-	if(res->type == s3dat_landscape) header_size = 5;
+	if(res->type == s3dat_gui) header_size = 8;
+	if(res->type == s3dat_landscape) header_size = 6;
 
-	if(((from+header_size) % 2) == 1) header_size++;
 
 	header = s3dat_internal_alloc_func(handle, header_size, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
@@ -25,6 +24,11 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 		handle->free_func(handle->mem_arg, header);
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
+	}
+
+	if(from % 2 == 1) {
+		s3dat_internal_read8(handle, throws); // this fill byte can be dropped
+		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 	}
 
 	uint16_t* img_meta;
@@ -148,6 +152,109 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	}
 }
 
+void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_type type, s3dat_packed_t* packed, s3dat_exception_t** throws) {
+	uint32_t pixel_size = 2;
+	if(type == s3dat_shadow) pixel_size = 0;
+	if(type == s3dat_torso) pixel_size = 1;
+
+	uint32_t header_size = 12;
+	if(type == s3dat_gui) header_size = 8;
+	if(type == s3dat_landscape) header_size = 6;
+
+	uint32_t metas = 0;
+	uint32_t datas = 0;
+
+	uint8_t stat = 0;
+	for(uint32_t y = 0;y != bitmap->height;y++) {
+		s3dat_color_t* color;
+
+		for(uint32_t x = 0;x != bitmap->width;x++) {
+			color = bitmap->data+(y*bitmap->width+x);
+
+			if(color->alpha > 127) {
+				stat = 2;
+				datas++;
+			} else {
+				if(stat == 2) {
+					stat = 3;
+				} else if(stat == 0) {
+					stat = 1;
+				}
+			}
+
+			if(stat == 3 || (x+1) == bitmap->width) {
+				metas++;
+				stat = 0;
+			}
+		}
+	}
+
+	packed->len = header_size+(metas*2)+(datas*pixel_size);
+	packed->data = s3dat_internal_alloc_func(handle, header_size+(metas*2)+(datas*pixel_size), throws);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
+	uint16_t* size_meta;
+
+	if(type == s3dat_gui) {
+		size_meta = packed->data;
+		*((uint32_t*)packed->data+4) = bitmap->gui_type;
+	} else if(type == s3dat_landscape) {
+		size_meta = packed->data;
+		*((uint16_t*)packed->data+4) = bitmap->landscape_type;
+	} else {
+		memcpy(packed->data, s3dat_image_header, 4);
+		size_meta = packed->data+4;
+
+		uint16_t* off_ptr = packed->data+8;
+		off_ptr[0] = le16(bitmap->xoff);
+		off_ptr[1] = le16(bitmap->yoff);
+	}
+
+	size_meta[0] = le16(bitmap->width);
+	size_meta[1] = le16(bitmap->height);
+
+	uint16_t* meta = packed->data+header_size;
+	uint8_t* data = packed->data+header_size+2;
+
+	uint8_t current_data = 0;
+	uint8_t current_clear = 0;
+
+	stat = 0;
+	for(uint32_t y = 0;y != bitmap->height;y++) {
+		for(uint32_t x = 0;x != bitmap->width;x++) {
+			if(bitmap->data[y*bitmap->width+x].alpha > 127) {
+				stat = 2;
+				s3dat_internal_8b_to_native(bitmap->data+(y*bitmap->width+x), data, bitmap->type);
+				data += pixel_size;
+				current_data++;
+			} else {
+				if(stat == 1) {
+					current_clear++;
+				}else if(stat == 2) {
+					stat = 3;
+				} else if(stat == 0) {
+					stat = 1;
+				}
+			}
+
+			if(stat == 3 || (x+1) == bitmap->width) {
+				uint16_t tmp_meta = current_data + ((current_clear & 0x7F)<<8);
+
+				current_data = 0;
+				current_clear = 0;
+
+				if((x+1) == bitmap->width) tmp_meta |= (1<<15);
+				*meta = le16(tmp_meta);
+
+				meta = (uint16_t*)data;
+				data += 2;
+
+				stat = 0;
+			}
+		}
+	}
+}
+
 s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type) {
 	s3dat_color_t color = {0, 0, 0, 0};
 	if(type == s3dat_alpha1) return color;
@@ -173,6 +280,42 @@ s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type) {
 	color.blue = (uint8_t)((raw & 0x1F)*d58);
 
 	return color;
+}
+
+void s3dat_internal_8b_to_native(s3dat_color_t* color, void* to, s3dat_color_type type) {
+	if(type == s3dat_alpha1) return;
+
+	uint8_t* ptr8 = to;
+	uint16_t* ptr16 = to;
+
+	double d85 = 31.0/255.0;
+	double d86 = 63.0/255.0;
+
+	if(type == s3dat_gray5) {
+		uint8_t gray5 = ((color->red+color->green+color->blue)/3)*d85;
+		*ptr8 = (gray5 & 0x1F);
+		return;
+	}
+
+	uint16_t red, green;
+
+	uint16_t blue = (uint16_t)(color->blue*d85);
+
+	if(type == s3dat_rgb555) {
+		red = color->red*d85;
+		green = color->green*d85;
+
+		red = (red) << 10;
+		green = (green) << 5;
+	} else {
+		red = color->red*d85;
+		green = color->green*d86;
+
+		red = (red) << 11;
+		green = (green) << 5;
+	}
+
+	*ptr16 = le16(red+green+blue);
 }
 
 s3dat_color_t s3dat_internal_error_color = {0, 0, 0, 0};

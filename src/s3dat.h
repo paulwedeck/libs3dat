@@ -29,6 +29,14 @@
 		S3DAT_HANDLE_EXCEPTION(handle, throws, file, func, line); \
 	} while(0);
 
+
+#define S3DAT_HANDLE_EXCEPTION(handle, throws, file, function, line)  \
+	if(*throws != NULL) { \
+		s3dat_add_to_stack(handle, throws, file, function, line); \
+		return; \
+	}
+
+
 typedef struct s3dat_exception_t s3dat_exception_t;
 
 typedef enum {
@@ -54,6 +62,14 @@ typedef enum {
 	s3dat_japanese = 7,
 	s3dat_language_count = 8
 } s3dat_language;
+
+typedef enum {
+	s3dat_landscape_big = 0x101,
+	s3dat_landscape_little = 0x201,
+	s3dat_landscape_t3 = 0x301,
+	s3dat_landscape_t4 = 0x401,
+	s3dat_landscape_big2 = 0x501,
+} s3dat_landscape_type;
 
 typedef struct s3dat_extracthandler_t s3dat_extracthandler_t;
 typedef struct s3dat_bitmap_t s3dat_bitmap_t;
@@ -150,8 +166,11 @@ struct s3dat_bitmap_t {
 	uint16_t width;
 	uint16_t height;
 
-	uint16_t xoff;
-	uint16_t yoff;
+	uint16_t landscape_type;
+	uint32_t gui_type;
+
+	int16_t xoff;
+	int16_t yoff;
 
 	s3dat_t* src;
 	s3dat_color_type type;
@@ -210,7 +229,6 @@ typedef struct {
 	uint16_t first_index;
 	uint32_t second_index;
 	s3dat_content_type type;
-	uint8_t* restype;
 	void* resdata;
 } s3dat_res_t;
 
@@ -229,14 +247,24 @@ typedef struct {
 	void* data;
 } s3dat_packed_t;
 
+void s3dat_writefile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws);
+void s3dat_writefile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
+void s3dat_writefile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
+
+void s3dat_writefile_func(s3dat_t* handle, void* arg,
+	bool (*read_func) (void*, void*, size_t),
+	bool (*write_func) (void*, void*, size_t),
+	size_t (*size_func) (void*),
+	size_t (*pos_func) (void*),
+	bool (*seek_func) (void*, uint32_t, int),
+	void* (*open_func) (void*, bool),
+	void (*close_func) (void*),
+	void* (*fork_func) (void*),
+	s3dat_exception_t** throws);
+
 void s3dat_readfile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws);
-void s3dat_init_name(s3dat_t* handle, uint8_t* name); //name must be vaild until s3dat_readfile has ended
-
 void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
-void s3dat_init_fd(s3dat_t* handle, uint32_t* file); //file must be vaild until s3dat_readfile has ended
-
 void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
-bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func);
 
 void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	bool (*read_func) (void*, void*, size_t),
@@ -249,6 +277,10 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	void* (*fork_func) (void*),
 	s3dat_exception_t** throws);
 
+void s3dat_init_name(s3dat_t* handle, uint8_t* name); //name must be vaild until s3dat_readfile/s3dat_writefile has ended
+void s3dat_init_fd(s3dat_t* handle, uint32_t* file); //file must be vaild until s3dat_readfile/s3dat_writefile has ended
+bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func);
+
 void s3dat_init_func(s3dat_t* handle, void* arg,
 	bool (*read_func) (void*, void*, size_t),
 	bool (*write_func) (void*, void*, size_t),
@@ -259,6 +291,7 @@ void s3dat_init_func(s3dat_t* handle, void* arg,
 	void (*close_func) (void*),
 	void* (*fork_func) (void*));
 
+void s3dat_writefile(s3dat_t* handle, s3dat_exception_t** throws);
 void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws);
 
 void s3dat_add_extracthandler(s3dat_t* handle, s3dat_extracthandler_t* exhandler);
@@ -287,6 +320,9 @@ void s3dat_add_landscape_blending(s3dat_t* handle);
 
 s3dat_t* s3dat_fork(s3dat_t* handle);
 void s3dat_delete_fork(s3dat_t* handle);
+
+s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg);
+void s3dat_pack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 
 //linux
 void* s3dat_linux_open_func(void* arg, bool write);
@@ -398,5 +434,6 @@ void s3dat_print_exception(s3dat_exception_t* ex); // debugging only
 void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex);
 void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t exception, uint8_t* file, const uint8_t* function, uint32_t line);
 bool s3dat_catch_exception(s3dat_exception_t** throws, s3dat_t* from);
+void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* file, const uint8_t* function, uint32_t line);
 #endif /*S3DAT_H*/
 

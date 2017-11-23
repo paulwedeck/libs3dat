@@ -50,6 +50,9 @@ add_library(s3dat SHARED ${s3dat_SOURCES})
 add_executable(cli cli.c)
 target_link_libraries(cli s3dat)
 
+add_executable(invert invert.c)
+target_link_libraries(invert s3dat)
+
 find_package(glfw3)
 find_package(OpenGL)
 
