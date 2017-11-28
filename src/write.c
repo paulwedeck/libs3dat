@@ -101,6 +101,8 @@ void s3dat_write_packed(s3dat_t* handle, s3dat_res_t* res, uint32_t* pos, uint32
 	s3dat_extract(handle, res, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
+	S3DAT_CHECK_TYPE(handle, res, "s3dat_packed_t", throws, __FILE__, __func__, __LINE__);
+
 	s3dat_packed_t* packed = res->resdata;
 
 	if(*pos % 2 == 1) {
@@ -287,6 +289,8 @@ void s3dat_pack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exce
 	s3dat_packed_t* package = s3dat_internal_alloc_func(handle, sizeof(s3dat_packed_t), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
+	package->parent = handle;
+
 	if(res->type == s3dat_snd) {
 		s3dat_pack_sound(handle, res->resdata, package, throws);
 		s3dat_delete_sound(res->resdata);
@@ -310,6 +314,7 @@ void s3dat_pack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exce
 
 	if(*throws == NULL) {
 		res->resdata = package;
+		res->restype = s3dat_internal_get_restype(s3dat_packed);
 	} else {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		handle->free_func(handle->mem_arg, package);

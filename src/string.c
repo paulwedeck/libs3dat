@@ -165,6 +165,7 @@ void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t lang
 		return;
 	}
 
+	pack->parent = handle;
 	pack->len = strlen(cstr);
 	pack->data = cstr;
 	*to = pack;
@@ -176,6 +177,8 @@ void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
 
 	if(res->type == s3dat_string) {
+		S3DAT_CHECK_TYPE(handle, res, "s3dat_string_t", throws, __FILE__, __func__, __LINE__);
+
 		s3dat_string_t* string = res->resdata;
 
 		#ifdef USE_ICONV

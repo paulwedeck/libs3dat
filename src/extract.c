@@ -95,15 +95,19 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3d
 		handle->free_func(handle->mem_arg, data);
 	}
 
+	package->parent = handle;
 	package->len = read_len+offset;
 	package->data = data;
 	res->resdata = package;
+	res->restype = s3dat_internal_get_restype(s3dat_packed);
 }
 
 
 void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws) {
 	s3dat_t* handle = me->parent;
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
+
+	S3DAT_CHECK_TYPE(handle, res, "s3dat_packed_t", throws, __FILE__, __func__, __LINE__);
 
 	s3dat_packed_t* package = res->resdata;
 
@@ -128,6 +132,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			res->resdata = sound;
+			res->restype = s3dat_internal_get_restype(res->type);
 		}
 	} else if(res->type == s3dat_animation) {
 		s3dat_animation_t* animation = s3dat_new_animation(handle);
@@ -157,6 +162,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			res->resdata = animation;
+			res->restype = s3dat_internal_get_restype(res->type);
 		}
 	} else if(res->type == s3dat_palette) {
 		s3dat_bitmap_t* palette = s3dat_new_bitmap(handle);
@@ -179,6 +185,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			res->resdata = palette;
+			res->restype = s3dat_internal_get_restype(res->type);
 		}
 	} else if(res->type == s3dat_string) {
 		s3dat_string_t* string = s3dat_new_string(handle);
@@ -193,6 +200,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			res->resdata = string;
+			res->restype = s3dat_internal_get_restype(res->type);
 		}
 	} else if(res->type == s3dat_gui || res->type == s3dat_torso || res->type == s3dat_shadow ||
 		res->type == s3dat_settler || res->type == s3dat_landscape) {
@@ -298,12 +306,12 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		image->data = color_data;
 
 		res->resdata = image;
+		res->restype = s3dat_internal_get_restype(s3dat_bitmap);
 	} else {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 	}
 
-	if(package->data) handle->free_func(handle->mem_arg, package->data);
-	handle->free_func(handle->mem_arg, package);
+	s3dat_delete_packed(package);
 }
 
 void* s3dat_extract_arg(s3dat_t* handle, uint16_t first_index, uint32_t second_index, s3dat_content_type type, s3dat_exception_t** throws) {
@@ -367,6 +375,9 @@ void s3dat_blend_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exc
 	s3dat_t* handle = me->parent;
 	
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
+	S3DAT_CHECK_TYPE(handle, res, "s3dat_bitmap_t", throws, __FILE__, __func__, __LINE__);
 
 	if(res->type != s3dat_landscape) return;
 

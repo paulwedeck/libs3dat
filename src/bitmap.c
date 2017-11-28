@@ -143,9 +143,11 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 
 	s3dat_packed_t* pack = handle->alloc_func(handle->mem_arg, sizeof(s3dat_packed_t));
 	if(pack) {
+		pack->parent = handle;
 		pack->data = bfr;
 		pack->len = read_size;
 		res->resdata = pack;
+		res->restype = s3dat_internal_get_restype(s3dat_packed);
 	} else {
 		handle->free_func(handle->mem_arg, bfr);
 		S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws);
@@ -189,6 +191,7 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 		}
 	}
 
+	packed->parent = handle;
 	packed->len = header_size+(metas*2)+(datas*pixel_size);
 	packed->data = s3dat_internal_alloc_func(handle, header_size+(metas*2)+(datas*pixel_size), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);

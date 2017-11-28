@@ -22,6 +22,11 @@ void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count)
 	exhandlers->parent->free_func(exhandlers->parent->mem_arg, exhandlers);
 }
 
+void s3dat_delete_packed(s3dat_packed_t* package) {
+	if(package->data) package->parent->free_func(package->parent->mem_arg, package->data);
+	package->parent->free_func(package->parent->mem_arg, package);
+}
+
 
 s3dat_string_t* s3dat_new_string(s3dat_t* parent) {
 	return s3dat_new_strings(parent, 1);
@@ -336,5 +341,58 @@ s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg) {
 	fork->io_arg = io_arg;
 
 	return fork;
+}
+
+void s3dat_cache_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws) {
+	s3dat_t* handle = me->parent;
+
+	s3dat_cache_t* tmp_cache = me->arg;
+
+	while(tmp_cache) {
+		if(tmp_cache->res.first_index == res->first_index &&
+			tmp_cache->res.second_index == res->second_index &&
+			tmp_cache->res.type == res->type) {
+			res->resdata = tmp_cache->res.resdata;
+			res->restype = tmp_cache->res.restype;
+			return;
+		}
+
+		tmp_cache = tmp_cache->next;
+	}
+
+	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
+	tmp_cache = s3dat_new_cache(handle);
+	memcpy(&tmp_cache->res, res, sizeof(s3dat_res_t));
+	tmp_cache->next = me->arg;
+	me->arg = tmp_cache;
+}
+
+void s3dat_add_cache(s3dat_t* parent) {
+	s3dat_extracthandler_t* exhandler = s3dat_new_exhandler(parent);
+	exhandler->call = s3dat_cache_handler;
+	exhandler->arg_deref = (void (*) (void*)) s3dat_delete_cache_r;
+
+	s3dat_add_extracthandler(parent, exhandler);
+}
+
+s3dat_cache_t* s3dat_new_cache(s3dat_t* handle) {
+	s3dat_cache_t* cache = handle->alloc_func(handle->mem_arg, sizeof(s3dat_cache_t));
+	cache->parent = handle;
+
+	return cache;
+}
+
+void s3dat_delete_cache_r(s3dat_cache_t* cache) {
+	s3dat_cache_t* tmp1 = cache;
+	s3dat_cache_t* tmp2;
+
+	while(tmp1) {
+		tmp2 = tmp1;
+		tmp1 = tmp1->next;
+		tmp2->res.restype->deref(tmp2->res.resdata);
+		tmp2->parent->free_func(tmp2->parent->mem_arg, tmp2);
+	}
 }
 

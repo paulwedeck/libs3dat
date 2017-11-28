@@ -524,3 +524,29 @@ uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_excepti
 	return from;
 }
 
+s3dat_restype_t s3dat_internal_animation_type = {"s3dat_animation_t", (void (*) (void*)) s3dat_delete_animation};
+s3dat_restype_t s3dat_internal_bitmap_type = {"s3dat_bitmap_t", (void (*) (void*)) s3dat_delete_bitmap};
+s3dat_restype_t s3dat_internal_packed_type = {"s3dat_packed_t", (void (*) (void*)) s3dat_delete_packed};
+s3dat_restype_t s3dat_internal_string_type = {"s3dat_string_t", (void (*) (void*)) s3dat_delete_string};
+s3dat_restype_t s3dat_internal_sound_type = {"s3dat_sound_t", (void (*) (void*)) s3dat_delete_sound};
+
+s3dat_restype_t* s3dat_internal_get_restype(uint32_t type) {
+	switch(type) {
+		case s3dat_packed:
+			return &s3dat_internal_packed_type;
+
+		case s3dat_bitmap:
+			return &s3dat_internal_bitmap_type;
+
+		case s3dat_animation:
+			return &s3dat_internal_animation_type;
+
+		case s3dat_string:
+			return &s3dat_internal_string_type;
+
+		case s3dat_snd:
+			return &s3dat_internal_sound_type;
+	}
+	return NULL;
+}
+

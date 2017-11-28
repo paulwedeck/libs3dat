@@ -37,6 +37,7 @@
 #define S3DAT_EXCEPTION_ICONV_ERROR 0x106
 #define S3DAT_EXCEPTION_OPEN 0x107
 #define S3DAT_EXCEPTION_IOSET 0x108
+#define S3DAT_EXCEPTION_WRONG_RESTYPE 0x109
 #define S3DAT_EXCEPTION_OUT_OF_MEMORY 0x200
 
 #define S3DAT_ATTRIBUTE_INDEX 0x200
@@ -50,6 +51,13 @@
 
 #define S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws) \
 	s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0)
+
+
+#define S3DAT_CHECK_TYPE(handle, res, type, throws, file, func, line) \
+	if(strncmp(res->restype->name, type, strlen(type)) != 0) { \
+		s3dat_throw(handle, throws, S3DAT_EXCEPTION_WRONG_RESTYPE, file, func, line); \
+		return; \
+	}
 
 typedef struct s3dat_internal_stack_t s3dat_internal_stack_t;
 typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
@@ -110,6 +118,7 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 
 void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3dat_exception_t** throws);
 
+s3dat_restype_t* s3dat_internal_get_restype(s3dat_content_type type);
 
 uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
 
@@ -132,6 +141,11 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws);
 void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, uint32_t value);
 
 void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws);
+
+
+s3dat_cache_t* s3dat_new_cache(s3dat_t* handle);
+void s3dat_delete_cache_r(s3dat_cache_t* cache);
+void s3dat_add_cache(s3dat_t* parent);
 
 #endif /*S3DAT_INTERNAL_H*/
 

@@ -29,7 +29,6 @@
 		S3DAT_HANDLE_EXCEPTION(handle, throws, file, func, line); \
 	} while(0);
 
-
 #define S3DAT_HANDLE_EXCEPTION(handle, throws, file, function, line)  \
 	if(*throws != NULL) { \
 		s3dat_add_to_stack(handle, throws, file, function, line); \
@@ -40,6 +39,9 @@
 typedef struct s3dat_exception_t s3dat_exception_t;
 
 typedef enum {
+	s3dat_packed = 0x10FFFFFF, // for s3dat_internal_get_restype
+	s3dat_bitmap = 0x11FFFFFF, // for s3dat_internal_get_restype
+
 	s3dat_snd = 0xFFFF, // SND .dat files only
 	s3dat_settler = 0x106,
 	s3dat_torso = 0x3112,
@@ -50,6 +52,7 @@ typedef enum {
 	s3dat_palette = 0x2607,
 	s3dat_string = 0x1904,
 } s3dat_content_type;
+
 
 typedef enum {
 	s3dat_german = 0,
@@ -226,12 +229,25 @@ typedef struct {
 } s3dat_ioset_t;
 
 typedef struct {
+	char* name;
+	void (*deref) (void*);
+} s3dat_restype_t;
+
+typedef struct {
 	uint16_t first_index;
 	uint32_t second_index;
 	s3dat_content_type type;
 	void* resdata;
+	s3dat_restype_t* restype;
 } s3dat_res_t;
 
+typedef struct s3dat_cache_t s3dat_cache_t;
+
+struct s3dat_cache_t {
+	s3dat_t* parent;
+	s3dat_res_t res;
+	s3dat_cache_t* next;
+};
 
 struct s3dat_extracthandler_t {
 	void (*call) (s3dat_extracthandler_t*, s3dat_res_t*, s3dat_exception_t**);
@@ -243,6 +259,7 @@ struct s3dat_extracthandler_t {
 };
 
 typedef struct {
+	s3dat_t* parent;
 	uint32_t len;
 	void* data;
 } s3dat_packed_t;
@@ -315,6 +332,7 @@ s3dat_string_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_
 
 s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
 
+void s3dat_add_cache(s3dat_t* parent);
 void s3dat_add_utf8_encoding(s3dat_t* handle);
 void s3dat_add_landscape_blending(s3dat_t* handle);
 
@@ -390,6 +408,8 @@ s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count);
 
 void s3dat_delete(s3dat_t* handle);
 
+
+void s3dat_delete_packed(s3dat_packed_t* package);
 
 void s3dat_delete_animation(s3dat_animation_t* ani);
 void s3dat_delete_animations(s3dat_animation_t* anis, uint32_t count);
