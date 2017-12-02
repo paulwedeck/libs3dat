@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -23,6 +24,8 @@
 #define S3DAT_IOSET_LINUX_MMF_FD 0x603
 #define S3DAT_IOSET_WIN32_MMF_HANDLE 0x604
 
+#define S3DAT_EXCEPTION_WRONG_RESTYPE 0x109
+
 #define S3DAT_EXHANDLER_CALL(me, res, throws, file, func, line) \
 	do { \
 		me->before->call(me->before, res, throws); \
@@ -34,6 +37,13 @@
 		s3dat_add_to_stack(handle, throws, file, function, line); \
 		return; \
 	}
+
+#define S3DAT_CHECK_TYPE(handle, res, type, throws, file, func, line) \
+	if(strncmp(res->restype->name, type, strlen(type)) != 0) { \
+		s3dat_throw(handle, throws, S3DAT_EXCEPTION_WRONG_RESTYPE, file, func, line); \
+		return; \
+	}
+
 
 
 typedef struct s3dat_exception_t s3dat_exception_t;

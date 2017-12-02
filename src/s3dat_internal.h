@@ -3,7 +3,6 @@
 #include "config.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -51,13 +50,6 @@
 
 #define S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws) \
 	s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0)
-
-
-#define S3DAT_CHECK_TYPE(handle, res, type, throws, file, func, line) \
-	if(strncmp(res->restype->name, type, strlen(type)) != 0) { \
-		s3dat_throw(handle, throws, S3DAT_EXCEPTION_WRONG_RESTYPE, file, func, line); \
-		return; \
-	}
 
 typedef struct s3dat_internal_stack_t s3dat_internal_stack_t;
 typedef struct s3dat_internal_attribute_t s3dat_internal_attribute_t;
