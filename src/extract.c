@@ -50,20 +50,18 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3d
 
 	if(res->type != s3dat_snd && res->type != s3dat_animation && res->type != s3dat_palette) {
 		if(res->type == s3dat_string) {
-			s3dat_internal_extract_string(handle, res->first_index, (uint16_t)(res->second_index & 0xFFFFF), &res->resdata, throws);
+			s3dat_internal_extract_string(handle, res->first_index, (uint16_t)(res->second_index & 0xFFFFF), &res->res, throws);
 		} else {
 			s3dat_internal_extract_bitmap(me, res, throws);
 		}
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
-	s3dat_packed_t* package;
 
 	uint32_t raw_len;
 	uint32_t read_len;
 	void* data;
 
-	uint32_t from;
 	uint32_t offset = res->type == s3dat_palette ? 0 : 4;
 
 
@@ -77,7 +75,7 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3d
 
 	if(res->type == s3dat_snd) read_len = raw_len-4;
 	else if(res->type == s3dat_animation) read_len = raw_len*24;
-	else if(res->type == s3dat_palette) read_len = handle->palette_line_length*8;
+	else read_len = handle->palette_line_length*8;
 
 	data = s3dat_internal_alloc_func(handle, read_len+offset, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
@@ -89,17 +87,9 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3d
 		return;
 	}
 
-	package = s3dat_internal_alloc_func(handle, sizeof(s3dat_packed_t*), throws);
-	if(*throws != NULL) {
-		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-		handle->free_func(handle->mem_arg, data);
-	}
-
-	package->parent = handle;
-	package->len = read_len+offset;
-	package->data = data;
-	res->resdata = package;
-	res->restype = s3dat_internal_get_restype(s3dat_packed);
+	res->res = s3dat_new_packed(handle);
+	res->res->data.pkd->len = read_len+offset;
+	res->res->data.pkd->data = data;
 }
 
 
@@ -109,10 +99,12 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 
 	S3DAT_CHECK_TYPE(handle, res, "s3dat_packed_t", throws, __FILE__, __func__, __LINE__);
 
-	s3dat_packed_t* package = res->resdata;
+	s3dat_packed_t* package = res->res->data.pkd;
+	s3dat_ref_t* new_ref = NULL;
 
 	if(res->type == s3dat_snd) {
-		s3dat_sound_t* sound = s3dat_new_sound(handle);
+		s3dat_ref_t* sound_ref = s3dat_new_sound(handle);
+		s3dat_sound_t* sound = sound_ref->data.snd;
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		sound->len = (package->len-16)/2;
@@ -128,14 +120,14 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		}
 
 		if(*throws != NULL) {
-			s3dat_delete_sound(sound);
+			s3dat_delete_ref(sound_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
-			res->resdata = sound;
-			res->restype = s3dat_internal_get_restype(res->type);
+			new_ref = sound_ref;
 		}
 	} else if(res->type == s3dat_animation) {
-		s3dat_animation_t* animation = s3dat_new_animation(handle);
+		s3dat_ref_t* animation_ref = s3dat_new_animation(handle);
+		s3dat_animation_t* animation = animation_ref->data.ani;
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		animation->len = *((uint32_t*)package->data);
@@ -158,14 +150,14 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			}
 		}
 		if(*throws != NULL) {
-			s3dat_delete_animation(animation);
+			s3dat_delete_ref(animation_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
-			res->resdata = animation;
-			res->restype = s3dat_internal_get_restype(res->type);
+			new_ref = animation_ref;
 		}
 	} else if(res->type == s3dat_palette) {
-		s3dat_bitmap_t* palette = s3dat_new_bitmap(handle);
+		s3dat_ref_t* palette_ref = s3dat_new_bitmap(handle);
+		s3dat_bitmap_t* palette = palette_ref->data.bmp;
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		palette->width = handle->palette_line_length;
@@ -181,14 +173,14 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			}
 		}
 		if(*throws != NULL) {
-			s3dat_delete_bitmap(palette);
+			s3dat_delete_ref(palette_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
-			res->resdata = palette;
-			res->restype = s3dat_internal_get_restype(res->type);
+			new_ref = palette_ref;
 		}
 	} else if(res->type == s3dat_string) {
-		s3dat_string_t* string = s3dat_new_string(handle);
+		s3dat_ref_t* string_ref = s3dat_new_string(handle);
+		s3dat_string_t* string = string_ref->data.str;
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		string->original_encoding = true;
@@ -196,11 +188,10 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		string->string_data = package->data;
 		package->data = NULL;
 		if(*throws != NULL) {
-			s3dat_delete_string(string);
+			s3dat_delete_ref(string_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
-			res->resdata = string;
-			res->restype = s3dat_internal_get_restype(res->type);
+			new_ref = string_ref;
 		}
 	} else if(res->type == s3dat_gui || res->type == s3dat_torso || res->type == s3dat_shadow ||
 		res->type == s3dat_settler || res->type == s3dat_landscape) {
@@ -294,27 +285,27 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			}
 		}
 
-		s3dat_bitmap_t* image = s3dat_new_bitmap(handle);
+		s3dat_ref_t* image = s3dat_new_bitmap(handle);
 
-		image->width = width;
-		image->height = height;
-		image->landscape_type = landscape_type;
-		image->gui_type = gui_type;
-		image->xoff = xoff;
-		image->yoff = yoff;
-		image->type = color_type;
-		image->data = color_data;
+		image->data.bmp->width = width;
+		image->data.bmp->height = height;
+		image->data.bmp->landscape_type = landscape_type;
+		image->data.bmp->gui_type = gui_type;
+		image->data.bmp->xoff = xoff;
+		image->data.bmp->yoff = yoff;
+		image->data.bmp->type = color_type;
+		image->data.bmp->data = color_data;
 
-		res->resdata = image;
-		res->restype = s3dat_internal_get_restype(s3dat_bitmap);
+		new_ref = image;
 	} else {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 	}
 
-	s3dat_delete_packed(package);
+	s3dat_delete_ref(res->res);
+	res->res = new_ref;
 }
 
-void* s3dat_extract_arg(s3dat_t* handle, uint16_t first_index, uint32_t second_index, s3dat_content_type type, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_arg(s3dat_t* handle, uint16_t first_index, uint32_t second_index, s3dat_content_type type, s3dat_exception_t** throws) {
 	s3dat_res_t res = {first_index, second_index, type, NULL};
 
 	s3dat_extract(handle, &res, throws);
@@ -322,44 +313,44 @@ void* s3dat_extract_arg(s3dat_t* handle, uint16_t first_index, uint32_t second_i
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 	}
 
-	return res.resdata;
+	return res.res;
 }
 
-s3dat_bitmap_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, settler, frame, s3dat_settler, throws);
 }
 
-s3dat_bitmap_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, shadow, frame, s3dat_shadow, throws);
 }
 
-s3dat_bitmap_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, torso, frame, s3dat_torso, throws);
 }
 
 
-s3dat_bitmap_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, landscape, 0, s3dat_landscape, throws);
 }
 
-s3dat_bitmap_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, gui, 0, s3dat_gui, throws);
 }
 
 
-s3dat_animation_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, animation, 0, s3dat_animation, throws);
 }
 
-s3dat_string_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, text, language, s3dat_string, throws);
 }
 
-s3dat_bitmap_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, palette, 0, s3dat_palette, throws);
 }
 
-s3dat_string_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws) {
+s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws) {
 	return s3dat_extract_arg(handle, soundtype, altindex, s3dat_snd, throws);
 }
 
@@ -381,7 +372,7 @@ void s3dat_blend_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exc
 
 	if(res->type != s3dat_landscape) return;
 
-	s3dat_bitmap_t* bmp = res->resdata;
+	s3dat_bitmap_t* bmp = res->res->data.bmp;
 
 	uint32_t pixel_count = bmp->width*bmp->height;
 	for(uint32_t i = 0;i != pixel_count;i++) {

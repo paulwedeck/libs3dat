@@ -48,7 +48,7 @@ bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence) {
 	return lseek(*((int*)arg), pos, seek_whence) != (off_t)-1;
 }
 #else
-void* s3dat_linux_open_func(void* arg, bool write) {}
+void* s3dat_linux_open_func(void* arg, bool write) {return NULL;}
 void s3dat_linux_close_func(void* arg) {}
 bool s3dat_linux_read_func(void* arg, void* bfr, size_t len) {return 0;}
 bool s3dat_linux_write_func(void* arg, void* bfr, size_t len) {return 0;}
@@ -97,7 +97,7 @@ size_t s3dat_win32_size_func(void* arg) {
 	return size;
 }
 #else
-void* s3dat_win32_open_func(void* arg, bool write) {}
+void* s3dat_win32_open_func(void* arg, bool write) {return NULL;}
 void s3dat_win32_close_func(void* arg) {}
 bool s3dat_win32_read_func(void* arg, void* bfr, size_t len) {return 0;}
 bool s3dat_win32_write_func(void* arg, void* bfr, size_t len) {return 0;}
@@ -171,8 +171,8 @@ void s3dat_mmf_linux_close_func(void* arg) {
 	free(mmf);
 }
 #else
-void* s3dat_mmf_linux_fd_open_func(void* arg, bool write) {}
-void* s3dat_mmf_linux_name_open_func(void* arg, bool write) {}
+void* s3dat_mmf_linux_fd_open_func(void* arg, bool write) {return NULL;}
+void* s3dat_mmf_linux_name_open_func(void* arg, bool write) {return NULL;}
 void s3dat_mmf_linux_close_func(void* arg) {}
 #endif
 
@@ -225,8 +225,8 @@ void s3dat_mmf_win32_close_func(void* arg) {
 	free(mmf);
 }
 #else
-void* s3dat_mmf_win32_handle_open_func(void* arg, bool write) {}
-void* s3dat_mmf_win32_name_open_func(void* arg, bool write) {}
+void* s3dat_mmf_win32_handle_open_func(void* arg, bool write) {return NULL;}
+void* s3dat_mmf_win32_name_open_func(void* arg, bool write) {return NULL;}
 void s3dat_mmf_win32_close_func(void* arg) {}
 #endif
 

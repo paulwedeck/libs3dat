@@ -91,7 +91,7 @@ void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uin
 void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, uint32_t from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
 s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 
-void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, void** to, s3dat_exception_t** throws);
+void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_ref_t** to, s3dat_exception_t** throws);
 void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 
 void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_packed_t* packed, s3dat_exception_t** throws);
@@ -110,7 +110,7 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 
 void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3dat_exception_t** throws);
 
-s3dat_restype_t* s3dat_internal_get_restype(s3dat_content_type type);
+s3dat_restype_t* s3dat_internal_get_restype(s3dat_ref_type type);
 
 uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
 
@@ -133,6 +133,18 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws);
 void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, uint32_t value);
 
 void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws);
+
+
+s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent);
+s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent);
+s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent);
+s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent);
+s3dat_packed_t* s3dat_new_raw_packed(s3dat_t* parent);
+
+void s3dat_delete_animation(s3dat_animation_t* ani);
+void s3dat_delete_bitmap(s3dat_bitmap_t* bmp);
+void s3dat_delete_sound(s3dat_sound_t* sound);
+void s3dat_delete_string(s3dat_string_t* string);
 
 
 s3dat_cache_t* s3dat_new_cache(s3dat_t* handle);

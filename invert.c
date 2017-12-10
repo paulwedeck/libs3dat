@@ -4,7 +4,7 @@ void invert_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exceptio
 	s3dat_t* handle = me->parent;
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
 
-	s3dat_bitmap_t* bmp = res->resdata;
+	s3dat_bitmap_t* bmp = res->res->data.bmp;
 	for(uint16_t i = 0;i != bmp->width*bmp->height;i++) {
 		s3dat_color_t* color = bmp->data+i;
 		color->red = 256-color->red;

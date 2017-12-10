@@ -141,13 +141,12 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 		}
 	}
 
-	s3dat_packed_t* pack = handle->alloc_func(handle->mem_arg, sizeof(s3dat_packed_t));
+	s3dat_ref_t* pack = s3dat_new_packed(handle);
 	if(pack) {
-		pack->parent = handle;
-		pack->data = bfr;
-		pack->len = read_size;
-		res->resdata = pack;
-		res->restype = s3dat_internal_get_restype(s3dat_packed);
+		pack->data.pkd->parent = handle;
+		pack->data.pkd->data = bfr;
+		pack->data.pkd->len = read_size;
+		res->res = pack;
 	} else {
 		handle->free_func(handle->mem_arg, bfr);
 		S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws);
@@ -191,7 +190,6 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 		}
 	}
 
-	packed->parent = handle;
 	packed->len = header_size+(metas*2)+(datas*pixel_size);
 	packed->data = s3dat_internal_alloc_func(handle, header_size+(metas*2)+(datas*pixel_size), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
@@ -263,15 +261,16 @@ s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type) {
 	if(type == s3dat_alpha1) return color;
 	color.alpha = 0xFF;
 
-	uint16_t raw = le16p(addr);
 	
 	double d58 = 255.0/31.0;
 	double d68 = 255.0/63.0;
 
 	if(type == s3dat_gray5) {
-		color.red = color.green = color.blue = (int)((raw & 0x1F)*d58);
+		color.red = color.green = color.blue = (int)((*((uint8_t*)addr) & 0x1F)*d58);
 		return color;
 	}
+
+	uint16_t raw = le16p(addr);
 
 	if(type == s3dat_rgb555) {
 		color.red = (uint8_t)(((raw >> 10) & 0x1F)*d58);

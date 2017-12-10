@@ -103,7 +103,7 @@ void s3dat_write_packed(s3dat_t* handle, s3dat_res_t* res, uint32_t* pos, uint32
 
 	S3DAT_CHECK_TYPE(handle, res, "s3dat_packed_t", throws, __FILE__, __func__, __LINE__);
 
-	s3dat_packed_t* packed = res->resdata;
+	s3dat_packed_t* packed = res->res->data.raw;
 
 	if(*pos % 2 == 1) {
 		s3dat_internal_write8(handle, 0, throws);
@@ -292,32 +292,34 @@ void s3dat_pack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exce
 	package->parent = handle;
 
 	if(res->type == s3dat_snd) {
-		s3dat_pack_sound(handle, res->resdata, package, throws);
-		s3dat_delete_sound(res->resdata);
+		s3dat_pack_sound(handle, res->res->data.raw, package, throws);
+		s3dat_delete_sound(res->res->data.raw);
 
 	} else if(res->type == s3dat_animation) {
-		s3dat_pack_animation(handle, res->resdata, package, throws);
-		s3dat_delete_animation(res->resdata);
+		s3dat_pack_animation(handle, res->res->data.raw, package, throws);
+		s3dat_delete_animation(res->res->data.raw);
 
 	} else if(res->type == s3dat_palette) {
-		s3dat_pack_palette(handle, res->resdata, package, throws);
-		s3dat_delete_bitmap(res->resdata);
+		s3dat_pack_palette(handle, res->res->data.raw, package, throws);
+		s3dat_delete_bitmap(res->res->data.raw);
 
 	} else if(res->type == s3dat_string) {
-		s3dat_pack_string(handle, res->resdata, package, throws);
-		s3dat_delete_string(res->resdata);
+		s3dat_pack_string(handle, res->res->data.raw, package, throws);
+		s3dat_delete_string(res->res->data.raw);
 
 	} else {
-		s3dat_pack_bitmap(handle, res->resdata, res->type, package, throws);
-		s3dat_delete_bitmap(res->resdata);
+		s3dat_pack_bitmap(handle, res->res->data.raw, res->type, package, throws);
+		s3dat_delete_bitmap(res->res->data.raw);
 	}
 
 	if(*throws == NULL) {
-		res->resdata = package;
-		res->restype = s3dat_internal_get_restype(s3dat_packed);
+		res->res->data.raw = package;
+		res->res->type = s3dat_internal_get_restype(s3dat_pkd_ref);
 	} else {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		handle->free_func(handle->mem_arg, package);
+		res->res->data.raw = NULL;
+		handle->free_func(handle->mem_arg, res->res);
 	}
 }
 

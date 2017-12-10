@@ -26,7 +26,7 @@ int open_landscape_file() {
 	int return_value = 0;
 	s3dat_exception_t* ex = NULL;
 	s3dat_t* datfile = NULL;
-	s3dat_bitmap_t* bmp = NULL;
+	s3dat_ref_t* bmp = NULL;
 
 
 	if(search_gfx() != 0) CRASH("test skipped, because search_gfx has failed\n");
@@ -39,7 +39,7 @@ int open_landscape_file() {
 	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract first bitmap\n");
 
 	end:
-	if(bmp != NULL) s3dat_delete_bitmap(bmp);
+	if(bmp) s3dat_delete_ref(bmp);
 	if(datfile != NULL) s3dat_delete(datfile);
 
 	return return_value;
@@ -49,7 +49,7 @@ int try_blending() {
 	int return_value = 0;
 	s3dat_exception_t* ex = NULL;
 	s3dat_t* datfile = NULL;
-	s3dat_bitmap_t* bmp = NULL;
+	s3dat_ref_t* bmp = NULL;
 
 	if(search_gfx() != 0) CRASH("test skipped, because search_gfx has failed\n");
 	datfile = s3dat_new_malloc();
@@ -60,9 +60,9 @@ int try_blending() {
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
 	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract bitmap 0x1B\n");
 
-	if(bmp->data[0].red != 0 || bmp->data[0].green != 0xCE || bmp->data[0].blue != 0xEE || bmp->data[0].alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
+	if(bmp->data.bmp->data[0].red != 0 || bmp->data.bmp->data[0].green != 0xCE || bmp->data.bmp->data[0].blue != 0xEE || bmp->data.bmp->data[0].alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
 
-	s3dat_delete_bitmap(bmp);
+	s3dat_delete_ref(bmp);
 	bmp = NULL;
 
 	s3dat_add_landscape_blending(datfile);
@@ -70,10 +70,10 @@ int try_blending() {
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
 	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract bitmap 0x1B two times\n");
 
-	if(bmp->data[0].alpha != 0) CRASH("landscape blending failed\n");
+	if(bmp->data.bmp->data[0].alpha != 0) CRASH("landscape blending failed\n");
 
 	end:
-	if(bmp != NULL) s3dat_delete_bitmap(bmp);
+	if(bmp) s3dat_delete_ref(bmp);
 	if(datfile != NULL) s3dat_delete(datfile);
 
 	return return_value;

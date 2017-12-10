@@ -339,6 +339,7 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 				break;
 				default:
 					s3dat_throw(handle, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
+					return;
 				break;
 			}
 
@@ -524,27 +525,27 @@ uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_excepti
 	return from;
 }
 
-s3dat_restype_t s3dat_internal_animation_type = {"s3dat_animation_t", (void (*) (void*)) s3dat_delete_animation};
-s3dat_restype_t s3dat_internal_bitmap_type = {"s3dat_bitmap_t", (void (*) (void*)) s3dat_delete_bitmap};
-s3dat_restype_t s3dat_internal_packed_type = {"s3dat_packed_t", (void (*) (void*)) s3dat_delete_packed};
-s3dat_restype_t s3dat_internal_string_type = {"s3dat_string_t", (void (*) (void*)) s3dat_delete_string};
-s3dat_restype_t s3dat_internal_sound_type = {"s3dat_sound_t", (void (*) (void*)) s3dat_delete_sound};
+s3dat_restype_t s3dat_internal_animation_type = {"s3dat_animation_t", (void (*) (void*)) s3dat_delete_animation, (void* (*) (void*)) s3dat_new_raw_animation};
+s3dat_restype_t s3dat_internal_bitmap_type = {"s3dat_bitmap_t", (void (*) (void*)) s3dat_delete_bitmap, (void* (*) (void*)) s3dat_new_raw_bitmap};
+s3dat_restype_t s3dat_internal_packed_type = {"s3dat_packed_t", (void (*) (void*)) s3dat_delete_packed, (void* (*) (void*)) s3dat_new_raw_packed};
+s3dat_restype_t s3dat_internal_string_type = {"s3dat_string_t", (void (*) (void*)) s3dat_delete_string, (void* (*) (void*)) s3dat_new_raw_string};
+s3dat_restype_t s3dat_internal_sound_type = {"s3dat_sound_t", (void (*) (void*)) s3dat_delete_sound, (void* (*) (void*)) s3dat_new_raw_sound};
 
-s3dat_restype_t* s3dat_internal_get_restype(uint32_t type) {
+s3dat_restype_t* s3dat_internal_get_restype(s3dat_ref_type type) {
 	switch(type) {
-		case s3dat_packed:
+		case s3dat_pkd_ref:
 			return &s3dat_internal_packed_type;
 
-		case s3dat_bitmap:
+		case s3dat_bmp_ref:
 			return &s3dat_internal_bitmap_type;
 
-		case s3dat_animation:
+		case s3dat_ani_ref:
 			return &s3dat_internal_animation_type;
 
-		case s3dat_string:
+		case s3dat_str_ref:
 			return &s3dat_internal_string_type;
 
-		case s3dat_snd:
+		case s3dat_snd_ref:
 			return &s3dat_internal_sound_type;
 	}
 	return NULL;

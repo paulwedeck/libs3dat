@@ -49,30 +49,30 @@ int main() {
 		printf("[%i] new file %s\n", i, name);
 		if(s3dat_catch_exception(&ex, handle)) {
 			if(handle->sound_index->len == 0) {
-				printf("[%i] %i settler sequences\n", i, handle->settler_index->len);
-				printf("[%i] %i shadow sequences\n", i, handle->shadow_index->len);
-				printf("[%i] %i torso sequences\n", i, handle->torso_index->len);
-				printf("[%i] %i gui entries\n", i, handle->gui_index->len);
-				printf("[%i] %i animation entries\n", i, handle->animation_index->len);
-				printf("[%i] %i palette entries with %i bytes per line\n", i, handle->palette_index->len, handle->palette_line_length);
-				printf("[%i] %i landscape entries\n", i, handle->landscape_index->len);
-				printf("[%i] %i string entries\n", i, handle->string_index->len);
+				printf("[%i] %hu settler sequences\n", i, handle->settler_index->len);
+				printf("[%i] %hu shadow sequences\n", i, handle->shadow_index->len);
+				printf("[%i] %hu torso sequences\n", i, handle->torso_index->len);
+				printf("[%i] %hu gui entries\n", i, handle->gui_index->len);
+				printf("[%i] %hu animation entries\n", i, handle->animation_index->len);
+				printf("[%i] %hu palette entries with %i bytes per line\n", i, handle->palette_index->len, handle->palette_line_length);
+				printf("[%i] %hu landscape entries\n", i, handle->landscape_index->len);
+				printf("[%i] %hu string entries\n", i, handle->string_index->len);
 			} else {
-				printf("[%i] %i sound entries\n", i, handle->sound_index->len);
+				printf("[%i] %hu sound entries\n", i, handle->sound_index->len);
 			}
 		}
 
 		/*if(handle->string_index->len > 0 && false) {
 			for(uint32_t s = 0;s != handle->string_index->len;s++) {
-				s3dat_string_t* strings[8];
+				s3dat_ref_t* strings[8];
 				for(uint16_t l = 0;l != 8;l++) {
 					strings[l] = s3dat_extract_string(handle, s, l, &ex);
 					if(s3dat_catch_exception(&ex, handle)) {
-						printf("%s", strings[l]->string_data);
+						printf("%s", strings[l]->data.str->string_data);
 					}
 					if(l != 7) printf("|");
 				}
-				s3dat_delete_string_array(strings, 8);
+				s3dat_delete_ref_array(strings, 8);
 				printf("\n");
 			}
 		}
@@ -83,16 +83,16 @@ int main() {
 				snprintf(name, 100, "palette_dump-%i.data", p);
 				FILE* file = fopen(name, "wb");
 
-				s3dat_bitmap_t* bmp = s3dat_extract_palette(handle, p, &ex);
+				s3dat_ref_t* bmp = s3dat_extract_palette(handle, p, &ex);
 				if(ex != NULL) {
 					s3dat_print_exception(ex);
 					s3dat_delete_exception(handle, ex);
 					ex = NULL;
 				} else {
-					fwrite(bmp->data, bmp->width*bmp->height, 4, file);
+					fwrite(bmp->data.bmp->data, bmp->data.bmp->width*bmp->data.bmp->height, 4, file);
 				}
 
-				s3dat_delete_bitmap(bmp);
+				s3dat_delete_ref(bmp);
 				fclose(file);
 			}
 		}
@@ -100,8 +100,9 @@ int main() {
 		if(handle->animation_index->len > 0 && false) {
 			for(uint32_t e = 0;e != handle->animation_index->len;e++) {
 				printf("[%i] animation %i at %i\n", i, e, handle->animation_index->pointers[e]);
-				s3dat_animation_t* ani = s3dat_extract_animation(handle, e, &ex);
+				s3dat_ref_t* ani_ref = s3dat_extract_animation(handle, e, &ex);
 
+				s3dat_animation_t* ani = ani_ref->data.ani;
 				if(ex != NULL) {
 					s3dat_print_exception(ex);
 					s3dat_delete_exception(handle, ex);
@@ -109,27 +110,19 @@ int main() {
 				} else for(int d = 0;d != ani->len;d++) {
 					printf("[%i] x=%hi y=%hi sfile=%hu sid=%hu sframe=%hu tfile=%hu tid=%hu  tframe=%hu hfile=%hu hid=%hu flags={0x%x,0x%x}\n", i, ani->frames[d].posx, ani->frames[d].posy, ani->frames[d].settler_file, ani->frames[d].settler_id, ani->frames[d].settler_frame, ani->frames[d].torso_file, ani->frames[d].torso_id, ani->frames[d].torso_frame, ani->frames[d].shadow_file, ani->frames[d].shadow_id, ani->frames[d].flag1, ani->frames[d].flag2);
 				}
-				s3dat_delete_animation(ani);
-			}
-		}
-		if(handle->sound_index->len > 0 && false) {
-			for(uint32_t p = 0;p != handle->sound_index->len;p++) {
-				for(uint32_t sp = 0;sp != handle->sound_index->sequences[p].len;sp++) {
-					handle->seek_func(handle->io_arg, handle->sound_index->sequences[p].pointers[sp], S3DAT_SEEK_SET);
-					printf("sound %i|%i at %u: %u, %u, %u, %u\n", p, sp, handle->sound_index->sequences[p].pointers[sp], s3dat_internal_read32LE(handle, NULL), s3dat_internal_read32LE(handle, NULL), s3dat_internal_read32LE(handle, NULL), s3dat_internal_read32LE(handle, NULL));
-				}
+				s3dat_delete_ref(ani_ref);
 			}
 		}
 		if(handle->gui_index->len > 0 && false) {
 			for(uint16_t gui = 0;gui != handle->gui_index->len;gui++) {
-				s3dat_bitmap_t* bmp = s3dat_extract_gui(handle, gui, &ex);
+				s3dat_ref_t* bmp = s3dat_extract_gui(handle, gui, &ex);
 				if(s3dat_catch_exception(&ex, handle)) {
 					printf("%02hx: ", gui);
 					for(int32_t pi = 31;pi >= 0;pi--) {
-							printf("%i", (bmp->gui_type>>pi)&1);
+							printf("%i", (bmp->data.bmp->gui_type>>pi)&1);
 					}
-					printf(" (%i)\n", bmp->gui_type);
-					s3dat_delete_bitmap(bmp);
+					printf(" (%i)\n", bmp->data.bmp->gui_type);
+					s3dat_delete_ref(bmp);
 				}
 			}
 		}*/

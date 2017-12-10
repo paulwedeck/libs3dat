@@ -145,7 +145,7 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* handle, s3dat_language language, 
 }
 #endif
 
-void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, void** to, s3dat_exception_t** throws) {
+void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_ref_t** to, s3dat_exception_t** throws) {
 	if(text > handle->string_index->len || language > handle->string_index->sequences[text].len) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return;
@@ -159,15 +159,9 @@ void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t lang
 
 	s3dat_internal_short(handle, &cstr);
 
-	s3dat_packed_t* pack = s3dat_internal_alloc_func(handle, sizeof(s3dat_packed_t), throws);
-	if(*throws != NULL) {
-		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-		return;
-	}
-
-	pack->parent = handle;
-	pack->len = strlen(cstr);
-	pack->data = cstr;
+	s3dat_ref_t* pack = s3dat_new_packed(handle);
+	pack->data.pkd->len = strlen(cstr);
+	pack->data.pkd->data = cstr;
 	*to = pack;
 }
 
@@ -179,7 +173,7 @@ void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s
 	if(res->type == s3dat_string) {
 		S3DAT_CHECK_TYPE(handle, res, "s3dat_string_t", throws, __FILE__, __func__, __LINE__);
 
-		s3dat_string_t* string = res->resdata;
+		s3dat_string_t* string = res->res->data.str;
 
 		#ifdef USE_ICONV
 		uint8_t* utf8_str = NULL;

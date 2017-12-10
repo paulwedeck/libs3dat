@@ -38,8 +38,8 @@
 		return; \
 	}
 
-#define S3DAT_CHECK_TYPE(handle, res, type, throws, file, func, line) \
-	if(strncmp(res->restype->name, type, strlen(type)) != 0) { \
+#define S3DAT_CHECK_TYPE(handle, res_arg, wanted_type, throws, file, func, line) \
+	if(strncmp(res_arg->res->type->name, wanted_type, strlen(wanted_type)) != 0) { \
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_WRONG_RESTYPE, file, func, line); \
 		return; \
 	}
@@ -49,9 +49,14 @@
 typedef struct s3dat_exception_t s3dat_exception_t;
 
 typedef enum {
-	s3dat_packed = 0x10FFFFFF, // for s3dat_internal_get_restype
-	s3dat_bitmap = 0x11FFFFFF, // for s3dat_internal_get_restype
+	s3dat_pkd_ref = 0x10FFFFFF,
+	s3dat_bmp_ref = 0x11FFFFFF,
+	s3dat_snd_ref = 0x12FFFFFF,
+	s3dat_str_ref = 0x13FFFFFF,
+	s3dat_ani_ref = 0x14FFFFFF,
+} s3dat_ref_type;
 
+typedef enum {
 	s3dat_snd = 0xFFFF, // SND .dat files only
 	s3dat_settler = 0x106,
 	s3dat_torso = 0x3112,
@@ -226,6 +231,13 @@ typedef struct {
 	s3dat_frame_t* frames;
 } s3dat_animation_t;
 
+
+typedef struct {
+	s3dat_t* parent;
+	uint32_t len;
+	void* data;
+} s3dat_packed_t;
+
 typedef struct {
 	bool (*read_func) (void*, void*, size_t);
 	bool (*write_func) (void*, void*, size_t);
@@ -241,14 +253,30 @@ typedef struct {
 typedef struct {
 	char* name;
 	void (*deref) (void*);
+	void* (*alloc) (void*);
 } s3dat_restype_t;
+
+
+typedef struct {
+	s3dat_restype_t* type;
+	//uint32_t refs; - maybe latter
+	s3dat_t* src;
+
+	union {
+		s3dat_animation_t* ani;
+		s3dat_bitmap_t* bmp;
+		s3dat_string_t* str;
+		s3dat_sound_t* snd;
+		s3dat_packed_t* pkd;
+		void* raw;
+	} data;
+} s3dat_ref_t;
 
 typedef struct {
 	uint16_t first_index;
 	uint32_t second_index;
 	s3dat_content_type type;
-	void* resdata;
-	s3dat_restype_t* restype;
+	s3dat_ref_t* res;
 } s3dat_res_t;
 
 typedef struct s3dat_cache_t s3dat_cache_t;
@@ -267,12 +295,6 @@ struct s3dat_extracthandler_t {
 
 	s3dat_extracthandler_t* before;
 };
-
-typedef struct {
-	s3dat_t* parent;
-	uint32_t len;
-	void* data;
-} s3dat_packed_t;
 
 void s3dat_writefile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws);
 void s3dat_writefile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
@@ -327,17 +349,17 @@ bool s3dat_remove_last_extracthandler(s3dat_t* handle);
 
 void s3dat_extract(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
 
-s3dat_bitmap_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3dat_exception_t** throws);
 
-s3dat_bitmap_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3dat_exception_t** throws);
 
-s3dat_animation_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_exception_t** throws);
-s3dat_string_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_exception_t** throws);
-s3dat_string_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws);
 
 
 s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
@@ -401,17 +423,11 @@ void s3dat_default_free_func(void* arg, void* mem); // NULL pointers must be ign
 s3dat_t* s3dat_new_malloc();
 s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*));
 
-s3dat_animation_t* s3dat_new_animation(s3dat_t* parent);
-s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count);
-
-s3dat_bitmap_t* s3dat_new_bitmap(s3dat_t* parent);
-s3dat_bitmap_t* s3dat_new_bitmaps(s3dat_t* parent, uint32_t count);
-
-s3dat_sound_t* s3dat_new_sound(s3dat_t* parent);
-s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count);
-
-s3dat_string_t* s3dat_new_string(s3dat_t* parent);
-s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count);
+s3dat_ref_t* s3dat_new_animation(s3dat_t* parent);
+s3dat_ref_t* s3dat_new_bitmap(s3dat_t* parent);
+s3dat_ref_t* s3dat_new_string(s3dat_t* parent);
+s3dat_ref_t* s3dat_new_packed(s3dat_t* parent);
+s3dat_ref_t* s3dat_new_sound(s3dat_t* parent);
 
 s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent);
 s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count);
@@ -421,41 +437,8 @@ void s3dat_delete(s3dat_t* handle);
 
 void s3dat_delete_packed(s3dat_packed_t* package);
 
-void s3dat_delete_animation(s3dat_animation_t* ani);
-void s3dat_delete_animations(s3dat_animation_t* anis, uint32_t count);
-void s3dat_delete_animation_array(s3dat_animation_t** anis, uint32_t count);
-
-void s3dat_delete_frame(s3dat_animation_t* ani);
-void s3dat_delete_frames(s3dat_animation_t* anis, uint32_t count);
-void s3dat_delete_frame_array(s3dat_animation_t** anis, uint32_t count);
-
-
-void s3dat_delete_bitmap(s3dat_bitmap_t* bmp);
-void s3dat_delete_bitmaps(s3dat_bitmap_t* bmps, uint32_t count);
-void s3dat_delete_bitmap_array(s3dat_bitmap_t** bmps, uint32_t count);
-
-void s3dat_delete_pixdata(s3dat_bitmap_t* bmp);
-void s3dat_delete_pixdatas(s3dat_bitmap_t* bmps, uint32_t count);
-void s3dat_delete_pixdata_array(s3dat_bitmap_t** bmps, uint32_t count);
-
-
-void s3dat_delete_sound(s3dat_sound_t* sound);
-void s3dat_delete_sounds(s3dat_sound_t* sounds, uint32_t count);
-void s3dat_delete_sound_array(s3dat_sound_t** sounds, uint32_t count);
-
-void s3dat_delete_snddata(s3dat_sound_t* sound);
-void s3dat_delete_snddatas(s3dat_sound_t* sounds, uint32_t count);
-void s3dat_delete_snddata_array(s3dat_sound_t** sounds, uint32_t count);
-
-
-void s3dat_delete_string(s3dat_string_t* string);
-void s3dat_delete_strings(s3dat_string_t* strings, uint32_t count);
-void s3dat_delete_string_array(s3dat_string_t** strings, uint32_t count);
-
-void s3dat_delete_stringdata(s3dat_string_t* string);
-void s3dat_delete_stringdatas(s3dat_string_t* strings, uint32_t count);
-void s3dat_delete_stringdata_array(s3dat_string_t** strings, uint32_t count);
-
+void s3dat_delete_ref(s3dat_ref_t* ref);
+void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count);
 
 void s3dat_delete_exhandler(s3dat_extracthandler_t* exhandler);
 void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count);
