@@ -30,6 +30,7 @@ void s3dat_delete_packed(s3dat_packed_t* package) {
 s3dat_ref_t* s3dat_new_ref(s3dat_t* parent, s3dat_restype_t* type) {
 	s3dat_ref_t* ref = parent->alloc_func(parent->mem_arg, sizeof(s3dat_ref_t));
 	ref->src = parent;
+	ref->refs = 1;
 	ref->data.raw = type->alloc(parent);
 	ref->type = type;
 	return ref;
@@ -111,6 +112,14 @@ s3dat_bitmap_t* s3dat_new_bitmaps(s3dat_t* parent, uint32_t count) {
 	return bmps;
 }
 
+void s3dat_ref(s3dat_ref_t* ref) {
+	s3dat_ref_array(&ref, 1);
+}
+
+void s3dat_unref(s3dat_ref_t* ref) {
+	s3dat_unref_array(&ref, 1);
+}
+
 void s3dat_delete_ref(s3dat_ref_t* ref) {
 	s3dat_delete_ref_array(&ref, 1);
 }
@@ -135,6 +144,16 @@ void s3dat_delete_bitmap(s3dat_bitmap_t* bmp) {
 	bmp->src->free_func(bmp->src->mem_arg, bmp);
 }
 
+void s3dat_ref_array(s3dat_ref_t** refs, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) refs[i]->refs++;
+}
+
+void s3dat_unref_array(s3dat_ref_t** refs, uint32_t count) {
+	for(uint32_t i = 0;i != count;i++) {
+		refs[i]->refs--;
+		if(refs[i]->refs == 0) s3dat_delete_ref(refs[i]);
+	}
+}
 
 void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count) {
 	for(uint32_t i = 0;i != count;i++) {
@@ -148,6 +167,26 @@ void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count) {
 s3dat_t* s3dat_new_malloc() {
 	return s3dat_new_func(0, s3dat_default_alloc_func, s3dat_default_free_func);
 }
+
+s3dat_t* s3dat_new_malloc_monitor(void* arg, s3dat_ioset_t* ioset, bool open) {
+	void* ioarg = open ? ioset->open_func(arg, arg) : arg;
+	if(!ioarg) return NULL;
+
+	s3dat_monitor_t* monitor = s3dat_default_alloc_func(0, sizeof(s3dat_monitor_t));
+	monitor->io_arg = ioarg;
+	monitor->ioset = ioset;
+	monitor->close = open;
+
+	monitor->last_state = 0;
+	monitor->mem_arg = 0;
+	monitor->alloc_func = s3dat_default_alloc_func;
+	monitor->free_func = s3dat_default_free_func;
+
+	s3dat_monitor_print(monitor);
+
+	return s3dat_new_func(monitor, s3dat_monitor_alloc_func, s3dat_monitor_free_func);
+}
+
 
 s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*)) {
 	s3dat_t* handle = alloc_func(arg, sizeof(s3dat_t));
@@ -239,13 +278,40 @@ void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq) {
 }
 
 void* s3dat_default_alloc_func(void* arg, size_t size) {
-
 	return calloc(size, 1);
 }
+
+void* s3dat_monitor_alloc_func(void* arg, size_t size) {
+	s3dat_monitor_t* mon = arg;
+	mon->last_state += size;
+
+	s3dat_monitor_print(mon);
+
+	uint8_t* mem = mon->alloc_func(mon->mem_arg, size+4);
+	*((uint32_t*)mem) = size;
+
+	return mem+4;
+}
+
 
 void s3dat_default_free_func(void* arg, void* mem) {
 	if(mem != NULL) free(mem);
 }
+
+void s3dat_monitor_free_func(void* arg, void* mem) {
+	s3dat_monitor_t* mon = arg;
+	mon->last_state -= *(((uint32_t*)mem)-1);
+
+	s3dat_monitor_print(mon);
+
+	mon->free_func(mon->mem_arg, ((uint32_t*)mem)-1);
+
+	if(mon->last_state == 0) {
+		if(mon->close) mon->ioset->close_func(mon->io_arg);
+		mon->free_func(mon->mem_arg, mon);
+	}
+}
+
 
 void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws) {
 	void* new_block = handle->alloc_func(handle->mem_arg, size);
@@ -255,6 +321,14 @@ void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t*
 	}
 
 	return new_block;
+}
+
+void s3dat_monitor_print(s3dat_monitor_t* monitor) {
+	char bfr[1024];
+
+	snprintf(bfr, 1023, "%li %u\n", clock(), monitor->last_state);
+
+	monitor->ioset->write_func(monitor->io_arg, bfr, strlen(bfr));
 }
 
 s3dat_t* s3dat_fork(s3dat_t* handle) {
@@ -292,6 +366,7 @@ void s3dat_cache_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exc
 			tmp_cache->res.second_index == res->second_index &&
 			tmp_cache->res.type == res->type) {
 			res->res = tmp_cache->res.res;
+			s3dat_ref(res->res);
 			return;
 		}
 
@@ -302,7 +377,10 @@ void s3dat_cache_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exc
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	tmp_cache = s3dat_new_cache(handle);
+
 	memcpy(&tmp_cache->res, res, sizeof(s3dat_res_t));
+	s3dat_ref(res->res);
+
 	tmp_cache->next = me->arg;
 	me->arg = tmp_cache;
 }
@@ -329,7 +407,7 @@ void s3dat_delete_cache_r(s3dat_cache_t* cache) {
 	while(tmp1) {
 		tmp2 = tmp1;
 		tmp1 = tmp1->next;
-		s3dat_delete_ref(tmp2->res.res);
+		s3dat_unref(tmp2->res.res);
 		tmp2->parent->free_func(tmp2->parent->mem_arg, tmp2);
 	}
 }

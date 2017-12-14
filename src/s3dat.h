@@ -259,7 +259,7 @@ typedef struct {
 
 typedef struct {
 	s3dat_restype_t* type;
-	//uint32_t refs; - maybe latter
+	uint32_t refs;
 	s3dat_t* src;
 
 	union {
@@ -420,7 +420,23 @@ s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type);
 void* s3dat_default_alloc_func(void* arg, size_t size);
 void s3dat_default_free_func(void* arg, void* mem); // NULL pointers must be ignored
 
+void* s3dat_monitor_alloc_func(void* arg, size_t size);
+void s3dat_monitor_free_func(void* arg, void* mem); // NULL pointers must be ignored
+
+typedef struct {
+	void* io_arg;
+	bool close;
+	s3dat_ioset_t* ioset;
+
+	void* mem_arg;
+	void* (*alloc_func) (void*,size_t);
+	void (*free_func) (void*,void*);
+
+	uint32_t last_state;
+} s3dat_monitor_t;
+
 s3dat_t* s3dat_new_malloc();
+s3dat_t* s3dat_new_malloc_monitor(void* arg, s3dat_ioset_t* ioset, bool open);
 s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*));
 
 s3dat_ref_t* s3dat_new_animation(s3dat_t* parent);
@@ -437,8 +453,12 @@ void s3dat_delete(s3dat_t* handle);
 
 void s3dat_delete_packed(s3dat_packed_t* package);
 
-void s3dat_delete_ref(s3dat_ref_t* ref);
-void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count);
+
+void s3dat_ref(s3dat_ref_t* ref);
+void s3dat_unref(s3dat_ref_t* ref);
+
+void s3dat_ref_array(s3dat_ref_t** refs, uint32_t count);
+void s3dat_unref_array(s3dat_ref_t** refs, uint32_t count);
 
 void s3dat_delete_exhandler(s3dat_extracthandler_t* exhandler);
 void s3dat_delete_exhandlers(s3dat_extracthandler_t* exhandlers, uint32_t count);

@@ -8,9 +8,16 @@
 
 #include <stdlib.h>
 
+//#define MONITOR_MEMORY "alloc.log"
+
 extern void* s3dat_test_ex(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
 
 int main() {
+
+	#ifdef MONITOR_MEMORY
+	void* monitor_handle = s3dat_get_default_ioset(S3DAT_IOSET_LIBC)->open_func(MONITOR_MEMORY, true);
+	#endif
+
 	s3dat_exception_t* ex = NULL;
 
 	DIR* gfx_dir = opendir("GFX");
@@ -41,7 +48,11 @@ int main() {
 		}
 		strcpy(name+4, ent->d_name);
 
+		#ifdef MONITOR_MEMORY
+		s3dat_t* handle = s3dat_new_malloc_monitor(monitor_handle, s3dat_get_default_ioset(S3DAT_IOSET_LIBC), false);
+		#else
 		s3dat_t* handle = s3dat_new_malloc();
+		#endif
 
 		s3dat_readfile_name(handle, name, &ex);
 		s3dat_add_utf8_encoding(handle);
@@ -72,7 +83,7 @@ int main() {
 					}
 					if(l != 7) printf("|");
 				}
-				s3dat_delete_ref_array(strings, 8);
+				s3dat_unref_array(strings, 8);
 				printf("\n");
 			}
 		}
@@ -92,7 +103,7 @@ int main() {
 					fwrite(bmp->data.bmp->data, bmp->data.bmp->width*bmp->data.bmp->height, 4, file);
 				}
 
-				s3dat_delete_ref(bmp);
+				s3dat_unref(bmp);
 				fclose(file);
 			}
 		}
@@ -110,7 +121,7 @@ int main() {
 				} else for(int d = 0;d != ani->len;d++) {
 					printf("[%i] x=%hi y=%hi sfile=%hu sid=%hu sframe=%hu tfile=%hu tid=%hu  tframe=%hu hfile=%hu hid=%hu flags={0x%x,0x%x}\n", i, ani->frames[d].posx, ani->frames[d].posy, ani->frames[d].settler_file, ani->frames[d].settler_id, ani->frames[d].settler_frame, ani->frames[d].torso_file, ani->frames[d].torso_id, ani->frames[d].torso_frame, ani->frames[d].shadow_file, ani->frames[d].shadow_id, ani->frames[d].flag1, ani->frames[d].flag2);
 				}
-				s3dat_delete_ref(ani_ref);
+				s3dat_unref(ani_ref);
 			}
 		}
 		if(handle->gui_index->len > 0 && false) {
@@ -122,7 +133,7 @@ int main() {
 							printf("%i", (bmp->data.bmp->gui_type>>pi)&1);
 					}
 					printf(" (%i)\n", bmp->data.bmp->gui_type);
-					s3dat_delete_ref(bmp);
+					s3dat_unref(bmp);
 				}
 			}
 		}*/
@@ -133,5 +144,9 @@ int main() {
 	}
 	if(gfx_dir) closedir(gfx_dir);
 	if(snd_dir) closedir(snd_dir);
+
+	#ifdef MONITOR_MEMORY
+	s3dat_get_default_ioset(S3DAT_IOSET_LIBC)->close_func(monitor_handle);
+	#endif
 }
 

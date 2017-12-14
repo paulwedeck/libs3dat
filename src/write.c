@@ -103,8 +103,6 @@ void s3dat_write_packed(s3dat_t* handle, s3dat_res_t* res, uint32_t* pos, uint32
 
 	S3DAT_CHECK_TYPE(handle, res, "s3dat_packed_t", throws, __FILE__, __func__, __LINE__);
 
-	s3dat_packed_t* packed = res->res->data.raw;
-
 	if(*pos % 2 == 1) {
 		s3dat_internal_write8(handle, 0, throws);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
@@ -114,14 +112,13 @@ void s3dat_write_packed(s3dat_t* handle, s3dat_res_t* res, uint32_t* pos, uint32
 
 	*written_to = *pos;
 
-	if(!handle->write_func(handle->io_arg, packed->data, packed->len)) {
+	if(!handle->write_func(handle->io_arg, res->res->data.pkd->data, res->res->data.pkd->len)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 	}
 
-	*pos += packed->len;
+	*pos += res->res->data.pkd->len;
 
-	handle->free_func(handle->mem_arg, packed->data);
-	handle->free_func(handle->mem_arg, packed);
+	s3dat_unref(res->res);
 }
 
 void s3dat_internal_export_seq_index(s3dat_t* handle, s3dat_seq_index_t* index, uint32_t* seq_pos, uint32_t pos, uint32_t* append_pos, s3dat_exception_t** throws) {

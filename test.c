@@ -39,7 +39,7 @@ int open_landscape_file() {
 	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract first bitmap\n");
 
 	end:
-	if(bmp) s3dat_delete_ref(bmp);
+	if(bmp) s3dat_unref(bmp);
 	if(datfile != NULL) s3dat_delete(datfile);
 
 	return return_value;
@@ -62,7 +62,7 @@ int try_blending() {
 
 	if(bmp->data.bmp->data[0].red != 0 || bmp->data.bmp->data[0].green != 0xCE || bmp->data.bmp->data[0].blue != 0xEE || bmp->data.bmp->data[0].alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
 
-	s3dat_delete_ref(bmp);
+	s3dat_unref(bmp);
 	bmp = NULL;
 
 	s3dat_add_landscape_blending(datfile);
@@ -73,7 +73,7 @@ int try_blending() {
 	if(bmp->data.bmp->data[0].alpha != 0) CRASH("landscape blending failed\n");
 
 	end:
-	if(bmp) s3dat_delete_ref(bmp);
+	if(bmp) s3dat_unref(bmp);
 	if(datfile != NULL) s3dat_delete(datfile);
 
 	return return_value;

@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <time.h>
 
 #ifndef _WIN32
 #include <endian.h>
@@ -134,6 +135,8 @@ void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, 
 
 void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws);
 
+void s3dat_delete_ref(s3dat_ref_t* ref);
+void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count);
 
 s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent);
 s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent);
@@ -146,6 +149,7 @@ void s3dat_delete_bitmap(s3dat_bitmap_t* bmp);
 void s3dat_delete_sound(s3dat_sound_t* sound);
 void s3dat_delete_string(s3dat_string_t* string);
 
+void s3dat_monitor_print(s3dat_monitor_t* monitor);
 
 s3dat_cache_t* s3dat_new_cache(s3dat_t* handle);
 void s3dat_delete_cache_r(s3dat_cache_t* cache);

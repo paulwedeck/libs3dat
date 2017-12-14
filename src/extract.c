@@ -120,7 +120,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		}
 
 		if(*throws != NULL) {
-			s3dat_delete_ref(sound_ref);
+			s3dat_unref(sound_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			new_ref = sound_ref;
@@ -150,7 +150,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			}
 		}
 		if(*throws != NULL) {
-			s3dat_delete_ref(animation_ref);
+			s3dat_unref(animation_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			new_ref = animation_ref;
@@ -173,7 +173,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			}
 		}
 		if(*throws != NULL) {
-			s3dat_delete_ref(palette_ref);
+			s3dat_unref(palette_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			new_ref = palette_ref;
@@ -188,7 +188,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		string->string_data = package->data;
 		package->data = NULL;
 		if(*throws != NULL) {
-			s3dat_delete_ref(string_ref);
+			s3dat_unref(string_ref);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
 			new_ref = string_ref;
@@ -301,7 +301,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_INDEXTYPE, __FILE__, __func__, __LINE__);
 	}
 
-	s3dat_delete_ref(res->res);
+	s3dat_unref(res->res);
 	res->res = new_ref;
 }
 
