@@ -255,7 +255,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		uint16_t x = 0;
 		uint16_t y = 0;
 
-		s3dat_color_t trans_color = {0, 0, 0, res->type == s3dat_shadow ? 0xFF : 0};
+		s3dat_color_t trans_color = {0, 0, 0, 0};
 
 		s3dat_color_t* color_data = s3dat_internal_alloc_func(handle, width*height*sizeof(s3dat_color_t), throws);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);

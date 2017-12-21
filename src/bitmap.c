@@ -257,9 +257,8 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 }
 
 s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type) {
-	s3dat_color_t color = {0, 0, 0, 0};
+	s3dat_color_t color = {0, 0, 0, 0xFF};
 	if(type == s3dat_alpha1) return color;
-	color.alpha = 0xFF;
 
 	
 	double d58 = 255.0/31.0;
