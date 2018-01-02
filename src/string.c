@@ -6,7 +6,7 @@
 uint8_t* s3dat_internal_read_cstr(s3dat_t* handle, s3dat_exception_t** throws) {
 	#define STRING_BUFFER 1024
 
-	uint8_t* bfr = s3dat_internal_alloc_func(handle, STRING_BUFFER, throws);
+	uint8_t* bfr = s3dat_alloc_func(handle, STRING_BUFFER, throws);
 	if(*throws != NULL) {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return NULL;
@@ -23,7 +23,7 @@ uint8_t* s3dat_internal_read_cstr(s3dat_t* handle, s3dat_exception_t** throws) {
 		}
 
 		if(pos+1 == bfr_size) {
-			uint8_t* bfr2 = s3dat_internal_alloc_func(handle, bfr_size+STRING_BUFFER, throws);
+			uint8_t* bfr2 = s3dat_alloc_func(handle, bfr_size+STRING_BUFFER, throws);
 			if(*throws != NULL) {
 				s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 				handle->free_func(handle->mem_arg, bfr);
@@ -70,7 +70,7 @@ void s3dat_internal_iso8859_to_utf8(s3dat_t* handle, uint8_t** str, uint32_t len
 		}
 	}
 
-	uint8_t* bfr2 = s3dat_internal_alloc_func(handle, real_len, throws);
+	uint8_t* bfr2 = s3dat_alloc_func(handle, real_len, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	uint32_t bfr2_ptr = 0;
@@ -128,7 +128,7 @@ void s3dat_internal_iconv_dat_to_utf8(s3dat_t* handle, s3dat_language language, 
 
 	size_t inlen = strlen(cstr);
 	size_t outlen = inlen*4+4;
-	uint8_t* utf8s = s3dat_internal_alloc_func(handle, outlen, throws);
+	uint8_t* utf8s = s3dat_alloc_func(handle, outlen, throws);
 	if(*throws != NULL) {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
@@ -195,3 +195,12 @@ void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s
 	}
 }
 
+bool s3dat_utf8(s3dat_ref_t* str) {
+	if(!s3dat_is_string(str))return false;
+	return !str->data.str->original_encoding;
+}
+
+uint8_t* s3dat_strdata(s3dat_ref_t* str) {
+	if(!s3dat_is_string(str)) return NULL;
+	return str->data.str->string_data;
+}

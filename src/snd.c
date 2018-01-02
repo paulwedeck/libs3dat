@@ -31,7 +31,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint16_t len = s3dat_internal_read16LE(handle, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
-	uint32_t* pointers = s3dat_internal_alloc_func(handle, len*4, throws);
+	uint32_t* pointers = s3dat_alloc_func(handle, len*4, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	for(uint16_t i = 0;i != len;i++) {
@@ -44,7 +44,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 		}
 	}
 
-	s3dat_index32_t* indices_data = s3dat_internal_alloc_func(handle, len*sizeof(s3dat_index32_t), throws);
+	s3dat_index32_t* indices_data = s3dat_alloc_func(handle, len*sizeof(s3dat_index32_t), throws);
 	if(*throws != NULL) {
 		handle->free_func(handle->mem_arg, pointers);
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
@@ -71,7 +71,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 
 	handle->sound_index->type = s3dat_snd;
 	if(alive_len != len) {
-		s3dat_index32_t* alive_data = s3dat_internal_alloc_func(handle, alive_len*sizeof(s3dat_index32_t), throws);
+		s3dat_index32_t* alive_data = s3dat_alloc_func(handle, alive_len*sizeof(s3dat_index32_t), throws);
 		if(*throws != NULL) {
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		} else {
@@ -93,7 +93,7 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 	uint32_t len = s3dat_internal_read32LE(handle, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
-	uint32_t* pointers = s3dat_internal_alloc_func(handle, len*4, throws);
+	uint32_t* pointers = s3dat_alloc_func(handle, len*4, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	for(uint32_t i = 0;i != len;i++) {
@@ -124,5 +124,19 @@ void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* pac
 	for(uint32_t i = 0;i != sound->len;i++) {
 		ptr16[i] = le16(sound->data[i]);
 	}
+}
+
+uint32_t s3dat_freq(s3dat_ref_t* snd) {
+	if(!s3dat_is_sound(snd)) return 0;
+	return snd->data.snd->freq;
+}
+
+uint16_t s3dat_samples(s3dat_ref_t* snd) {
+	if(!s3dat_is_sound(snd)) return 0;
+	return snd->data.snd->len;
+}
+uint16_t* s3dat_snddata(s3dat_ref_t* snd) {
+	if(!s3dat_is_sound(snd)) return NULL;
+	return snd->data.snd->data;
 }
 

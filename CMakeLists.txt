@@ -65,7 +65,7 @@ if(glfw3_FOUND AND OpenGL_FOUND)
 endif()
 
 install(TARGETS s3dat DESTINATION lib)
-install(FILES src/s3dat.h DESTINATION include/s3dat)
+install(FILES src/s3dat_ext.h src/s3dat.h DESTINATION include/s3dat)
 
 add_executable(testme test.c)
 target_link_libraries(testme s3dat)

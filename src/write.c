@@ -283,7 +283,7 @@ void s3dat_pack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exce
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
 
 
-	s3dat_packed_t* package = s3dat_internal_alloc_func(handle, sizeof(s3dat_packed_t), throws);
+	s3dat_packed_t* package = s3dat_alloc_func(handle, sizeof(s3dat_packed_t), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	package->parent = handle;
@@ -336,7 +336,7 @@ void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t
 }
 
 void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_packed_t* packed, s3dat_exception_t** throws) {
-	packed->data = s3dat_internal_alloc_func(handle, animation->len*sizeof(s3dat_frame_t), throws);
+	packed->data = s3dat_alloc_func(handle, animation->len*sizeof(s3dat_frame_t), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	packed->len = animation->len*sizeof(s3dat_frame_t);
@@ -359,7 +359,7 @@ void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_p
 }
 
 void s3dat_pack_string(s3dat_t* handle, s3dat_string_t* string, s3dat_packed_t* packed, s3dat_exception_t** throws) {
-	packed->data = s3dat_internal_alloc_func(handle, strlen(string->string_data), throws);
+	packed->data = s3dat_alloc_func(handle, strlen(string->string_data), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	packed->len = strlen(string->string_data);

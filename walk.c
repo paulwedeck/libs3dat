@@ -1,4 +1,4 @@
-#include <s3dat.h>
+#include <s3dat_ext.h>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -23,7 +23,7 @@ typedef struct {
 
 void delete_texture(gltex_t* tex) {
 	glDeleteTextures(1, &tex->tex_id);
-	tex->parent->free_func(tex->parent->mem_arg, tex);
+	s3dat_free_func(tex->parent, tex);
 }
 
 s3dat_restype_t gl_bitmap_type = {"gltex", (void (*) (void*)) delete_texture, NULL};
@@ -36,7 +36,8 @@ void bitmap_to_gl_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 
 	S3DAT_CHECK_TYPE(handle, res, "s3dat_bitmap_t", throws, __FILE__, __func__, __LINE__);
 
-	s3dat_bitmap_t* bitmap = res->res->data.bmp;
+	gltex_t* texhandle = s3dat_alloc_func(handle, sizeof(gltex_t), throws);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	int tex_id;
 	glGenTextures(1, &tex_id);
@@ -45,18 +46,17 @@ void bitmap_to_gl_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap->width, bitmap->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s3dat_width(res->res), s3dat_height(res->res), 0, GL_RGBA, GL_UNSIGNED_BYTE, s3dat_bmpdata(res->res));
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	gltex_t* texhandle = handle->alloc_func(handle->mem_arg, sizeof(gltex_t));
 	texhandle->parent = handle;
 	texhandle->tex_id = tex_id;
-	texhandle->width = bitmap->width;
-	texhandle->height = bitmap->height;
-	texhandle->xoff = bitmap->xoff;
-	texhandle->yoff = bitmap->yoff;
+	texhandle->width = s3dat_width(res->res);
+	texhandle->height = s3dat_height(res->res);
+	texhandle->xoff = *s3dat_xoff(res->res);
+	texhandle->yoff = *s3dat_yoff(res->res);
 
-	res->res->type->deref(bitmap);
+	res->res->type->deref(res->res->data.raw);
 
 	res->res->data.raw = texhandle;
 	res->res->type = &gl_bitmap_type;
@@ -95,10 +95,10 @@ int main() {
 	s3dat_t* dat10 = s3dat_new_malloc();
 
 	s3dat_readfile_name(dat00, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	s3dat_catch_exception(&ex, dat00);
+	s3dat_catch_exception(&ex);
 
 	s3dat_readfile_name(dat10, "GFX/Siedler3_10.f8007e01f.dat", &ex);
-	s3dat_catch_exception(&ex, dat10);
+	s3dat_catch_exception(&ex);
 
 	glfwInit();
 
@@ -125,7 +125,7 @@ int main() {
 	s3dat_add_cache(dat10);
 
 	s3dat_ref_t* grass_tex = s3dat_extract_landscape(dat00, 0, &ex);
-	s3dat_catch_exception(&ex, dat00);
+	s3dat_catch_exception(&ex);
 
 	s3dat_ref_t* settler_texs[72];
 	s3dat_ref_t* torso_texs[72];
@@ -161,15 +161,15 @@ int main() {
 			for(int i = 0;i != 72;i++) {
 				if(settler_texs[i]) s3dat_unref(settler_texs[i]);
 				settler_texs[i] = s3dat_extract_settler(dat10, ex_s, i, &ex);
-				s3dat_catch_exception(&ex, dat10);
+				s3dat_catch_exception(&ex);
 
 				if(torso_texs[i]) s3dat_unref(torso_texs[i]);
 				torso_texs[i] = s3dat_extract_torso(dat10, ex_s, i, &ex);
-				s3dat_catch_exception(&ex, dat10);
+				s3dat_catch_exception(&ex);
 
 				if(shadow_texs[i]) s3dat_unref(shadow_texs[i]);
 				shadow_texs[i] = s3dat_extract_shadow(dat10, ex_s, 71-i, &ex);
-				s3dat_catch_exception(&ex, dat10);
+				s3dat_catch_exception(&ex);
 			}
 
 			last_s = ex_s;

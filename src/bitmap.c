@@ -17,7 +17,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	if(res->type == s3dat_landscape) header_size = 6;
 
 
-	header = s3dat_internal_alloc_func(handle, header_size, throws);
+	header = s3dat_alloc_func(handle, header_size, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	if(!handle->read_func(handle->io_arg, header, header_size)) {
@@ -57,7 +57,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	uint16_t height = le16(img_meta[1]);
 
 	uint32_t bfr_size = pixel_size*width*height+header_size;
-	void* bfr = s3dat_internal_alloc_func(handle, bfr_size, throws);
+	void* bfr = s3dat_alloc_func(handle, bfr_size, throws);
 
 	if(*throws != NULL) {
 		handle->free_func(handle->mem_arg, header);
@@ -89,7 +89,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 			*((uint16_t*)data_bfr) = le16(meta);
 			if(handle->read_func(handle->io_arg, data_bfr+2, data_len-2)) {
 				if(read_size+data_len > bfr_size) {
-					void* bfr2 = s3dat_internal_alloc_func(handle, bfr_size*2, throws);
+					void* bfr2 = s3dat_alloc_func(handle, bfr_size*2, throws);
 					if(*throws != NULL) {
 						end = true;
 						s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
@@ -191,7 +191,7 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 	}
 
 	packed->len = header_size+(metas*2)+(datas*pixel_size);
-	packed->data = s3dat_internal_alloc_func(handle, header_size+(metas*2)+(datas*pixel_size), throws);
+	packed->data = s3dat_alloc_func(handle, header_size+(metas*2)+(datas*pixel_size), throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	uint16_t* size_meta;
@@ -340,5 +340,41 @@ s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uin
 	}
 
 	return s3dat_internal_ex(&color, handle->green_6b ? s3dat_rgb565 : s3dat_rgb555);
+}
+
+uint16_t s3dat_width(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return 0;
+	return bmp->data.bmp->width;
+}
+
+uint16_t s3dat_height(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return 0;
+	return bmp->data.bmp->height;
+}
+
+
+int16_t* s3dat_xoff(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return NULL;
+	return &bmp->data.bmp->xoff;
+}
+
+int16_t* s3dat_yoff(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return NULL;
+	return &bmp->data.bmp->yoff;
+}
+
+uint16_t* s3dat_landscape_meta(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return NULL;
+	return &bmp->data.bmp->landscape_type;
+}
+
+uint32_t* s3dat_gui_meta(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return NULL;
+	return &bmp->data.bmp->gui_type;
+}
+
+s3dat_color_t* s3dat_bmpdata(s3dat_ref_t* bmp) {
+	if(!s3dat_is_bitmap(bmp)) return NULL;
+	return bmp->data.bmp->data;
 }
 

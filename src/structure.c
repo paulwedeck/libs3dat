@@ -36,8 +36,13 @@ s3dat_ref_t* s3dat_new_ref(s3dat_t* parent, s3dat_restype_t* type) {
 	return ref;
 }
 
-s3dat_ref_t* s3dat_new_string(s3dat_t* parent) {
-	return s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_str_ref));
+s3dat_ref_t* s3dat_new_string(s3dat_t* parent, uint32_t strlen) {
+	s3dat_ref_t* ref = s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_str_ref));
+	ref->data.str->src = parent;
+	ref->data.str->original_encoding = true;
+	ref->data.str->language = s3dat_unknown_language;
+	ref->data.str->string_data = parent->alloc_func(parent->mem_arg, strlen);
+	return ref;
 }
 
 s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent) {
@@ -46,8 +51,13 @@ s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent) {
 	return string;
 }
 
-s3dat_ref_t* s3dat_new_sound(s3dat_t* parent) {
-	return s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_snd_ref));
+s3dat_ref_t* s3dat_new_sound(s3dat_t* parent, uint32_t freq, uint16_t len) {
+	s3dat_ref_t* ref = s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_snd_ref));
+	ref->data.snd->src = parent;
+	ref->data.snd->freq = freq;
+	ref->data.snd->len = len;
+	ref->data.snd->data = parent->alloc_func(parent->mem_arg, 2*len);
+	return ref;
 }
 
 s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent) {
@@ -56,8 +66,12 @@ s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent) {
 	return sound;
 }
 
-s3dat_ref_t* s3dat_new_animation(s3dat_t* parent) {
-	return s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_ani_ref));
+s3dat_ref_t* s3dat_new_animation(s3dat_t* parent, uint32_t frames) {
+	s3dat_ref_t* ref = s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_ani_ref));
+	ref->data.ani->src = parent;
+	ref->data.ani->len = frames;
+	ref->data.ani->frames = parent->alloc_func(parent->mem_arg, frames*sizeof(s3dat_frame_t));
+	return ref;
 }
 
 s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent) {
@@ -66,8 +80,14 @@ s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent) {
 	return animation;
 }
 
-s3dat_ref_t* s3dat_new_bitmap(s3dat_t* parent) {
-	return s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_bmp_ref));
+s3dat_ref_t* s3dat_new_bitmap(s3dat_t* parent, uint16_t width, uint16_t height) {
+	s3dat_ref_t* ref = s3dat_new_ref(parent, s3dat_internal_get_restype(s3dat_bmp_ref));
+	ref->data.bmp->src = parent;
+	ref->data.bmp->width = width;
+	ref->data.bmp->height = height;
+	ref->data.bmp->type = s3dat_unknown_color;
+	ref->data.bmp->data = parent->alloc_func(parent->mem_arg, width*height*sizeof(s3dat_color_t));
+	return ref;
 }
 
 s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent) {
@@ -84,32 +104,6 @@ s3dat_packed_t* s3dat_new_raw_packed(s3dat_t* parent) {
 	s3dat_packed_t* packed = parent->alloc_func(parent->mem_arg, sizeof(s3dat_packed_t));
 	packed->parent = parent;
 	return packed;
-}
-
-
-
-s3dat_string_t* s3dat_new_strings(s3dat_t* parent, uint32_t count) {
-	s3dat_string_t* strings = parent->alloc_func(parent->mem_arg, sizeof(s3dat_string_t)*count);
-	for(uint32_t i = 0;i != count;i++) strings[i].src = parent;
-	return strings;
-}
-
-s3dat_sound_t* s3dat_new_sounds(s3dat_t* parent, uint32_t count) {
-	s3dat_sound_t* sounds = parent->alloc_func(parent->mem_arg, sizeof(s3dat_sound_t)*count);
-	for(uint32_t i = 0;i != count;i++) sounds[i].src = parent;
-	return sounds;
-}
-
-s3dat_animation_t* s3dat_new_animations(s3dat_t* parent, uint32_t count) {
-	s3dat_animation_t* anis = parent->alloc_func(parent->mem_arg, sizeof(s3dat_animation_t)*count);
-	for(uint32_t i = 0;i != count;i++) anis[i].src = parent;
-	return anis;
-}
-
-s3dat_bitmap_t* s3dat_new_bitmaps(s3dat_t* parent, uint32_t count) {
-	s3dat_bitmap_t* bmps = parent->alloc_func(parent->mem_arg, sizeof(s3dat_bitmap_t)*count);
-	for(uint32_t i = 0;i != count;i++) bmps[i].src = parent;
-	return bmps;
 }
 
 void s3dat_ref(s3dat_ref_t* ref) {
@@ -313,7 +307,7 @@ void s3dat_monitor_free_func(void* arg, void* mem) {
 }
 
 
-void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws) {
+void* s3dat_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws) {
 	void* new_block = handle->alloc_func(handle->mem_arg, size);
 
 	if(new_block == NULL) {
@@ -321,6 +315,10 @@ void* s3dat_internal_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t*
 	}
 
 	return new_block;
+}
+
+void s3dat_free_func(s3dat_t* handle, void* data) {
+	handle->free_func(handle->mem_arg, data);
 }
 
 void s3dat_monitor_print(s3dat_monitor_t* monitor) {
@@ -412,3 +410,119 @@ void s3dat_delete_cache_r(s3dat_cache_t* cache) {
 	}
 }
 
+uint16_t s3dat_indexlen(s3dat_t* handle, s3dat_content_type type) {
+	switch(type) {
+		case s3dat_snd:
+		return handle->sound_index->len;
+
+		case s3dat_settler:
+		return handle->settler_index->len;
+
+		case s3dat_torso:
+		return handle->torso_index->len;
+
+		case s3dat_shadow:
+		return handle->shadow_index->len;
+
+		case s3dat_landscape:
+		return handle->landscape_index->len;
+
+		case s3dat_gui:
+		return handle->gui_index->len;
+
+		case s3dat_animation:
+		return handle->animation_index->len;
+
+		case s3dat_palette:
+		return handle->palette_index->len;
+
+		case s3dat_string:
+		return handle->string_index->len;
+
+		default:
+		return 0;
+	}
+}
+
+uint32_t s3dat_seqlen(s3dat_t* handle, uint16_t seq, s3dat_content_type type) {
+	if(s3dat_indexlen(handle, type) <= seq) return 0;
+
+	switch(type) {
+		case s3dat_snd:
+		return handle->sound_index->sequences[seq].len;
+
+		case s3dat_settler:
+		return handle->settler_index->sequences[seq].len;
+
+		case s3dat_torso:
+		return handle->torso_index->sequences[seq].len;
+
+		case s3dat_shadow:
+		return handle->shadow_index->sequences[seq].len;
+
+		case s3dat_string:
+		return handle->string_index->sequences[seq].len;
+
+		default:
+		return 0;
+	}
+}
+
+uint32_t s3dat_indexaddr(s3dat_t* handle, uint16_t index, s3dat_content_type type) {
+	if(s3dat_indexlen(handle, type) <= index) return 0;
+
+	switch(type) {
+		case s3dat_landscape:
+		return handle->landscape_index->pointers[index];
+
+		case s3dat_gui:
+		return handle->gui_index->pointers[index];
+
+		case s3dat_animation:
+		return handle->animation_index->pointers[index];
+
+		case s3dat_palette:
+		return handle->palette_index->pointers[index];
+
+		default:
+		return 0;
+	}
+}
+
+uint32_t s3dat_seqaddr(s3dat_t* handle, uint16_t seq, uint32_t index, s3dat_content_type type) {
+	if(s3dat_indexlen(handle, type) <= seq || s3dat_seqlen(handle, seq, type) <= index) return 0;
+
+	switch(type) {
+		case s3dat_snd:
+		return handle->sound_index->sequences[seq].pointers[index];
+
+		case s3dat_settler:
+		return handle->settler_index->sequences[seq].pointers[index];
+
+		case s3dat_torso:
+		return handle->torso_index->sequences[seq].pointers[index];
+
+		case s3dat_shadow:
+		return handle->shadow_index->sequences[seq].pointers[index];
+
+		case s3dat_string:
+		return handle->string_index->sequences[seq].pointers[index];
+
+		default:
+		return 0;
+	}
+}
+
+uint32_t s3dat_palette_width(s3dat_t* handle) {
+	return handle->palette_line_length;
+}
+
+uint32_t s3dat_anilen(s3dat_ref_t* ani) {
+	if(!s3dat_is_animation(ani)) return 0;
+	return ani->data.ani->len;
+}
+
+s3dat_frame_t* s3dat_frame(s3dat_ref_t* ani, uint32_t frame) {
+	if(s3dat_anilen(ani) <= frame) return NULL;
+	return &ani->data.ani->frames[frame];
+}

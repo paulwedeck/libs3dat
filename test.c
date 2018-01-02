@@ -33,10 +33,10 @@ int open_landscape_file() {
 	datfile = s3dat_new_malloc();
 
 	s3dat_readfile_name(datfile, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
+	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
 
 	bmp = s3dat_extract_landscape(datfile, 0, &ex);
-	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract first bitmap\n");
+	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract first bitmap\n");
 
 	end:
 	if(bmp) s3dat_unref(bmp);
@@ -55,12 +55,12 @@ int try_blending() {
 	datfile = s3dat_new_malloc();
 
 	s3dat_readfile_name(datfile, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
+	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
 
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
-	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract bitmap 0x1B\n");
+	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B\n");
 
-	if(bmp->data.bmp->data[0].red != 0 || bmp->data.bmp->data[0].green != 0xCE || bmp->data.bmp->data[0].blue != 0xEE || bmp->data.bmp->data[0].alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
+	if(s3dat_bmpdata(bmp)->red != 0 || s3dat_bmpdata(bmp)->green != 0xCE || s3dat_bmpdata(bmp)->blue != 0xEE || s3dat_bmpdata(bmp)->alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
 
 	s3dat_unref(bmp);
 	bmp = NULL;
@@ -68,9 +68,9 @@ int try_blending() {
 	s3dat_add_landscape_blending(datfile);
 
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
-	if(!s3dat_catch_exception(&ex, datfile)) CRASH("couldn`t extract bitmap 0x1B two times\n");
+	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B two times\n");
 
-	if(bmp->data.bmp->data[0].alpha != 0) CRASH("landscape blending failed\n");
+	if(s3dat_bmpdata(bmp)->alpha != 0) CRASH("landscape blending failed\n");
 
 	end:
 	if(bmp) s3dat_unref(bmp);
