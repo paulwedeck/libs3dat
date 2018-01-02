@@ -21,7 +21,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	if(!handle->read_func(handle->io_arg, header, header_size)) {
-		handle->free_func(handle->mem_arg, header);
+		s3dat_free_func(handle, header);
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -60,13 +60,13 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	void* bfr = s3dat_alloc_func(handle, bfr_size, throws);
 
 	if(*throws != NULL) {
-		handle->free_func(handle->mem_arg, header);
+		s3dat_free_func(handle, header);
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
 
 	memcpy(bfr, header, header_size);
-	handle->free_func(handle->mem_arg, header);
+	s3dat_free_func(handle, header);
 
 	uint32_t read_size = header_size;
 
@@ -95,7 +95,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 						s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 					} else {
 						memcpy(bfr2, bfr, read_size);
-						handle->free_func(handle->mem_arg, bfr);
+						s3dat_free_func(handle, bfr);
 						bfr = bfr2;
 						bfr_size *= 2;
 					}
@@ -128,28 +128,28 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 
 	if(*throws != NULL) {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-		handle->free_func(handle->mem_arg, bfr);
+		s3dat_free_func(handle, bfr);
 		return;
 	}
 
 	if(bfr_size != read_size) {
-		void* bfr2 = handle->alloc_func(handle->mem_arg, read_size);
+		void* bfr2 = s3dat_alloc_func(handle, read_size, NULL);
 		if(bfr2) {
 			memcpy(bfr2, bfr, read_size);
-			handle->free_func(handle->mem_arg, bfr);
+			s3dat_free_func(handle, bfr);
 			bfr = bfr2;
 		}
 	}
 
-	s3dat_ref_t* pack = s3dat_new_packed(handle);
-	if(pack) {
+	s3dat_ref_t* pack = s3dat_new_packed(handle, throws);
+	if(*throws != NULL) {
+		s3dat_free_func(handle, bfr);
+		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
+	} else {
 		pack->data.pkd->parent = handle;
 		pack->data.pkd->data = bfr;
 		pack->data.pkd->len = read_size;
 		res->res = pack;
-	} else {
-		handle->free_func(handle->mem_arg, bfr);
-		S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws);
 	}
 }
 

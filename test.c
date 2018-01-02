@@ -65,7 +65,8 @@ int try_blending() {
 	s3dat_unref(bmp);
 	bmp = NULL;
 
-	s3dat_add_landscape_blending(datfile);
+	s3dat_add_landscape_blending(datfile, &ex);
+	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t add landscape blending\n");
 
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
 	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B two times\n");

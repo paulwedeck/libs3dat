@@ -53,7 +53,6 @@ int main() {
 		#endif
 
 		s3dat_readfile_name(handle, name, &ex);
-		s3dat_add_utf8_encoding(handle);
 
 		printf("[%i] new file %s\n", i, name);
 		if(s3dat_catch_exception(&ex)) {
@@ -70,6 +69,9 @@ int main() {
 				printf("[%i] %hu sound entries\n", i, s3dat_indexlen(handle, s3dat_snd));
 			}
 		}
+
+		s3dat_add_utf8_encoding(handle, &ex);
+		s3dat_catch_exception(&ex);
 
 		/*uint16_t stringindex_len = s3dat_indexlen(handle, s3dat_string);
 		if(stringindex_len > 0 && false) {

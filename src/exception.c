@@ -13,7 +13,7 @@ void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* fi
 		if((*throws)->stack != &s3dat_internal_out_of_memory_stack) now = &s3dat_internal_out_of_memory_stack;
 			else return; // only one stack member is supported
 	} else {
-		now = handle->alloc_func(handle->mem_arg, sizeof(s3dat_internal_stack_t));
+		now = s3dat_alloc_func(handle, sizeof(s3dat_internal_stack_t), NULL);
 		if(now == NULL) return;
 	}
 
@@ -27,7 +27,7 @@ void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* fi
 void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, uint32_t value) {
 	if((*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) return;
 
-	s3dat_internal_attribute_t* attr = handle->alloc_func(handle->mem_arg, sizeof(s3dat_internal_attribute_t));
+	s3dat_internal_attribute_t* attr = s3dat_alloc_func(handle, sizeof(s3dat_internal_attribute_t), NULL);
 	if(attr == NULL) return;
 
 	attr->name = name;
@@ -40,7 +40,7 @@ void s3dat_throw(s3dat_t* handle, s3dat_exception_t** throws, uint32_t type, uin
 	if(type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {
 		*throws = &s3dat_internal_out_of_memory;
 	} else {
-		*throws = handle->alloc_func(handle->mem_arg, sizeof(s3dat_exception_t));
+		*throws = s3dat_alloc_func(handle, sizeof(s3dat_exception_t), NULL);
 		if(*throws == NULL) {
 			s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0); // out_of_memory has priority
 		}
@@ -60,7 +60,7 @@ void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex) {
 	while(stack1 != NULL) {
 		s3dat_internal_stack_t* stack2 = stack1;
 		stack1 = stack1->down;
-		handle->free_func(handle->mem_arg, stack2);
+		s3dat_free_func(handle, stack2);
 	}
 
 	s3dat_internal_attribute_t* attr1;
@@ -70,10 +70,10 @@ void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex) {
 	while(attr1 != NULL) {
 		s3dat_internal_attribute_t* attr2 = attr1;
 		attr1 = attr1->next;
-		handle->free_func(handle->mem_arg, attr2);
+		s3dat_free_func(handle, attr2);
 	}
 
-	handle->free_func(handle->mem_arg, ex);
+	s3dat_free_func(handle, ex);
 }
 
 typedef struct {

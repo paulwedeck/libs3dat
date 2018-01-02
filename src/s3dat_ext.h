@@ -161,10 +161,10 @@ void s3dat_add_extracthandler(s3dat_t* handle, s3dat_extracthandler_t* exhandler
 void s3dat_extract(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
 s3dat_ref_t* s3dat_extract_arg(s3dat_t* handle, uint16_t first_index, uint32_t second_index, s3dat_content_type type, s3dat_exception_t** throws);
 
-s3dat_ref_t* s3dat_new_animation(s3dat_t* parent, uint32_t frames);
-s3dat_ref_t* s3dat_new_bitmap(s3dat_t* parent, uint16_t width, uint16_t height);
-s3dat_ref_t* s3dat_new_string(s3dat_t* parent, uint32_t strlen);
-s3dat_ref_t* s3dat_new_packed(s3dat_t* parent);
-s3dat_ref_t* s3dat_new_sound(s3dat_t* parent, uint32_t freq, uint16_t len);
+s3dat_ref_t* s3dat_new_animation(s3dat_t* parent, uint32_t frames, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_new_bitmap(s3dat_t* parent, uint16_t width, uint16_t height, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_new_string(s3dat_t* parent, uint32_t strlen, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_new_packed(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_new_sound(s3dat_t* parent, uint32_t freq, uint16_t len, s3dat_exception_t** throws);
 
 #endif /*S3DAT_EXT_H*/

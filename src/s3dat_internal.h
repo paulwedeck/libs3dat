@@ -244,11 +244,11 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws);
 void s3dat_delete_ref(s3dat_ref_t* ref);
 void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count);
 
-s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent);
-s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent);
-s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent);
-s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent);
-s3dat_packed_t* s3dat_new_raw_packed(s3dat_t* parent);
+s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_packed_t* s3dat_new_raw_packed(s3dat_t* parent, s3dat_exception_t** throws);
 
 void s3dat_delete_animation(s3dat_animation_t* ani);
 void s3dat_delete_bitmap(s3dat_bitmap_t* bmp);
@@ -259,7 +259,7 @@ void s3dat_delete_packed(s3dat_packed_t* package);
 
 void s3dat_monitor_print(s3dat_monitor_t* monitor);
 
-s3dat_cache_t* s3dat_new_cache(s3dat_t* handle);
+s3dat_cache_t* s3dat_new_cache(s3dat_t* handle, s3dat_exception_t** throws);
 void s3dat_delete_cache_r(s3dat_cache_t* cache);
 
 

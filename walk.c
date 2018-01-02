@@ -114,15 +114,22 @@ int main() {
 
 	onresize(wnd, width, height);
 
-	s3dat_extracthandler_t* exhandler1 = s3dat_new_exhandler(dat00), *exhandler2 = s3dat_new_exhandler(dat10);
+	s3dat_extracthandler_t* exhandler1 = s3dat_new_exhandler(dat00, &ex);
+	s3dat_catch_exception(&ex);
 	exhandler1->call = bitmap_to_gl_handler;
+
+	s3dat_extracthandler_t* exhandler2 = s3dat_new_exhandler(dat10, &ex);
+	s3dat_catch_exception(&ex);
 	exhandler2->call = bitmap_to_gl_handler;
 
 	s3dat_add_extracthandler(dat00, exhandler1);
 	s3dat_add_extracthandler(dat10, exhandler2);
 
-	s3dat_add_cache(dat00);
-	s3dat_add_cache(dat10);
+	s3dat_add_cache(dat00, &ex);
+	s3dat_catch_exception(&ex);
+
+	s3dat_add_cache(dat10, &ex);
+	s3dat_catch_exception(&ex);
 
 	s3dat_ref_t* grass_tex = s3dat_extract_landscape(dat00, 0, &ex);
 	s3dat_catch_exception(&ex);

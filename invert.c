@@ -28,19 +28,20 @@ int main() {
 		goto end;
 	}
 
-	s3dat_extracthandler_t* handlers[2] = {s3dat_new_exhandler(read), s3dat_new_exhandler(read)};
+	s3dat_extracthandler_t* invert_ex = s3dat_new_exhandler(read, throws);
+	s3dat_extracthandler_t* pack_ex = s3dat_new_exhandler(read, throws);
 
-	handlers[0]->call = invert_handler;
-	handlers[1]->call = s3dat_pack_handler;
+	invert_ex->call = invert_handler;
+	pack_ex->call = s3dat_pack_handler;
 
-	s3dat_add_extracthandler(read, handlers[0]);
-	s3dat_add_extracthandler(read, handlers[1]);
+	s3dat_add_extracthandler(read, invert_ex);
+	s3dat_add_extracthandler(read, pack_ex);
 
-	write = s3dat_writeable_fork(read, "GFX/Siedler3_10.f8007e01f.dat.invert");
+	write = s3dat_writeable_fork(read, "GFX/Siedler3_10.f8007e01f.dat.invert", throws);
+	if(!s3dat_catch_exception(throws)) goto end;
+
 	s3dat_writefile(write, throws);
-	if(!s3dat_catch_exception(throws)) {
-		goto end;
-	}
+	s3dat_catch_exception(throws);
 
 	end:
 	s3dat_delete_fork(write);

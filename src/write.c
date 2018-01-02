@@ -314,16 +314,17 @@ void s3dat_pack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exce
 		res->res->type = s3dat_internal_get_restype(s3dat_pkd_ref);
 	} else {
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-		handle->free_func(handle->mem_arg, package);
+		s3dat_free_func(handle, package);
 		res->res->data.raw = NULL;
-		handle->free_func(handle->mem_arg, res->res);
+		s3dat_free_func(handle, res->res);
+		res->res = NULL;
 	}
 }
 
 void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t* packed, s3dat_exception_t** throws) {
 	uint32_t pixel_count = palette->width*palette->height;
 
-	packed->data = handle->alloc_func(handle->mem_arg, pixel_count*2);
+	packed->data = s3dat_alloc_func(handle, pixel_count*2, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	packed->len = pixel_count*2;

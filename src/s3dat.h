@@ -154,12 +154,12 @@ s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t a
 
 s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
 
-void s3dat_add_cache(s3dat_t* parent);
-void s3dat_add_utf8_encoding(s3dat_t* handle);
-void s3dat_add_landscape_blending(s3dat_t* handle);
+void s3dat_add_cache(s3dat_t* parent, s3dat_exception_t** throws);
+void s3dat_add_utf8_encoding(s3dat_t* handle, s3dat_exception_t** throws);
+void s3dat_add_landscape_blending(s3dat_t* handle, s3dat_exception_t** throws);
 
-s3dat_t* s3dat_fork(s3dat_t* handle);
-s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg);
+s3dat_t* s3dat_fork(s3dat_t* handle, s3dat_exception_t** throws);
+s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg, s3dat_exception_t** throws);
 
 void s3dat_delete_fork(s3dat_t* handle);
 
@@ -169,8 +169,8 @@ s3dat_t* s3dat_new_malloc();
 s3dat_t* s3dat_new_malloc_monitor(void* arg, s3dat_ioset_t* ioset, bool open);
 s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*));
 
-s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent);
-s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count);
+s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count, s3dat_exception_t** throws);
 
 void s3dat_delete(s3dat_t* handle);
 

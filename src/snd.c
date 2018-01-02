@@ -38,7 +38,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 		pointers[i] = s3dat_internal_read32LE(handle, throws);
 
 		if(*throws != NULL) {
-			handle->free_func(handle->mem_arg, pointers);
+			s3dat_free_func(handle, pointers);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 			return;
 		}
@@ -46,7 +46,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 
 	s3dat_index32_t* indices_data = s3dat_alloc_func(handle, len*sizeof(s3dat_index32_t), throws);
 	if(*throws != NULL) {
-		handle->free_func(handle->mem_arg, pointers);
+		s3dat_free_func(handle, pointers);
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
@@ -58,8 +58,8 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 		S3DAT_INTERNAL_ADD_ATTR(handle, throws, S3DAT_ATTRIBUTE_SONG, i);
 
 		if(*throws != NULL) {
-			handle->free_func(handle->mem_arg, pointers);
-			handle->free_func(handle->mem_arg, indices_data);
+			s3dat_free_func(handle, pointers);
+			s3dat_free_func(handle, indices_data);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 			return;
 		} else {
@@ -67,7 +67,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 		}
 	}
 
-	handle->free_func(handle->mem_arg, pointers);
+	s3dat_free_func(handle, pointers);
 
 	handle->sound_index->type = s3dat_snd;
 	if(alive_len != len) {
@@ -79,7 +79,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 			handle->sound_index->sequences = alive_data;
 			handle->sound_index->len = alive_len;
 		}
-		handle->free_func(handle->mem_arg, indices_data);
+		s3dat_free_func(handle, indices_data);
 	} else {
 		handle->sound_index->sequences = indices_data;
 		handle->sound_index->len = len;
@@ -100,7 +100,7 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 		pointers[i] = s3dat_internal_read32LE(handle, throws);
 
 		if(*throws != NULL) {
-			handle->free_func(handle->mem_arg, pointers);
+			s3dat_free_func(handle, pointers);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		}
 	}
@@ -111,7 +111,9 @@ void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_
 }
 
 void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* packed, s3dat_exception_t** throws) {
-	packed->data = handle->alloc_func(handle->mem_arg, (sound->len*2)+16);
+	packed->data = s3dat_alloc_func(handle, (sound->len*2)+16, throws);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
 	packed->len = (sound->len*2)+16;
 
 	uint32_t* ptr32 = packed->data;

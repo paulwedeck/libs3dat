@@ -90,9 +90,17 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 }
 
 void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws) {
-	handle->last_handler = s3dat_new_exhandler(handle);
+	handle->last_handler = s3dat_new_exhandler(handle, throws);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
 	handle->last_handler->call = s3dat_unpack_handler;
-	handle->last_handler->before = s3dat_new_exhandler(handle);
+	handle->last_handler->before = s3dat_new_exhandler(handle, throws);
+	if(*throws != NULL) {
+		s3dat_delete_exhandler(handle->last_handler);
+		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
+		return;
+	}
+
 	handle->last_handler->before->call = s3dat_read_packed_handler;
 
 	if(handle->open_func != NULL) handle->io_arg = handle->open_func(handle->io_arg, false);
@@ -209,9 +217,9 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 			if(*throws != NULL) {
 				s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 
-				handle->free_func(handle->mem_arg, handle->string_index->sequences);
+				s3dat_free_func(handle, handle->string_index->sequences);
 				for(uint16_t i = 0;i != (texts-1);i++) {
-					handle->free_func(handle->mem_arg, handle->string_index->sequences[t].pointers);
+					s3dat_free_func(handle, handle->string_index->sequences[t].pointers);
 				}
 
 				handle->string_index->type = 0;
@@ -282,14 +290,14 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 
 				if(*throws != NULL) {
 					s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-					handle->free_func(handle->mem_arg, pointers);
+					s3dat_free_func(handle, pointers);
 				}
 			}
 
 			s3dat_index_t* dead_indices = s3dat_alloc_func(handle, index_len*sizeof(s3dat_index_t), throws);
 			if(*throws != NULL) {
 				s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-				handle->free_func(handle->mem_arg, pointers);
+				s3dat_free_func(handle, pointers);
 				return;
 			}
 			uint16_t real_count = 0;
@@ -301,8 +309,8 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 				if(*throws != NULL) {
 					s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 					s3dat_internal_delete_indices(handle, dead_indices, index_len);
-					handle->free_func(handle->mem_arg, dead_indices);
-					handle->free_func(handle->mem_arg, pointers);
+					s3dat_free_func(handle, dead_indices);
+					s3dat_free_func(handle, pointers);
 					return;
 				} else {
 					dead_indices[real_count].type = index_type;
@@ -320,8 +328,8 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 			}
 
 
-			handle->free_func(handle->mem_arg, dead_indices);
-			handle->free_func(handle->mem_arg, pointers);
+			s3dat_free_func(handle, dead_indices);
+			s3dat_free_func(handle, pointers);
 		} else {
 			s3dat_index_t* index;
 			switch(index_type) {
@@ -355,7 +363,7 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 				index->pointers[i] = s3dat_internal_read32LE(handle, throws);
 
 				if(*throws != NULL) {
-					handle->free_func(handle->mem_arg, index->pointers);
+					s3dat_free_func(handle, index->pointers);
 					s3dat_add_to_stack(handle, throws, __FILE__ , __func__, __LINE__);
 					return;
 				}
@@ -394,7 +402,7 @@ void s3dat_internal_read_seq(s3dat_t* handle, uint32_t from, s3dat_index_t* to, 
 		to->pointers[i] = s3dat_internal_read32LE(handle, throws)+from;
 
 		if(*throws != NULL) {
-			handle->free_func(handle->mem_arg, to->pointers);
+			s3dat_free_func(handle, to->pointers);
 
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 			return;

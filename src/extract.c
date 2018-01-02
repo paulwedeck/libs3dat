@@ -83,11 +83,17 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3d
 
 	if(!handle->read_func(handle->io_arg, data+offset, read_len)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
-		handle->free_func(handle->mem_arg, data);
+		s3dat_free_func(handle, data);
 		return;
 	}
 
-	res->res = s3dat_new_packed(handle);
+	res->res = s3dat_new_packed(handle, throws);
+	if(*throws != NULL) {
+		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
+		s3dat_free_func(handle, data);
+		return;
+	}
+
 	res->res->data.pkd->len = read_len+offset;
 	res->res->data.pkd->data = data;
 }
@@ -103,16 +109,19 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 	s3dat_ref_t* new_ref = NULL;
 
 	if(res->type == s3dat_snd) {
-		s3dat_ref_t* sound = s3dat_new_sound(handle, le32p(package->data+12), (package->len-16)/2);
+		s3dat_ref_t* sound = s3dat_new_sound(handle, le32p(package->data+12), (package->len-16)/2, throws);
+		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
 		uint16_t* ptr16 = package->data+16;
 		for(uint16_t i = 0;i != (package->len-16)/2;i++) {
 			sound->data.snd->data[i] = le16(ptr16[i]);
 		}
 		new_ref = sound;
 	} else if(res->type == s3dat_animation) {
-		s3dat_ref_t* animation_ref = s3dat_new_animation(handle, le32p(package->data));
-		s3dat_animation_t* animation = animation_ref->data.ani;
+		s3dat_ref_t* animation_ref = s3dat_new_animation(handle, le32p(package->data), throws);
+		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
+		s3dat_animation_t* animation = animation_ref->data.ani;
 		uint16_t* ptr16 = package->data+4;
 		for(uint32_t i = 0;i != animation->len;i++) {
 			animation->frames[i].posx = le16(*(ptr16++));
@@ -130,7 +139,8 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		}
 		new_ref = animation_ref;
 	} else if(res->type == s3dat_palette) {
-		s3dat_ref_t* palette = s3dat_new_bitmap(handle, handle->palette_line_length, 8);
+		s3dat_ref_t* palette = s3dat_new_bitmap(handle, handle->palette_line_length, 8, throws);
+		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		palette->data.bmp->type = handle->green_6b ? s3dat_rgb565 : s3dat_rgb555;
 
@@ -141,7 +151,8 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		}
 		new_ref = palette;
 	} else if(res->type == s3dat_string) {
-		s3dat_ref_t* string = s3dat_new_string(handle, package->len);
+		s3dat_ref_t* string = s3dat_new_string(handle, package->len, throws);
+		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		string->data.str->original_encoding = true;
 		string->data.str->language = res->second_index & 0xFFFF;
@@ -207,7 +218,9 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 			data_ptr += 2;
 		}
 
-		s3dat_ref_t* image = s3dat_new_bitmap(handle, width, height);
+		s3dat_ref_t* image = s3dat_new_bitmap(handle, width, height, throws);
+		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+
 		image->data.bmp->landscape_type = landscape_type;
 		image->data.bmp->gui_type = gui_type;
 		image->data.bmp->xoff = xoff;
@@ -301,8 +314,9 @@ s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t a
 	return s3dat_extract_arg(handle, soundtype, altindex, s3dat_snd, throws);
 }
 
-void s3dat_add_utf8_encoding(s3dat_t* handle) {
-	s3dat_extracthandler_t* exhandler = s3dat_new_exhandler(handle);
+void s3dat_add_utf8_encoding(s3dat_t* handle, s3dat_exception_t** throws) {
+	s3dat_extracthandler_t* exhandler = s3dat_new_exhandler(handle, throws);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	exhandler->call = s3dat_utf8_encoding_handler;
 
@@ -330,8 +344,9 @@ void s3dat_blend_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exc
 	}
 }
 
-void s3dat_add_landscape_blending(s3dat_t* handle) {
-	s3dat_extracthandler_t* exhandler = s3dat_new_exhandler(handle);
+void s3dat_add_landscape_blending(s3dat_t* handle, s3dat_exception_t** throws) {
+	s3dat_extracthandler_t* exhandler = s3dat_new_exhandler(handle, throws);
+	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 	exhandler->call = s3dat_blend_handler;
 
