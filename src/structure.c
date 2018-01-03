@@ -44,7 +44,13 @@ s3dat_ref_t* s3dat_new_ref(s3dat_t* parent, s3dat_restype_t* type, s3dat_excepti
 
 	ref->src = parent;
 	ref->refs = 1;
-	ref->data.raw = type->alloc(parent);
+	ref->data.raw = type->alloc(parent, throws);
+	if(*throws != NULL) {
+		s3dat_free_func(parent, ref);
+		s3dat_add_to_stack(parent, throws, __FILE__, __func__, __LINE__);
+		return NULL;
+	}
+
 	ref->type = type;
 	return ref;
 }
@@ -397,7 +403,7 @@ void* s3dat_alloc_func(s3dat_t* handle, size_t size, s3dat_exception_t** throws)
 }
 
 void s3dat_free_func(s3dat_t* handle, void* data) {
-	s3dat_free_func(handle, data);
+	handle->free_func(handle->mem_arg, data);
 }
 
 void s3dat_monitor_print(s3dat_monitor_t* monitor) {

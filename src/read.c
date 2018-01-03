@@ -533,11 +533,11 @@ uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_excepti
 	return from;
 }
 
-s3dat_restype_t s3dat_internal_animation_type = {"s3dat_animation_t", (void (*) (void*)) s3dat_delete_animation, (void* (*) (void*)) s3dat_new_raw_animation};
-s3dat_restype_t s3dat_internal_bitmap_type = {"s3dat_bitmap_t", (void (*) (void*)) s3dat_delete_bitmap, (void* (*) (void*)) s3dat_new_raw_bitmap};
-s3dat_restype_t s3dat_internal_packed_type = {"s3dat_packed_t", (void (*) (void*)) s3dat_delete_packed, (void* (*) (void*)) s3dat_new_raw_packed};
-s3dat_restype_t s3dat_internal_string_type = {"s3dat_string_t", (void (*) (void*)) s3dat_delete_string, (void* (*) (void*)) s3dat_new_raw_string};
-s3dat_restype_t s3dat_internal_sound_type = {"s3dat_sound_t", (void (*) (void*)) s3dat_delete_sound, (void* (*) (void*)) s3dat_new_raw_sound};
+s3dat_restype_t s3dat_internal_animation_type = {"s3dat_animation_t", (void (*) (void*)) s3dat_delete_animation, (void* (*) (void*,s3dat_exception_t**)) s3dat_new_raw_animation};
+s3dat_restype_t s3dat_internal_bitmap_type = {"s3dat_bitmap_t", (void (*) (void*)) s3dat_delete_bitmap, (void* (*) (void*,s3dat_exception_t**)) s3dat_new_raw_bitmap};
+s3dat_restype_t s3dat_internal_packed_type = {"s3dat_packed_t", (void (*) (void*)) s3dat_delete_packed, (void* (*) (void*,s3dat_exception_t**)) s3dat_new_raw_packed};
+s3dat_restype_t s3dat_internal_string_type = {"s3dat_string_t", (void (*) (void*)) s3dat_delete_string, (void* (*) (void*,s3dat_exception_t**)) s3dat_new_raw_string};
+s3dat_restype_t s3dat_internal_sound_type = {"s3dat_sound_t", (void (*) (void*)) s3dat_delete_sound, (void* (*) (void*,s3dat_exception_t**)) s3dat_new_raw_sound};
 
 s3dat_restype_t* s3dat_internal_get_restype(s3dat_ref_type type) {
 	switch(type) {

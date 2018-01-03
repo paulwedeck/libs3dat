@@ -7,6 +7,7 @@ s3dat_internal_stack_t s3dat_internal_out_of_memory_stack = {NULL, NULL, 0, NULL
 s3dat_exception_t s3dat_internal_out_of_memory = {S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, NULL};
 
 void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* file, const uint8_t* func, uint32_t line) {
+	if(*throws == NULL) return;
 	s3dat_internal_stack_t* now;
 
 	if((*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) {

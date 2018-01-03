@@ -71,7 +71,7 @@ struct s3dat_ioset_t {
 struct s3dat_restype_t {
 	char* name;
 	void (*deref) (void*);
-	void* (*alloc) (void*);
+	void* (*alloc) (void*,s3dat_exception_t**);
 };
 
 struct s3dat_ref_t {
