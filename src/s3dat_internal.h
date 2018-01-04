@@ -223,11 +223,11 @@ s3dat_restype_t* s3dat_internal_get_restype(s3dat_ref_type type);
 
 uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
 
-uint32_t le32(uint32_t le32_int);
-uint16_t le16(uint16_t le16_int);
+uint32_t s3dat_le32(uint32_t le32_int);
+uint16_t s3dat_le16(uint16_t le16_int);
 
-uint32_t le32p(uint32_t* le32_int);
-uint16_t le16p(uint16_t* le16_int);
+uint32_t s3dat_le32p(uint32_t* le32_int);
+uint16_t s3dat_le16p(uint16_t* le16_int);
 
 uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws);
 uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws);

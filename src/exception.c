@@ -142,6 +142,7 @@ bool s3dat_catch_exception(s3dat_exception_t** throws) {
 		s3dat_delete_exception((*throws)->parent, *throws);
 		*throws = NULL;
 		return false;
-	} else return true;
+	}
+	return true;
 }
 

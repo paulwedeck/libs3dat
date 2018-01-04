@@ -117,14 +117,14 @@ void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* pac
 	packed->len = (sound->len*2)+16;
 
 	uint32_t* ptr32 = packed->data;
-	ptr32[0] = le32(packed->len);
-	ptr32[1] = le32(0x1010);
-	ptr32[2] = le32(sound->freq/2);
-	ptr32[3] = le32(sound->freq);
+	ptr32[0] = s3dat_le32(packed->len);
+	ptr32[1] = s3dat_le32(0x1010);
+	ptr32[2] = s3dat_le32(sound->freq/2);
+	ptr32[3] = s3dat_le32(sound->freq);
 	uint16_t* ptr16 = packed->data+16;
 
 	for(uint32_t i = 0;i != sound->len;i++) {
-		ptr16[i] = le16(sound->data[i]);
+		ptr16[i] = s3dat_le16(sound->data[i]);
 	}
 }
 

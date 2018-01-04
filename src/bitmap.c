@@ -53,8 +53,8 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 	if(res->type == s3dat_shadow) pixel_size = 0;
 	if(res->type == s3dat_torso) pixel_size = 1;
 
-	uint16_t width = le16(img_meta[0]);
-	uint16_t height = le16(img_meta[1]);
+	uint16_t width = s3dat_le16(img_meta[0]);
+	uint16_t height = s3dat_le16(img_meta[1]);
 
 	uint32_t bfr_size = pixel_size*width*height+header_size;
 	void* bfr = s3dat_alloc_func(handle, bfr_size, throws);
@@ -86,7 +86,7 @@ void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res,
 			uint16_t data_len = ((meta & 0xFF)*pixel_size)+2;
 
 			uint8_t data_bfr[data_len];
-			*((uint16_t*)data_bfr) = le16(meta);
+			*((uint16_t*)data_bfr) = s3dat_le16(meta);
 			if(handle->read_func(handle->io_arg, data_bfr+2, data_len-2)) {
 				if(read_size+data_len > bfr_size) {
 					void* bfr2 = s3dat_alloc_func(handle, bfr_size*2, throws);
@@ -207,12 +207,12 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 		size_meta = packed->data+4;
 
 		uint16_t* off_ptr = packed->data+8;
-		off_ptr[0] = le16(bitmap->xoff);
-		off_ptr[1] = le16(bitmap->yoff);
+		off_ptr[0] = s3dat_le16(bitmap->xoff);
+		off_ptr[1] = s3dat_le16(bitmap->yoff);
 	}
 
-	size_meta[0] = le16(bitmap->width);
-	size_meta[1] = le16(bitmap->height);
+	size_meta[0] = s3dat_le16(bitmap->width);
+	size_meta[1] = s3dat_le16(bitmap->height);
 
 	uint16_t* meta = packed->data+header_size;
 	uint8_t* data = packed->data+header_size+2;
@@ -245,7 +245,7 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 				current_clear = 0;
 
 				if((x+1) == bitmap->width) tmp_meta |= (1<<15);
-				*meta = le16(tmp_meta);
+				*meta = s3dat_le16(tmp_meta);
 
 				meta = (uint16_t*)data;
 				data += 2;
@@ -269,7 +269,7 @@ s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type) {
 		return color;
 	}
 
-	uint16_t raw = le16p(addr);
+	uint16_t raw = s3dat_le16p(addr);
 
 	if(type == s3dat_rgb555) {
 		color.red = (uint8_t)(((raw >> 10) & 0x1F)*d58);
@@ -316,7 +316,7 @@ void s3dat_internal_8b_to_native(s3dat_color_t* color, void* to, s3dat_color_typ
 		green = (green) << 5;
 	}
 
-	*ptr16 = le16(red+green+blue);
+	*ptr16 = s3dat_le16(red+green+blue);
 }
 
 s3dat_color_t s3dat_internal_error_color = {0, 0, 0, 0};

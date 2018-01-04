@@ -417,7 +417,7 @@ void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3dat_e
 	}
 }
 
-uint32_t le32(uint32_t le32_int) {
+uint32_t s3dat_le32(uint32_t le32_int) {
 	#ifdef _WIN32
 		#ifdef IS_BE
 		return ((le32_int & 0xFF) << 24) | ((le32_int & 0xFF00) << 8) |
@@ -430,23 +430,23 @@ uint32_t le32(uint32_t le32_int) {
 	#endif
 }
 
-uint32_t le32p(uint32_t* le32_int) {
-	return le32(*((uint32_t*)le32_int));
+uint32_t s3dat_le32p(uint32_t* le32_int) {
+	return s3dat_le32(*((uint32_t*)le32_int));
 }
 
 uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint32_t dat;
 	if(!handle->read_func(handle->io_arg, &dat, 4)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
-	return le32(dat);
+	return s3dat_le32(dat);
 
 }
 
 void s3dat_internal_write32LE(s3dat_t* handle, uint32_t b32_int, s3dat_exception_t** throws) {
-	uint32_t le32_int = le32(b32_int);
+	uint32_t le32_int = s3dat_le32(b32_int);
 	if(!handle->write_func(handle->io_arg, &le32_int, 4)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 }
 
-uint16_t le16(uint16_t le16_int) {
+uint16_t s3dat_le16(uint16_t le16_int) {
 	#ifdef _WIN32
 		#ifdef IS_BE
 		return ((le16_int & 0xFF) << 24) | ((le16_int & 0xFF00) << 8);
@@ -458,19 +458,19 @@ uint16_t le16(uint16_t le16_int) {
 	#endif
 }
 
-uint16_t le16p(uint16_t* le16_int) {
-	return le16(*((uint16_t*)le16_int));
+uint16_t s3dat_le16p(uint16_t* le16_int) {
+	return s3dat_le16(*((uint16_t*)le16_int));
 }
 
 
 uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws) {
 	uint16_t dat;
 	if(!handle->read_func(handle->io_arg, &dat, 2)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
-	return le16(dat);
+	return s3dat_le16(dat);
 }
 
 void s3dat_internal_write16LE(s3dat_t* handle, uint16_t b16_int, s3dat_exception_t** throws) {
-	uint16_t le16_int = le16(b16_int);
+	uint16_t le16_int = s3dat_le16(b16_int);
 	if(!handle->write_func(handle->io_arg, &le16_int, 2)) s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
 }
 

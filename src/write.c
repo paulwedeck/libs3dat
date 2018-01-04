@@ -332,7 +332,7 @@ void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t
 	uint16_t* ptr16 = packed->data;
 	for(uint32_t i = 0;i != pixel_count;i++) {
 		s3dat_internal_8b_to_native(palette->data+i, ptr16+i, palette->type);
-		ptr16[i] = le16(ptr16[i]);
+		ptr16[i] = s3dat_le16(ptr16[i]);
 	}
 }
 
@@ -344,18 +344,18 @@ void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_p
 
 	uint16_t* ptr16 = packed->data;
 	for(uint32_t i = 0;i != animation->len;i++) {
-		*(ptr16++) = le16(animation->frames[i].posx);
-		*(ptr16++) = le16(animation->frames[i].posy);
-		*(ptr16++) = le16(animation->frames[i].settler_id);
-		*(ptr16++) = le16(animation->frames[i].settler_file);
-		*(ptr16++) = le16(animation->frames[i].torso_id);
-		*(ptr16++) = le16(animation->frames[i].torso_file);
-		*(ptr16++) = le16(animation->frames[i].shadow_id);
-		*(ptr16++) = le16(animation->frames[i].shadow_file);
-		*(ptr16++) = le16(animation->frames[i].settler_frame);
-		*(ptr16++) = le16(animation->frames[i].torso_frame);
-		*(ptr16++) = le16(animation->frames[i].flag1);
-		*(ptr16++) = le16(animation->frames[i].flag2);
+		*(ptr16++) = s3dat_le16(animation->frames[i].posx);
+		*(ptr16++) = s3dat_le16(animation->frames[i].posy);
+		*(ptr16++) = s3dat_le16(animation->frames[i].settler_id);
+		*(ptr16++) = s3dat_le16(animation->frames[i].settler_file);
+		*(ptr16++) = s3dat_le16(animation->frames[i].torso_id);
+		*(ptr16++) = s3dat_le16(animation->frames[i].torso_file);
+		*(ptr16++) = s3dat_le16(animation->frames[i].shadow_id);
+		*(ptr16++) = s3dat_le16(animation->frames[i].shadow_file);
+		*(ptr16++) = s3dat_le16(animation->frames[i].settler_frame);
+		*(ptr16++) = s3dat_le16(animation->frames[i].torso_frame);
+		*(ptr16++) = s3dat_le16(animation->frames[i].flag1);
+		*(ptr16++) = s3dat_le16(animation->frames[i].flag2);
 	}
 }
 

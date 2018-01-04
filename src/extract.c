@@ -79,7 +79,7 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3d
 
 	data = s3dat_alloc_func(handle, read_len+offset, throws);
 	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
-	if(res->type != s3dat_palette) *(uint32_t*)data = le32(raw_len);
+	if(res->type != s3dat_palette) *(uint32_t*)data = s3dat_le32(raw_len);
 
 	if(!handle->read_func(handle->io_arg, data+offset, read_len)) {
 		s3dat_throw(handle, throws, S3DAT_EXCEPTION_IOERROR, __FILE__, __func__, __LINE__);
@@ -109,33 +109,33 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 	s3dat_ref_t* new_ref = NULL;
 
 	if(res->type == s3dat_snd) {
-		s3dat_ref_t* sound = s3dat_new_sound(handle, le32p(package->data+12), (package->len-16)/2, throws);
+		s3dat_ref_t* sound = s3dat_new_sound(handle, s3dat_le32p(package->data+12), (package->len-16)/2, throws);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		uint16_t* ptr16 = package->data+16;
 		for(uint16_t i = 0;i != (package->len-16)/2;i++) {
-			sound->data.snd->data[i] = le16(ptr16[i]);
+			sound->data.snd->data[i] = s3dat_le16(ptr16[i]);
 		}
 		new_ref = sound;
 	} else if(res->type == s3dat_animation) {
-		s3dat_ref_t* animation_ref = s3dat_new_animation(handle, le32p(package->data), throws);
+		s3dat_ref_t* animation_ref = s3dat_new_animation(handle, s3dat_le32p(package->data), throws);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 
 		s3dat_animation_t* animation = animation_ref->data.ani;
 		uint16_t* ptr16 = package->data+4;
 		for(uint32_t i = 0;i != animation->len;i++) {
-			animation->frames[i].posx = le16(*(ptr16++));
-			animation->frames[i].posy = le16(*(ptr16++));
-			animation->frames[i].settler_id = le16(*(ptr16++));
-			animation->frames[i].settler_file = le16(*(ptr16++));
-			animation->frames[i].torso_id = le16(*(ptr16++));
-			animation->frames[i].torso_file = le16(*(ptr16++));
-			animation->frames[i].shadow_id = le16(*(ptr16++));
-			animation->frames[i].shadow_file = le16(*(ptr16++));
-			animation->frames[i].settler_frame = le16(*(ptr16++));
-			animation->frames[i].torso_frame = le16(*(ptr16++));
-			animation->frames[i].flag1 = le16(*(ptr16++));
-			animation->frames[i].flag2 = le16(*(ptr16++));
+			animation->frames[i].posx = s3dat_le16(*(ptr16++));
+			animation->frames[i].posy = s3dat_le16(*(ptr16++));
+			animation->frames[i].settler_id = s3dat_le16(*(ptr16++));
+			animation->frames[i].settler_file = s3dat_le16(*(ptr16++));
+			animation->frames[i].torso_id = s3dat_le16(*(ptr16++));
+			animation->frames[i].torso_file = s3dat_le16(*(ptr16++));
+			animation->frames[i].shadow_id = s3dat_le16(*(ptr16++));
+			animation->frames[i].shadow_file = s3dat_le16(*(ptr16++));
+			animation->frames[i].settler_frame = s3dat_le16(*(ptr16++));
+			animation->frames[i].torso_frame = s3dat_le16(*(ptr16++));
+			animation->frames[i].flag1 = s3dat_le16(*(ptr16++));
+			animation->frames[i].flag2 = s3dat_le16(*(ptr16++));
 		}
 		new_ref = animation_ref;
 	} else if(res->type == s3dat_palette) {
@@ -187,34 +187,34 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		if(res->type == s3dat_settler || res->type == s3dat_torso || res->type == s3dat_shadow) {
 			data_ptr += 4;
 
-			width = le16p(data_ptr);
+			width = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			height = le16p(data_ptr);
+			height = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			xoff = le16p(data_ptr);
+			xoff = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			yoff = le16p(data_ptr);
+			yoff = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 		} else if(res->type == s3dat_gui) {
-			width = le16p(data_ptr);
+			width = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			height = le16p(data_ptr);
+			height = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			gui_type = le32p(data_ptr);
+			gui_type = s3dat_le32p(data_ptr);
 			data_ptr += 4;
 		} else {
-			width = le16p(data_ptr);
+			width = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			height = le16p(data_ptr);
+			height = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
-			landscape_type = le16p(data_ptr);
+			landscape_type = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 		}
 
@@ -233,7 +233,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 		s3dat_color_t trans_color = {0, 0, 0, 0};
 
 		while(y < height) {
-			uint16_t meta = le16p(data_ptr);
+			uint16_t meta = s3dat_le16p(data_ptr);
 			data_ptr += 2;
 
 			uint8_t skip = (meta >> 8) & 0x7F;
