@@ -210,7 +210,7 @@ void* s3dat_mmf_win32_name_open_func(void* arg, bool write) {
 }
 
 void s3dat_mmf_win32_close_func(void* arg) {
-	if(!mmf) return;
+	if(!arg) return;
 
 	s3dat_mmf_t* mmf = arg;
 
