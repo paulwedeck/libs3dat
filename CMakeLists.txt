@@ -70,7 +70,7 @@ install(FILES src/s3dat_ext.h src/s3dat.h DESTINATION include/s3dat)
 add_executable(testme test.c)
 target_link_libraries(testme s3dat)
 
-add_test(search_gfx bin/testme search_gfx)
-add_test(open_landscape bin/testme open_landscape)
-add_test(try_blending bin/testme try_blending)
+foreach(test_name search_gfx open_landscape try_blending)
+	add_test(${test_name} bin/testme ${test_name})
+endforeach()
 
