@@ -26,7 +26,7 @@ void s3dat_add_to_stack(s3dat_t* handle, s3dat_exception_t** throws, uint8_t* fi
 }
 
 void s3dat_add_attr(s3dat_t* handle, s3dat_exception_t** throws, uint32_t name, uint32_t value) {
-	if((*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) return;
+	if(*throws == NULL || (*throws)->type == S3DAT_EXCEPTION_OUT_OF_MEMORY) return;
 
 	s3dat_internal_attribute_t* attr = s3dat_alloc_func(handle, sizeof(s3dat_internal_attribute_t), NULL);
 	if(attr == NULL) return;

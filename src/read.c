@@ -173,7 +173,7 @@ void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws) {
 
 	for(uint32_t i = 0;i != 8;i++) {
 		s3dat_internal_read_index(handle, sequence_pointers[i], throws);
-		S3DAT_INTERNAL_ADD_ATTR(handle, throws, S3DAT_ATTRIBUTE_INDEX, i);
+		s3dat_add_attr(handle, throws, S3DAT_ATTRIBUTE_INDEX, i);
 		S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
 	}
 }
@@ -202,11 +202,9 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 		if(texts == 0 || languages == 0) return;
 
 		handle->string_index->len = texts;
-		handle->string_index->type = s3dat_string;
 		handle->string_index->sequences = s3dat_alloc_func(handle, texts*sizeof(s3dat_index_t), throws);
 		if(*throws != NULL) {
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-			handle->string_index->type = 0;
 			return;
 		}
 
@@ -222,7 +220,6 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 					s3dat_free_func(handle, handle->string_index->sequences[t].pointers);
 				}
 
-				handle->string_index->type = 0;
 				return;
 			}
 		}
@@ -237,6 +234,7 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 				}
 			}
 		}
+		handle->string_index->type = s3dat_string;
 	} else {
 
 		uint16_t index_size = s3dat_internal_read16LE(handle, throws);
@@ -294,42 +292,31 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_
 				}
 			}
 
-			s3dat_index_t* dead_indices = s3dat_alloc_func(handle, index_len*sizeof(s3dat_index_t), throws);
+			s3dat_index_t* indices = s3dat_alloc_func(handle, index_len*sizeof(s3dat_index_t), throws);
 			if(*throws != NULL) {
 				s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 				s3dat_free_func(handle, pointers);
 				return;
 			}
-			uint16_t real_count = 0;
 
 			for(uint16_t i = 0;i != index_len;i++) {
-				s3dat_internal_read_seq(handle, pointers[i], dead_indices+real_count, throws);
-				S3DAT_INTERNAL_ADD_ATTR(handle, throws, S3DAT_ATTRIBUTE_SEQ, i);
+				s3dat_internal_read_seq(handle, pointers[i], &indices[i], throws);
+				s3dat_add_attr(handle, throws, S3DAT_ATTRIBUTE_SEQ, i);
 
 				if(*throws != NULL) {
 					s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-					s3dat_internal_delete_indices(handle, dead_indices, index_len);
-					s3dat_free_func(handle, dead_indices);
+					s3dat_internal_delete_indices(handle, indices, index_len);
+					s3dat_free_func(handle, indices);
 					s3dat_free_func(handle, pointers);
 					return;
-				} else {
-					dead_indices[real_count].type = index_type;
-					real_count++;
 				}
+				indices[i].type = index_type;
 			}
-			index->sequences = s3dat_alloc_func(handle, real_count*sizeof(s3dat_index_t), throws);
-
-			if(*throws != NULL) {
-				s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-			} else {
-				index->type = index_type;
-				index->len = real_count;
-				memcpy(index->sequences, dead_indices, real_count*sizeof(s3dat_index_t));
-			}
-
-
-			s3dat_free_func(handle, dead_indices);
 			s3dat_free_func(handle, pointers);
+
+			index->type = index_type;
+			index->len = index_len;
+			index->sequences = indices;
 		} else {
 			s3dat_index_t* index;
 			switch(index_type) {

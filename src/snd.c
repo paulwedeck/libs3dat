@@ -55,7 +55,7 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 
 	for(uint16_t i = 0;i != len;i++) {
 		s3dat_internal_readsnd_index(handle, pointers[i], indices_data+alive_len, throws);
-		S3DAT_INTERNAL_ADD_ATTR(handle, throws, S3DAT_ATTRIBUTE_SONG, i);
+		s3dat_add_attr(handle, throws, S3DAT_ATTRIBUTE_SONG, i);
 
 		if(*throws != NULL) {
 			s3dat_free_func(handle, pointers);

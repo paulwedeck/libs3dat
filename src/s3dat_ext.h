@@ -27,11 +27,6 @@
 #define S3DAT_SEEK_CUR 0x20
 #define S3DAT_SEEK_SET 0x21
 
-#define S3DAT_INTERNAL_ADD_ATTR(handle, throws, attr, value)  \
-	if(*throws != NULL) { \
-		s3dat_add_attr(handle, throws, attr, value); \
-	}
-
 #define S3DAT_INTERNAL_OUT_OF_MEMORY(handle, throws) \
 	s3dat_throw(handle, throws, S3DAT_EXCEPTION_OUT_OF_MEMORY, NULL, NULL, 0)
 
