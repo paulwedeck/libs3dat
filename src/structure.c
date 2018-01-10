@@ -514,35 +514,58 @@ void s3dat_delete_cache_r(s3dat_cache_t* cache) {
 }
 
 uint16_t s3dat_indexlen(s3dat_t* handle, s3dat_content_type type) {
+	s3dat_index_t* index = NULL;
+	s3dat_seq_index_t* seq_index = NULL;
+
 	switch(type) {
 		case s3dat_snd:
-		return handle->sound_index->len;
+		if(handle->sound_index->type != 0) {
+			return handle->sound_index->len;
+		} else {
+			return 0;
+		}
 
 		case s3dat_settler:
-		return handle->settler_index->len;
+		seq_index = handle->settler_index;
+		break;
 
 		case s3dat_torso:
-		return handle->torso_index->len;
+		seq_index = handle->torso_index;
+		break;
 
 		case s3dat_shadow:
-		return handle->shadow_index->len;
+		seq_index = handle->shadow_index;
+		break;
 
 		case s3dat_landscape:
-		return handle->landscape_index->len;
+		index = handle->landscape_index;
+		break;
 
 		case s3dat_gui:
-		return handle->gui_index->len;
+		index = handle->gui_index;
+		break;
 
 		case s3dat_animation:
-		return handle->animation_index->len;
+		index = handle->animation_index;
+		break;
 
 		case s3dat_palette:
-		return handle->palette_index->len;
+		index = handle->palette_index;
+		break;
 
 		case s3dat_string:
-		return handle->string_index->len;
+		seq_index = handle->string_index;
+		break;
 
 		default:
+		return 0;
+	}
+
+	if(seq_index && seq_index->type != 0) {
+		return seq_index->len;
+	} else if(index && index->type != 0) {
+		return index->len;
+	} else {
 		return 0;
 	}
 }

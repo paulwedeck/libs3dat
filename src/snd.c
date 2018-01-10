@@ -44,46 +44,30 @@ void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws) {
 		}
 	}
 
-	s3dat_index32_t* indices_data = s3dat_alloc_func(handle, len*sizeof(s3dat_index32_t), throws);
+	s3dat_index32_t* indices = s3dat_alloc_func(handle, len*sizeof(s3dat_index32_t), throws);
 	if(*throws != NULL) {
 		s3dat_free_func(handle, pointers);
 		s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 		return;
 	}
 
-	uint16_t alive_len = 0;
-
 	for(uint16_t i = 0;i != len;i++) {
-		s3dat_internal_readsnd_index(handle, pointers[i], indices_data+alive_len, throws);
+		s3dat_internal_readsnd_index(handle, pointers[i], &indices[i], throws);
 		s3dat_add_attr(handle, throws, S3DAT_ATTRIBUTE_SONG, i);
 
 		if(*throws != NULL) {
 			s3dat_free_func(handle, pointers);
-			s3dat_free_func(handle, indices_data);
+			s3dat_free_func(handle, indices);
 			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
 			return;
-		} else {
-			alive_len++;
 		}
 	}
 
 	s3dat_free_func(handle, pointers);
 
+	handle->sound_index->sequences = indices;
+	handle->sound_index->len = len;
 	handle->sound_index->type = s3dat_snd;
-	if(alive_len != len) {
-		s3dat_index32_t* alive_data = s3dat_alloc_func(handle, alive_len*sizeof(s3dat_index32_t), throws);
-		if(*throws != NULL) {
-			s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
-		} else {
-			memcpy(alive_data, indices_data, alive_len*sizeof(s3dat_index32_t));
-			handle->sound_index->sequences = alive_data;
-			handle->sound_index->len = alive_len;
-		}
-		s3dat_free_func(handle, indices_data);
-	} else {
-		handle->sound_index->sequences = indices_data;
-		handle->sound_index->len = len;
-	}
 }
 
 void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_t* to, s3dat_exception_t** throws) {
