@@ -1,0 +1,6 @@
+This library can read most .dat files from Settlers 3s GFX and SND directories.
+
+It bases on github.com/jsettlers/settlers-remake and github.com/tomsoftware/sied3 dat file reading code.
+
+See NOTICE and LICENSE for more information.
+
