@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.2.2)
 project(libs3dat)
 
+add_subdirectory(libs3util)
+
 include(CPack)
 include(CTest)
 include(TestBigEndian)
@@ -41,12 +43,14 @@ endif()
 
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
 
-include_directories(src ${PROJECT_BINARY_DIR})
+include_directories(src ${PROJECT_BINARY_DIR} libs3util/src)
+
 
 #s3dat
 file(GLOB_RECURSE s3dat_SOURCES "src/*.[ch]")
 
 add_library(s3dat SHARED ${s3dat_SOURCES})
+target_link_libraries(s3dat s3util)
 
 add_executable(cli cli.c)
 target_link_libraries(cli s3dat)

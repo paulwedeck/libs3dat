@@ -28,10 +28,10 @@ void delete_example_res(example_res_t* example_res) {
 
 example_res_t* create_example_res(s3dat_t* handle, s3dat_exception_t** throws) {
 	// allocate everything through s3dat_alloc_func
-	example_res_t* eres = s3dat_alloc_func(handle, sizeof(example_res_t), throws);
+	example_res_t* eres = s3util_alloc_func(s3dat_memset(handle), sizeof(example_res_t), throws);
 
 	// it wont do anything, if *throws == null (there is no exception)
-	s3dat_add_to_stack(handle, throws, __FILE__, __func__, __LINE__);
+	s3util_add_to_stack(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 	return eres;
 }
 

@@ -23,12 +23,12 @@ typedef struct {
 
 void delete_texture(gltex_t* tex) {
 	glDeleteTextures(1, &tex->tex_id);
-	s3dat_free_func(tex->parent, tex);
+	s3util_free_func(s3dat_memset(tex->parent), tex);
 }
 
 s3dat_restype_t gl_bitmap_type = {"gltex", (void (*) (void*)) delete_texture, NULL};
 
-void bitmap_to_gl_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws) {
+void bitmap_to_gl_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws) {
 	s3dat_t* handle = me->parent;
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
 
@@ -36,8 +36,8 @@ void bitmap_to_gl_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_ex
 
 	S3DAT_CHECK_TYPE(handle, res, "s3dat_bitmap_t", throws, __FILE__, __func__, __LINE__);
 
-	gltex_t* texhandle = s3dat_alloc_func(handle, sizeof(gltex_t), throws);
-	S3DAT_HANDLE_EXCEPTION(handle, throws, __FILE__, __func__, __LINE__);
+	gltex_t* texhandle = s3util_alloc_func(s3dat_memset(handle), sizeof(gltex_t), throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
 	int tex_id;
 	glGenTextures(1, &tex_id);
@@ -89,16 +89,16 @@ void draw_texture(s3dat_ref_t* ref, double x, double y, double z, double cr, dou
 }
 
 int main() {
-	s3dat_exception_t* ex = NULL;
+	s3util_exception_t* ex = NULL;
 
 	s3dat_t* dat00 = s3dat_new_malloc();
 	s3dat_t* dat10 = s3dat_new_malloc();
 
 	s3dat_readfile_name(dat00, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 
 	s3dat_readfile_name(dat10, "GFX/Siedler3_10.f8007e01f.dat", &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 
 	glfwInit();
 
@@ -115,24 +115,24 @@ int main() {
 	onresize(wnd, width, height);
 
 	s3dat_extracthandler_t* exhandler1 = s3dat_new_exhandler(dat00, &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 	exhandler1->call = bitmap_to_gl_handler;
 
 	s3dat_extracthandler_t* exhandler2 = s3dat_new_exhandler(dat10, &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 	exhandler2->call = bitmap_to_gl_handler;
 
 	s3dat_add_extracthandler(dat00, exhandler1);
 	s3dat_add_extracthandler(dat10, exhandler2);
 
 	s3dat_add_cache(dat00, &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 
 	s3dat_add_cache(dat10, &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 
 	s3dat_ref_t* grass_tex = s3dat_extract_landscape(dat00, 0, &ex);
-	s3dat_catch_exception(&ex);
+	s3util_catch_exception(&ex);
 
 	s3dat_ref_t* settler_texs[72];
 	s3dat_ref_t* torso_texs[72];
@@ -168,15 +168,15 @@ int main() {
 			for(int i = 0;i != 72;i++) {
 				if(settler_texs[i]) s3dat_unref(settler_texs[i]);
 				settler_texs[i] = s3dat_extract_settler(dat10, ex_s, i, &ex);
-				s3dat_catch_exception(&ex);
+				s3util_catch_exception(&ex);
 
 				if(torso_texs[i]) s3dat_unref(torso_texs[i]);
 				torso_texs[i] = s3dat_extract_torso(dat10, ex_s, i, &ex);
-				s3dat_catch_exception(&ex);
+				s3util_catch_exception(&ex);
 
 				if(shadow_texs[i]) s3dat_unref(shadow_texs[i]);
 				shadow_texs[i] = s3dat_extract_shadow(dat10, ex_s, 71-i, &ex);
-				s3dat_catch_exception(&ex);
+				s3util_catch_exception(&ex);
 			}
 
 			last_s = ex_s;

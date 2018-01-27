@@ -1,8 +1,8 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef S3DAT_CONFIG_H
+#define S3DAT_CONFIG_H
 
 #cmakedefine USE_ICONV
 #cmakedefine IS_BE
 #cmakedefine PRIVATE_FILENAME
 
-#endif /*CONFIG_H*/
+#endif /*S3DAT_CONFIG_H*/

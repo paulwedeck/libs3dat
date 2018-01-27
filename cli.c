@@ -16,7 +16,7 @@ int main() {
 	void* monitor_handle = s3dat_get_default_ioset(S3DAT_IOSET_LIBC)->open_func(MONITOR_MEMORY, true);
 	#endif
 
-	s3dat_exception_t* ex = NULL;
+	s3util_exception_t* ex = NULL;
 
 	DIR* gfx_dir = opendir("GFX");
 	DIR* snd_dir = opendir("SND");
@@ -55,7 +55,7 @@ int main() {
 		s3dat_readfile_name(handle, name, &ex);
 
 		printf("[%i] new file %s\n", i, name);
-		if(s3dat_catch_exception(&ex)) {
+		if(s3util_catch_exception(&ex)) {
 			if(s3dat_indexlen(handle, s3dat_snd) == 0) {
 				printf("[%i] %hu settler sequences\n", i, s3dat_indexlen(handle, s3dat_settler));
 				printf("[%i] %hu shadow sequences\n", i, s3dat_indexlen(handle, s3dat_shadow));
@@ -71,7 +71,7 @@ int main() {
 		}
 
 		s3dat_add_utf8_encoding(handle, &ex);
-		s3dat_catch_exception(&ex);
+		s3util_catch_exception(&ex);
 
 		/*uint16_t stringindex_len = s3dat_indexlen(handle, s3dat_string);
 		if(stringindex_len > 0 && false) {
@@ -126,7 +126,7 @@ int main() {
 		if(guiindex_len > 0 && false) {
 			for(uint16_t gui = 0;gui != guiindex_len;gui++) {
 				s3dat_ref_t* bmp = s3dat_extract_gui(handle, gui, &ex);
-				if(s3dat_catch_exception(&ex)) {
+				if(s3util_catch_exception(&ex)) {
 					printf("%02hx: ", gui);
 					uint32_t guitype = *s3dat_gui_meta(bmp);
 					for(int32_t pi = 31;pi >= 0;pi--) {

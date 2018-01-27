@@ -1,0 +1,3 @@
+[submodule "libs3util"]
+	path = libs3util
+	url = ../libs3util.git

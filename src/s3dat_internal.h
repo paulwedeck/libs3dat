@@ -29,6 +29,8 @@
 #ifndef S3DAT_INTERNAL_H
 #define S3DAT_INTERNAL_H
 
+#define S3DAT_INTERNAL_READ(type, handle, throws) S3UTIL_INTERNAL_READ(type, s3dat_ioset(handle), s3dat_memset(handle), throws);
+#define S3DAT_INTERNAL_WRITE(type, handle, to, throws) S3UTIL_INTERNAL_WRITE(type, s3dat_ioset(handle), s3dat_memset(handle), to, throws);
 
 struct s3dat_sound_t {
 	s3dat_t* src;
@@ -83,7 +85,7 @@ struct s3dat_cache_t {
 struct s3dat_monitor_t {
 	void* io_arg;
 	bool close;
-	s3dat_ioset_t* ioset;
+	s3util_ioset_t* ioset;
 
 	void* mem_arg;
 	void* (*alloc_func) (void*,size_t);
@@ -123,15 +125,6 @@ struct s3dat_internal_attribute_t {
 	s3dat_internal_attribute_t* next;
 };
 
-struct s3dat_exception_t {
-	uint32_t type;
-	s3dat_t* parent;
-
-	s3dat_internal_stack_t* stack;
-	s3dat_internal_attribute_t* attrs;
-};
-
-
 typedef struct {
 	s3dat_content_type type;
 	uint16_t len;
@@ -158,18 +151,8 @@ typedef struct {
 
 
 struct s3dat_t {
-	void* mem_arg;
-	void* io_arg;
-	void* (*alloc_func) (void*, size_t);
-	void (*free_func) (void*, void*);
-	bool (*read_func) (void*, void*, size_t);
-	bool (*write_func) (void*, void*, size_t);
-	size_t (*size_func) (void*);
-	size_t (*pos_func) (void*);
-	bool (*seek_func) (void*, uint32_t, int);
-	void* (*open_func) (void*, bool);
-	void (*close_func) (void*);
-	void* (*fork_func) (void*);
+	s3util_memset_t memset;
+	s3util_ioset_t ioset;
 
 	bool green_6b;
 	uint32_t palette_line_length;
@@ -187,8 +170,8 @@ struct s3dat_t {
 
 };
 
-void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3dat_exception_t** throws);
-void s3dat_internal_read_seq(s3dat_t* handle, uint32_t from, s3dat_index_t* to, s3dat_exception_t** throws);
+void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3util_exception_t** throws);
+void s3dat_internal_read_seq(s3dat_t* handle, uint32_t from, s3dat_index_t* to, s3util_exception_t** throws);
 
 void s3dat_internal_delete_index(s3dat_t* handle, s3dat_index_t* index);
 void s3dat_internal_delete_indices(s3dat_t* handle, s3dat_index_t* indices, uint32_t count);
@@ -196,59 +179,45 @@ void s3dat_internal_delete_index32(s3dat_t* handle, s3dat_index32_t* index);
 void s3dat_internal_delete_seq(s3dat_t* handle, s3dat_seq_index_t* seq);
 void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq);
 
-void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uint16_t width, uint16_t height, s3dat_color_t** re_pixdata, s3dat_exception_t** throws);
-void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, uint32_t from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3dat_exception_t** throws);
+void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uint16_t width, uint16_t height, s3dat_color_t** re_pixdata, s3util_exception_t** throws);
+void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, uint32_t from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3util_exception_t** throws);
 s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 
-void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_ref_t** to, s3dat_exception_t** throws);
-void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
+void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_ref_t** to, s3util_exception_t** throws);
+void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);
 
-void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_packed_t* packed, s3dat_exception_t** throws);
-void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t* packed, s3dat_exception_t** throws);
-void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_type type, s3dat_packed_t* packed, s3dat_exception_t** throws);
-void s3dat_pack_string(s3dat_t* handle, s3dat_string_t* string, s3dat_packed_t* packed, s3dat_exception_t** throws);
-void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* packed, s3dat_exception_t** throws);
+void s3dat_pack_animation(s3dat_t* handle, s3dat_animation_t* animation, s3dat_packed_t* packed, s3util_exception_t** throws);
+void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t* packed, s3util_exception_t** throws);
+void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_type type, s3dat_packed_t* packed, s3util_exception_t** throws);
+void s3dat_pack_string(s3dat_t* handle, s3dat_string_t* string, s3dat_packed_t* packed, s3util_exception_t** throws);
+void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* packed, s3util_exception_t** throws);
 
 void s3dat_internal_8b_to_native(s3dat_color_t* color, void* to, s3dat_color_type type);
 
-void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
-void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
-void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws);
+void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);
+void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);
+void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);
 
-void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_t* to, s3dat_exception_t** throws);
+void s3dat_internal_readsnd_index(s3dat_t* handle, uint32_t from, s3dat_index32_t* to, s3util_exception_t** throws);
 
-void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3dat_exception_t** throws);
+void s3dat_internal_seek_func(s3dat_t* handle, uint32_t pos, int whence, s3util_exception_t** throws);
 
 s3dat_restype_t* s3dat_internal_get_restype(s3dat_ref_type type);
 
-uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3dat_exception_t** throws);
+uint32_t s3dat_internal_seek_to(s3dat_t* handle, s3dat_res_t* res, s3util_exception_t** throws);
 
-uint32_t s3dat_le32(uint32_t le32_int);
-uint16_t s3dat_le16(uint16_t le16_int);
-
-uint32_t s3dat_le32p(uint32_t* le32_int);
-uint16_t s3dat_le16p(uint16_t* le16_int);
-
-uint32_t s3dat_internal_read32LE(s3dat_t* handle, s3dat_exception_t** throws);
-uint16_t s3dat_internal_read16LE(s3dat_t* handle, s3dat_exception_t** throws);
-uint8_t s3dat_internal_read8(s3dat_t* handle, s3dat_exception_t** throws);
-
-void s3dat_internal_write32LE(s3dat_t* handle, uint32_t b32_int, s3dat_exception_t** throws);
-void s3dat_internal_write16LE(s3dat_t* handle, uint16_t b16_int, s3dat_exception_t** throws);
-void s3dat_internal_write8(s3dat_t* handle, uint8_t b8_int, s3dat_exception_t** throws);
-
-void s3dat_internal_readsnd(s3dat_t* handle, s3dat_exception_t** throws);
+void s3dat_internal_readsnd(s3dat_t* handle, s3util_exception_t** throws);
 
 
 
 void s3dat_delete_ref(s3dat_ref_t* ref);
 void s3dat_delete_ref_array(s3dat_ref_t** refs, uint32_t count);
 
-s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent, s3dat_exception_t** throws);
-s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent, s3dat_exception_t** throws);
-s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent, s3dat_exception_t** throws);
-s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent, s3dat_exception_t** throws);
-s3dat_packed_t* s3dat_new_raw_packed(s3dat_t* parent, s3dat_exception_t** throws);
+s3dat_animation_t* s3dat_new_raw_animation(s3dat_t* parent, s3util_exception_t** throws);
+s3dat_bitmap_t* s3dat_new_raw_bitmap(s3dat_t* parent, s3util_exception_t** throws);
+s3dat_sound_t* s3dat_new_raw_sound(s3dat_t* parent, s3util_exception_t** throws);
+s3dat_string_t* s3dat_new_raw_string(s3dat_t* parent, s3util_exception_t** throws);
+s3dat_packed_t* s3dat_new_raw_packed(s3dat_t* parent, s3util_exception_t** throws);
 
 void s3dat_delete_animation(s3dat_animation_t* ani);
 void s3dat_delete_bitmap(s3dat_bitmap_t* bmp);
@@ -259,61 +228,8 @@ void s3dat_delete_packed(s3dat_packed_t* package);
 
 void s3dat_monitor_print(s3dat_monitor_t* monitor);
 
-s3dat_cache_t* s3dat_new_cache(s3dat_t* handle, s3dat_exception_t** throws);
+s3dat_cache_t* s3dat_new_cache(s3dat_t* handle, s3util_exception_t** throws);
 void s3dat_delete_cache_r(s3dat_cache_t* cache);
-
-
-void s3dat_print_exception(s3dat_exception_t* ex);
-void s3dat_delete_exception(s3dat_t* handle, s3dat_exception_t* ex);
-
-//ioset and memory functions
-
-void* s3dat_monitor_alloc_func(void* arg, size_t size);
-void s3dat_monitor_free_func(void* arg, void* mem);
-
-void* s3dat_default_alloc_func(void* arg, size_t size);
-void s3dat_default_free_func(void* arg, void* mem);
-
-//linux
-void* s3dat_linux_open_func(void* arg, bool write);
-void s3dat_linux_close_func(void* arg);
-bool s3dat_linux_read_func(void* arg, void* bfr, size_t len);
-bool s3dat_linux_write_func(void* arg, void* bfr, size_t len);
-bool s3dat_linux_seek_func(void* arg, uint32_t pos, int whence);
-size_t s3dat_linux_pos_func(void* arg);
-size_t s3dat_linux_size_func(void* arg);
-
-void* s3dat_mmf_linux_fd_open_func(void* arg, bool write);
-void* s3dat_mmf_linux_name_open_func(void* arg, bool write);
-void s3dat_mmf_linux_close_func(void* arg);
-
-//windows
-void* s3dat_win32_open_func(void* arg, bool write);
-void s3dat_win32_close_func(void* arg);
-bool s3dat_win32_read_func(void* arg, void* bfr, size_t len);
-bool s3dat_win32_write_func(void* arg, void* bfr, size_t len);
-bool s3dat_win32_seek_func(void* arg, uint32_t pos, int whence);
-size_t s3dat_win32_pos_func(void* arg);
-size_t s3dat_win32_size_func(void* arg);
-
-void* s3dat_mmf_win32_handle_open_func(void* arg, bool write);
-void* s3dat_mmf_win32_name_open_func(void* arg, bool write);
-void s3dat_mmf_win32_close_func(void* arg);
-
-void* s3dat_libc_open_func(void* arg, bool write);
-void s3dat_libc_close_func(void* arg);
-bool s3dat_libc_read_func(void* arg, void* bfr, size_t len);
-bool s3dat_libc_write_func(void* arg, void* bfr, size_t len);
-bool s3dat_libc_seek_func(void* arg, uint32_t pos, int whence);
-size_t s3dat_libc_pos_func(void* arg);
-size_t s3dat_libc_size_func(void* arg);
-
-bool s3dat_mmf_read_func(void* arg, void* bfr, size_t len);
-bool s3dat_mmf_write_func(void* arg, void* bfr, size_t len);
-bool s3dat_mmf_seek_func(void* arg, uint32_t pos, int whence);
-size_t s3dat_mmf_pos_func(void* arg);
-size_t s3dat_mmf_size_func(void* arg);
-void* s3dat_mmf_fork_func(void* arg);
 
 #endif /*S3DAT_INTERNAL_H*/
 

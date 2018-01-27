@@ -1,6 +1,6 @@
 #include "s3dat_ext.h"
 
-void invert_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exception_t** throws) {
+void invert_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws) {
 	s3dat_t* handle = me->parent;
 	S3DAT_EXHANDLER_CALL(me, res, throws, __FILE__, __func__, __LINE__);
 
@@ -14,17 +14,17 @@ void invert_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3dat_exceptio
 	}
 }
 
-s3dat_exception_t* invert_ex;
-s3dat_exception_t** throws;
+s3util_exception_t* invert_ex;
+s3util_exception_t** throws;
 
 int main() {
 	throws = &invert_ex;
 
 	s3dat_t* read = s3dat_new_malloc();
 	s3dat_t* write = NULL;
- 
+
 	s3dat_readfile_name(read, "GFX/Siedler3_10.f8007e01f.dat", throws);
-	if(!s3dat_catch_exception(throws)) {
+	if(!s3util_catch_exception(throws)) {
 		goto end;
 	}
 
@@ -38,10 +38,10 @@ int main() {
 	s3dat_add_extracthandler(read, pack_ex);
 
 	write = s3dat_writeable_fork(read, "GFX/Siedler3_10.f8007e01f.dat.invert", throws);
-	if(!s3dat_catch_exception(throws)) goto end;
+	if(!s3util_catch_exception(throws)) goto end;
 
 	s3dat_writefile(write, throws);
-	s3dat_catch_exception(throws);
+	s3util_catch_exception(throws);
 
 	end:
 	s3dat_delete_fork(write);

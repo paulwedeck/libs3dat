@@ -7,19 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define S3DAT_IOSET_NATIVEOS 0x400
-#define S3DAT_IOSET_LINUX 0x401
-#define S3DAT_IOSET_WIN32 0x402
-
-#define S3DAT_IOSET_DEFAULT 0x500
-#define S3DAT_IOSET_LIBC 0x501
-
-//memory mapped file
-#define S3DAT_IOSET_NATIVEOS_MMF 0x600
-#define S3DAT_IOSET_LINUX_MMF 0x601
-#define S3DAT_IOSET_WIN32_MMF 0x602
-#define S3DAT_IOSET_LINUX_MMF_FD 0x603
-#define S3DAT_IOSET_WIN32_MMF_HANDLE 0x604
+#include "s3util.h"
 
 typedef enum {
 	s3dat_pkd_ref = 0x10FFFFFF,
@@ -74,7 +62,6 @@ typedef enum {
 
 //internal types
 typedef struct s3dat_animation_t s3dat_animation_t;
-typedef struct s3dat_exception_t s3dat_exception_t;
 typedef struct s3dat_string_t s3dat_string_t;
 typedef struct s3dat_bitmap_t s3dat_bitmap_t;
 typedef struct s3dat_sound_t s3dat_sound_t;
@@ -85,7 +72,6 @@ typedef struct s3dat_t s3dat_t;
 typedef struct s3dat_extracthandler_t s3dat_extracthandler_t;
 typedef struct s3dat_restype_t s3dat_restype_t;
 typedef struct s3dat_packed_t s3dat_packed_t;
-typedef struct s3dat_ioset_t s3dat_ioset_t;
 typedef struct s3dat_ref_t s3dat_ref_t;
 typedef struct s3dat_res_t s3dat_res_t;
 
@@ -119,58 +105,56 @@ struct s3dat_color_t {
 	uint8_t alpha;
 };
 
-void s3dat_writefile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws);
-void s3dat_writefile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
-void s3dat_writefile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
+void s3dat_writefile_name(s3dat_t* handle, char* name, s3util_exception_t** throws);
+void s3dat_writefile_fd(s3dat_t* handle, uint32_t* file, s3util_exception_t** throws);
+void s3dat_writefile_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, bool use_openclose_func, s3util_exception_t** throws);
 
 
-void s3dat_readfile_name(s3dat_t* handle, uint8_t* name, s3dat_exception_t** throws);
-void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3dat_exception_t** throws);
-void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func, s3dat_exception_t** throws);
+void s3dat_readfile_name(s3dat_t* handle, char* name, s3util_exception_t** throws);
+void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3util_exception_t** throws);
+void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, bool use_openclose_func, s3util_exception_t** throws);
 
 
-void s3dat_init_name(s3dat_t* handle, uint8_t* name); //name must be vaild until s3dat_readfile/s3dat_writefile has ended
+void s3dat_init_name(s3dat_t* handle, char* name); //name must be vaild until s3dat_readfile/s3dat_writefile has ended
 void s3dat_init_fd(s3dat_t* handle, uint32_t* file); //file must be vaild until s3dat_readfile/s3dat_writefile has ended
-bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3dat_ioset_t* ioset, bool use_openclose_func); // io_arg mst be valid until s3dat_readfile/s3dat_writefile has ended
+bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, bool use_openclose_func); // io_arg mst be valid until s3dat_readfile/s3dat_writefile has ended
 
-void s3dat_writefile(s3dat_t* handle, s3dat_exception_t** throws);
-void s3dat_readfile(s3dat_t* handle, s3dat_exception_t** throws);
+void s3dat_writefile(s3dat_t* handle, s3util_exception_t** throws);
+void s3dat_readfile(s3dat_t* handle, s3util_exception_t** throws);
 
 bool s3dat_remove_extracthandler(s3dat_t* handle, uint32_t steps_back);
 bool s3dat_remove_last_extracthandler(s3dat_t* handle);
 
-s3dat_ref_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3dat_exception_t** throws);
-s3dat_ref_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3dat_exception_t** throws);
-s3dat_ref_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_settler(s3dat_t* handle, uint16_t settler, uint8_t frame, s3util_exception_t** throws);
+s3dat_ref_t* s3dat_extract_shadow(s3dat_t* handle, uint16_t shadow, uint8_t frame, s3util_exception_t** throws);
+s3dat_ref_t* s3dat_extract_torso(s3dat_t* handle, uint16_t torso, uint8_t frame, s3util_exception_t** throws);
 
-s3dat_ref_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3dat_exception_t** throws);
-s3dat_ref_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_landscape(s3dat_t* handle, uint16_t landscape, s3util_exception_t** throws);
+s3dat_ref_t* s3dat_extract_gui(s3dat_t* handle, uint16_t gui, s3util_exception_t** throws);
 
-s3dat_ref_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3dat_exception_t** throws);
-s3dat_ref_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_exception_t** throws);
-s3dat_ref_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3dat_exception_t** throws);
-s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3dat_exception_t** throws);
+s3dat_ref_t* s3dat_extract_animation(s3dat_t* handle, uint16_t animation, s3util_exception_t** throws);
+s3dat_ref_t* s3dat_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3util_exception_t** throws);
+s3dat_ref_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3util_exception_t** throws);
+s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3util_exception_t** throws);
 
 
-s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3dat_exception_t** throws);
+s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3util_exception_t** throws);
 
-void s3dat_add_cache(s3dat_t* parent, s3dat_exception_t** throws);
-void s3dat_add_utf8_encoding(s3dat_t* handle, s3dat_exception_t** throws);
-void s3dat_add_landscape_blending(s3dat_t* handle, s3dat_exception_t** throws);
+void s3dat_add_cache(s3dat_t* parent, s3util_exception_t** throws);
+void s3dat_add_utf8_encoding(s3dat_t* handle, s3util_exception_t** throws);
+void s3dat_add_landscape_blending(s3dat_t* handle, s3util_exception_t** throws);
 
-s3dat_t* s3dat_fork(s3dat_t* handle, s3dat_exception_t** throws);
-s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg, s3dat_exception_t** throws);
+s3dat_t* s3dat_fork(s3dat_t* handle, s3util_exception_t** throws);
+s3dat_t* s3dat_writeable_fork(s3dat_t* handle, void* io_arg, s3util_exception_t** throws);
 
 void s3dat_delete_fork(s3dat_t* handle);
 
-s3dat_ioset_t* s3dat_get_default_ioset(uint32_t type);
-
 s3dat_t* s3dat_new_malloc();
-s3dat_t* s3dat_new_malloc_monitor(void* arg, s3dat_ioset_t* ioset, bool open);
+s3dat_t* s3dat_new_malloc_monitor(void* arg, s3util_ioset_t* ioset, bool open);
 s3dat_t* s3dat_new_func(void* arg, void* (*alloc_func) (void*, size_t), void (*free_func) (void*, void*));
 
-s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent, s3dat_exception_t** throws);
-s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count, s3dat_exception_t** throws);
+s3dat_extracthandler_t* s3dat_new_exhandler(s3dat_t* parent, s3util_exception_t** throws);
+s3dat_extracthandler_t* s3dat_new_exhandlers(s3dat_t* parent, uint32_t count, s3util_exception_t** throws);
 
 void s3dat_delete(s3dat_t* handle);
 
@@ -179,8 +163,6 @@ void s3dat_unref(s3dat_ref_t* ref);
 
 void s3dat_ref_array(s3dat_ref_t** refs, uint32_t count);
 void s3dat_unref_array(s3dat_ref_t** refs, uint32_t count);
-
-bool s3dat_catch_exception(s3dat_exception_t** throws);
 
 //bitmap
 bool s3dat_is_bitmap(s3dat_ref_t* bmp);
@@ -219,6 +201,9 @@ uint32_t s3dat_seqlen(s3dat_t* handle, uint16_t seq, s3dat_content_type type); /
 
 uint32_t s3dat_indexaddr(s3dat_t* handle, uint16_t index, s3dat_content_type type);
 uint32_t s3dat_seqaddr(s3dat_t* handle, uint16_t seq, uint32_t index, s3dat_content_type type);
+
+s3util_ioset_t* s3dat_ioset(s3dat_t* handle);
+s3util_memset_t* s3dat_memset(s3dat_t* handle);
 
 // not writeable, because this would break palette extracting
 uint32_t s3dat_palette_width(s3dat_t* handle);

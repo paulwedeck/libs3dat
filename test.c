@@ -24,7 +24,7 @@ int search_gfx() {
 
 int open_landscape_file() {
 	int return_value = 0;
-	s3dat_exception_t* ex = NULL;
+	s3util_exception_t* ex = NULL;
 	s3dat_t* datfile = NULL;
 	s3dat_ref_t* bmp = NULL;
 
@@ -33,10 +33,10 @@ int open_landscape_file() {
 	datfile = s3dat_new_malloc();
 
 	s3dat_readfile_name(datfile, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
+	if(!s3util_catch_exception(&ex)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
 
 	bmp = s3dat_extract_landscape(datfile, 0, &ex);
-	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract first bitmap\n");
+	if(!s3util_catch_exception(&ex)) CRASH("couldn`t extract first bitmap\n");
 
 	end:
 	if(bmp) s3dat_unref(bmp);
@@ -47,7 +47,7 @@ int open_landscape_file() {
 
 int try_blending() {
 	int return_value = 0;
-	s3dat_exception_t* ex = NULL;
+	s3util_exception_t* ex = NULL;
 	s3dat_t* datfile = NULL;
 	s3dat_ref_t* bmp = NULL;
 
@@ -55,10 +55,10 @@ int try_blending() {
 	datfile = s3dat_new_malloc();
 
 	s3dat_readfile_name(datfile, "GFX/Siedler3_00.f8007e01f.dat", &ex);
-	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
+	if(!s3util_catch_exception(&ex)) CRASH("couldn`t open GFX/Siedler3_00.f8007e01f.dat !\n");
 
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
-	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B\n");
+	if(!s3util_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B\n");
 
 	if(s3dat_bmpdata(bmp)->red != 0 || s3dat_bmpdata(bmp)->green != 0xCE || s3dat_bmpdata(bmp)->blue != 0xEE || s3dat_bmpdata(bmp)->alpha != 0xFF) CRASH("the bitmap has a wrong color at it first pixel\n");
 
@@ -66,10 +66,10 @@ int try_blending() {
 	bmp = NULL;
 
 	s3dat_add_landscape_blending(datfile, &ex);
-	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t add landscape blending\n");
+	if(!s3util_catch_exception(&ex)) CRASH("couldn`t add landscape blending\n");
 
 	bmp = s3dat_extract_landscape(datfile, 0x1B, &ex);
-	if(!s3dat_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B two times\n");
+	if(!s3util_catch_exception(&ex)) CRASH("couldn`t extract bitmap 0x1B two times\n");
 
 	if(s3dat_bmpdata(bmp)->alpha != 0) CRASH("landscape blending failed\n");
 
