@@ -185,7 +185,7 @@ s3dat_frame_t* s3dat_frame(s3dat_ref_t* ani, uint32_t frame);
 bool s3dat_is_string(s3dat_ref_t* str);
 
 bool s3dat_utf8(s3dat_ref_t* str);
-uint8_t* s3dat_strdata(s3dat_ref_t* str);
+char* s3dat_strdata(s3dat_ref_t* str);
 
 //sound
 bool s3dat_is_sound(s3dat_ref_t* snd);

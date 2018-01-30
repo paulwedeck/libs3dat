@@ -12,7 +12,7 @@ int width = 640, height = 360;
 
 typedef struct {
 	s3dat_t* parent;
-	int tex_id;
+	GLuint tex_id;
 	uint16_t width;
 	uint16_t height;
 	int16_t xoff;
@@ -39,7 +39,7 @@ void bitmap_to_gl_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_e
 	gltex_t* texhandle = s3util_alloc_func(s3dat_memset(handle), sizeof(gltex_t), throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	int tex_id;
+	GLuint tex_id;
 	glGenTextures(1, &tex_id);
 	glBindTexture(GL_TEXTURE_2D, tex_id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);

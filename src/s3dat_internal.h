@@ -62,7 +62,7 @@ struct s3dat_string_t {
 
 	bool original_encoding;
 	s3dat_language language;
-	uint8_t* string_data;
+	char* string_data;
 };
 
 struct s3dat_animation_t {
