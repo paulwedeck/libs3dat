@@ -22,12 +22,12 @@ typedef struct {
 #define EXAMPLES_RES(res)  ((examples_res_t*)res->data.raw)
 
 void delete_example_res(example_res_t* example_res) {
-	// deallocate everything again through s3dat_free_func
-	s3dat_free_func(example_res->parent, example_res);
+	// deallocate everything again through s3util_free_func
+	s3util_free_func(s3dat_memset(example_res->parent), example_res);
 }
 
-example_res_t* create_example_res(s3dat_t* handle, s3dat_exception_t** throws) {
-	// allocate everything through s3dat_alloc_func
+example_res_t* create_example_res(s3dat_t* handle, s3util_exception_t** throws) {
+	// allocate everything through s3util_alloc_func
 	example_res_t* eres = s3util_alloc_func(s3dat_memset(handle), sizeof(example_res_t), throws);
 
 	// it wont do anything, if *throws == null (there is no exception)
@@ -35,7 +35,7 @@ example_res_t* create_example_res(s3dat_t* handle, s3dat_exception_t** throws) {
 	return eres;
 }
 
-s3dat_restype_t example_restype = {"example_res", (void (*) (void*)) delete_example_res, (void* (*) (void*, s3dat_exception_t**)) create_example_res};
+s3dat_restype_t example_restype = {"example_res", (void (*) (void*)) delete_example_res, (void* (*) (void*, s3util_exception_t**)) create_example_res};
 
 bool is_example_res(s3dat_ref_t* res) {
 	return res->type == &example_restype;
