@@ -249,7 +249,7 @@ s3dat_t* s3dat_new_malloc_monitor(void* arg, s3util_ioset_t* ioset, bool open) {
 	void* ioarg = open ? ioset->open_func(arg, arg) : arg;
 	if(!ioarg) return NULL;
 
-	s3dat_monitor_t* monitor = s3util_default_alloc_func(0, sizeof(s3dat_monitor_t));
+	s3util_monitor_t* monitor = s3util_default_alloc_func(0, sizeof(s3util_monitor_t));
 	monitor->io_arg = ioarg;
 	monitor->ioset = ioset;
 	monitor->close = open;
@@ -259,7 +259,7 @@ s3dat_t* s3dat_new_malloc_monitor(void* arg, s3util_ioset_t* ioset, bool open) {
 	monitor->alloc_func = s3util_default_alloc_func;
 	monitor->free_func = s3util_default_free_func;
 
-	s3dat_monitor_print(monitor);
+	s3util_monitor_print(monitor);
 
 	return s3dat_new_func(monitor, s3util_monitor_alloc_func, s3util_monitor_free_func);
 }
@@ -352,51 +352,6 @@ void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq) {
 		s3dat_internal_delete_index32(handle, seq->sequences+i);
 	}
 	s3util_free_func(s3dat_memset(handle), seq->sequences);
-}
-
-void* s3util_default_alloc_func(void* arg, size_t size) {
-	return calloc(size, 1);
-}
-
-void* s3util_monitor_alloc_func(void* arg, size_t size) {
-	s3dat_monitor_t* mon = arg;
-	mon->last_state += size;
-
-	s3dat_monitor_print(mon);
-
-	uint8_t* mem = mon->alloc_func(mon->mem_arg, size+4);
-	if(mem) return NULL;
-
-	*((uint32_t*)mem) = size;
-
-	return mem+4;
-}
-
-
-void s3util_default_free_func(void* arg, void* mem) {
-	if(mem != NULL) free(mem);
-}
-
-void s3util_monitor_free_func(void* arg, void* mem) {
-	s3dat_monitor_t* mon = arg;
-	mon->last_state -= *(((uint32_t*)mem)-1);
-
-	s3dat_monitor_print(mon);
-
-	mon->free_func(mon->mem_arg, ((uint32_t*)mem)-1);
-
-	if(mon->last_state == 0) {
-		if(mon->close) mon->ioset->close_func(mon->io_arg);
-		mon->free_func(mon->mem_arg, mon);
-	}
-}
-
-void s3dat_monitor_print(s3dat_monitor_t* monitor) {
-	char bfr[1024];
-
-	snprintf(bfr, 1023, "%li %u\n", clock(), monitor->last_state);
-
-	monitor->ioset->write_func(monitor->io_arg, bfr, strlen(bfr));
 }
 
 s3dat_t* s3dat_fork(s3dat_t* handle, s3util_exception_t** throws) {

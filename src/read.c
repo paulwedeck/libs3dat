@@ -20,6 +20,7 @@ uint8_t s3dat_seq_start[7] = {2, 20, 0, 0, 8, 0, 0};
 void s3dat_readfile_fd(s3dat_t* handle, uint32_t* file, s3util_exception_t** throws) {
 	s3dat_init_fd(handle, file);
 	s3dat_readfile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 }
 
 void s3dat_init_fd(s3dat_t* handle, uint32_t* file) {
@@ -30,6 +31,7 @@ void s3dat_init_fd(s3dat_t* handle, uint32_t* file) {
 void s3dat_readfile_name(s3dat_t* handle, char* name, s3util_exception_t** throws) {
 	s3dat_init_name(handle, name);
 	s3dat_readfile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 }
 
 void s3dat_init_name(s3dat_t* handle, char* name) {
@@ -44,6 +46,7 @@ void s3dat_readfile_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, 
 	}
 
 	s3dat_readfile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 }
 
 bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, bool use_openclose_func) {
@@ -91,6 +94,7 @@ void s3dat_readfile_func(s3dat_t* handle, void* arg,
 	s3util_exception_t** throws) {
 	s3dat_init_func(handle, arg, read_func, write_func, size_func, pos_func, seek_func, open_func, close_func, fork_func);
 	s3dat_readfile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 }
 
 void s3dat_readfile(s3dat_t* handle, s3util_exception_t** throws) {

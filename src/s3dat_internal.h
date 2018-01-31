@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <time.h>
 
 #ifndef _WIN32
 #include <endian.h>
@@ -74,24 +73,11 @@ struct s3dat_animation_t {
 
 
 typedef struct s3dat_cache_t s3dat_cache_t;
-typedef struct s3dat_monitor_t s3dat_monitor_t;
 
 struct s3dat_cache_t {
 	s3dat_t* parent;
 	s3dat_res_t res;
 	s3dat_cache_t* next;
-};
-
-struct s3dat_monitor_t {
-	void* io_arg;
-	bool close;
-	s3util_ioset_t* ioset;
-
-	void* mem_arg;
-	void* (*alloc_func) (void*,size_t);
-	void (*free_func) (void*,void*);
-
-	uint32_t last_state;
 };
 
 
@@ -224,9 +210,6 @@ void s3dat_delete_bitmap(s3dat_bitmap_t* bmp);
 void s3dat_delete_sound(s3dat_sound_t* sound);
 void s3dat_delete_string(s3dat_string_t* string);
 void s3dat_delete_packed(s3dat_packed_t* package);
-
-
-void s3dat_monitor_print(s3dat_monitor_t* monitor);
 
 s3dat_cache_t* s3dat_new_cache(s3dat_t* handle, s3util_exception_t** throws);
 void s3dat_delete_cache_r(s3dat_cache_t* cache);

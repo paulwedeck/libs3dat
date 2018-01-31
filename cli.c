@@ -13,7 +13,7 @@
 int main() {
 
 	#ifdef MONITOR_MEMORY
-	void* monitor_handle = s3dat_get_default_ioset(S3DAT_IOSET_LIBC)->open_func(MONITOR_MEMORY, true);
+	void* monitor_handle = s3util_get_default_ioset(S3UTIL_IOSET_LIBC)->open_func(MONITOR_MEMORY, true);
 	#endif
 
 	s3util_exception_t* ex = NULL;
@@ -47,7 +47,7 @@ int main() {
 		strcpy(name+4, ent->d_name);
 
 		#ifdef MONITOR_MEMORY
-		s3dat_t* handle = s3dat_new_malloc_monitor(monitor_handle, s3dat_get_default_ioset(S3DAT_IOSET_LIBC), false);
+		s3dat_t* handle = s3dat_new_malloc_monitor(monitor_handle, s3util_get_default_ioset(S3UTIL_IOSET_LIBC), false);
 		#else
 		s3dat_t* handle = s3dat_new_malloc();
 		#endif
@@ -146,7 +146,7 @@ int main() {
 	if(snd_dir) closedir(snd_dir);
 
 	#ifdef MONITOR_MEMORY
-	s3dat_get_default_ioset(S3DAT_IOSET_LIBC)->close_func(monitor_handle);
+	s3util_get_default_ioset(S3UTIL_IOSET_LIBC)->close_func(monitor_handle);
 	#endif
 }
 
