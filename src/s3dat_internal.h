@@ -9,22 +9,6 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-#ifndef _WIN32
-#include <endian.h>
-#endif
-
-#ifdef USE_ICONV
-#include <iconv.h>
-#endif
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#ifdef __linux__
-#include <sys/mman.h>
-#endif
-
 #ifndef S3DAT_INTERNAL_H
 #define S3DAT_INTERNAL_H
 

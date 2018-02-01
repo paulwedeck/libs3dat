@@ -18,30 +18,7 @@ set(STRING_BUFFER 1024)
 
 TEST_BIG_ENDIAN(IS_BE)
 
-option(FORCE_ICONV "Force iconv even if no iconv.h is found" OFF)
-option(DISABLE_ICONV "Disables testing for iconv" OFF)
 option(PRIVATE_FILENAME "stop leaking complete path to file (should be enabled on distribution)" ON)
-
-if(NOT DISABLE_ICONV AND NOT FORCE_ICONV)
-	INCLUDE (CheckIncludeFiles)
-	CHECK_INCLUDE_FILES(iconv.h ICONV_H_FOUND)
-endif()
-
-if(ICONV_H_FOUND)
-	set(USE_ICONV 1)
-endif()
-
-if(FORCE_ICONV)
-	set(USE_ICONV 1)
-endif()
-
-if(DISABLE_ICONV)
-	unset(USE_ICONV)
-endif()
-
-if(NOT USE_ICONV)
-	message(WARNING "libs3dat needs iconv for good iso8859-2 (Polish) to utf8 conversion and EUC-KR (Korean) or SHIFT_JIS (Japanese) to utf8 conversion.\nISO8859-1 (western Europa) to utf8 conversion is builtin")
-endif()
 
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
 
