@@ -51,15 +51,6 @@ typedef enum {
 	s3dat_landscape_big2 = 0x501,
 } s3dat_landscape_type;
 
-typedef enum {
-	s3dat_alpha1,
-	s3dat_rgb565,
-	s3dat_rgb555,
-	s3dat_gray5,
-	s3dat_unknown_color, // s3dat_new_bitmap in s3dat_ext.h
-} s3dat_color_type;
-
-
 //internal types
 typedef struct s3dat_animation_t s3dat_animation_t;
 typedef struct s3dat_string_t s3dat_string_t;
@@ -76,7 +67,6 @@ typedef struct s3dat_ref_t s3dat_ref_t;
 typedef struct s3dat_res_t s3dat_res_t;
 
 typedef struct s3dat_frame_t s3dat_frame_t;
-typedef struct s3dat_color_t s3dat_color_t;
 
 
 struct s3dat_frame_t {
@@ -96,13 +86,6 @@ struct s3dat_frame_t {
 
 	uint16_t flag1;
 	uint16_t flag2;
-};
-
-struct s3dat_color_t {
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
-	uint8_t alpha;
 };
 
 void s3dat_writefile_name(s3dat_t* handle, char* name, s3util_exception_t** throws);
@@ -138,7 +121,7 @@ s3dat_ref_t* s3dat_extract_palette(s3dat_t* handle, uint16_t palette, s3util_exc
 s3dat_ref_t* s3dat_extract_sound(s3dat_t* handle, uint16_t soundtype, uint32_t altindex, s3util_exception_t** throws);
 
 
-s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3util_exception_t** throws);
+s3util_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3util_exception_t** throws);
 
 void s3dat_add_cache(s3dat_t* parent, s3util_exception_t** throws);
 void s3dat_add_utf8_encoding(s3dat_t* handle, s3util_exception_t** throws);
@@ -173,7 +156,7 @@ int16_t* s3dat_xoff(s3dat_ref_t* bmp);
 int16_t* s3dat_yoff(s3dat_ref_t* bmp);
 uint16_t* s3dat_landscape_meta(s3dat_ref_t* bmp);
 uint32_t* s3dat_gui_meta(s3dat_ref_t* bmp);
-s3dat_color_t* s3dat_bmpdata(s3dat_ref_t* bmp);
+s3util_color_t* s3dat_bmpdata(s3dat_ref_t* bmp);
 
 //animation
 bool s3dat_is_animation(s3dat_ref_t* ani);

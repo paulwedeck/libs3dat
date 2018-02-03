@@ -331,7 +331,7 @@ void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t
 
 	uint16_t* ptr16 = packed->data;
 	for(uint32_t i = 0;i != pixel_count;i++) {
-		s3dat_internal_8b_to_native(palette->data+i, ptr16+i, palette->type);
+		s3util_internal_8b_to_native(palette->data + i, ptr16 + i, palette->type);
 		ptr16[i] = s3util_le16(ptr16[i]);
 	}
 }

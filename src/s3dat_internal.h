@@ -34,9 +34,9 @@ struct s3dat_bitmap_t {
 	int16_t yoff;
 
 	s3dat_t* src;
-	s3dat_color_type type;
+	s3util_color_type type;
 
-	s3dat_color_t* data;
+	s3util_color_t* data;
 
 };
 
@@ -149,9 +149,8 @@ void s3dat_internal_delete_index32(s3dat_t* handle, s3dat_index32_t* index);
 void s3dat_internal_delete_seq(s3dat_t* handle, s3dat_seq_index_t* seq);
 void s3dat_internal_delete_seq32(s3dat_t* handle, s3dat_seq_index32_t* seq);
 
-void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3dat_color_type type, uint16_t width, uint16_t height, s3dat_color_t** re_pixdata, s3util_exception_t** throws);
+void s3dat_internal_read_bitmap_data(s3dat_t* handle, s3util_color_type type, uint16_t width, uint16_t height, s3util_color_t** re_pixdata, s3util_exception_t** throws);
 void s3dat_internal_read_bitmap_header(s3dat_t* handle, s3dat_content_type type, uint32_t from, uint16_t* width, uint16_t* height, uint16_t* xoff, uint16_t* yoff, s3util_exception_t** throws);
-s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type);
 
 void s3dat_internal_extract_string(s3dat_t* handle, uint16_t text, uint16_t language, s3dat_ref_t** to, s3util_exception_t** throws);
 void s3dat_internal_extract_bitmap(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);
@@ -161,8 +160,6 @@ void s3dat_pack_palette(s3dat_t* handle, s3dat_bitmap_t* palette, s3dat_packed_t
 void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_type type, s3dat_packed_t* packed, s3util_exception_t** throws);
 void s3dat_pack_string(s3dat_t* handle, s3dat_string_t* string, s3dat_packed_t* packed, s3util_exception_t** throws);
 void s3dat_pack_sound(s3dat_t* handle, s3dat_sound_t* sound, s3dat_packed_t* packed, s3util_exception_t** throws);
-
-void s3dat_internal_8b_to_native(s3dat_color_t* color, void* to, s3dat_color_type type);
 
 void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);
 void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_exception_t** throws);

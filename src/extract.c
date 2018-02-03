@@ -142,12 +142,12 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_e
 		s3dat_ref_t* palette = s3dat_new_bitmap(handle, handle->palette_line_length, 8, throws);
 		S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-		palette->data.bmp->type = handle->green_6b ? s3dat_rgb565 : s3dat_rgb555;
+		palette->data.bmp->type = handle->green_6b ? s3util_rgb565 : s3util_rgb555;
 
 		uint32_t colors = handle->palette_line_length*8;
 		uint16_t* color_addr = package->data;
 		for(uint32_t i = 0;i != colors;i++) {
-			palette->data.bmp->data[i] = s3dat_internal_ex(color_addr++, palette->data.bmp->type);
+			palette->data.bmp->data[i] = s3util_native_to_8b(color_addr++, palette->data.bmp->type);
 		}
 		new_ref = palette;
 	} else if(res->type == s3dat_string) {
@@ -168,17 +168,17 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_e
 		uint16_t landscape_type = 0;
 		uint32_t gui_type = 0;
 
-		s3dat_color_type color_type;
+		s3util_color_type color_type;
 		uint32_t pixel_size;
 
 		if(res->type == s3dat_torso) {
-			color_type = s3dat_gray5;
+			color_type = s3util_gray5;
 			pixel_size = 1;
 		} else if(res->type == s3dat_shadow) {
-			color_type = s3dat_alpha1;
+			color_type = s3util_alpha1;
 			pixel_size = 0;
 		} else {
-			color_type = handle->green_6b ? s3dat_rgb565 : s3dat_rgb555;
+			color_type = handle->green_6b ? s3util_rgb565 : s3util_rgb555;
 			pixel_size = 2;
 		}
 
@@ -230,7 +230,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_e
 		uint16_t x = 0;
 		uint16_t y = 0;
 
-		s3dat_color_t trans_color = {0, 0, 0, 0};
+		s3util_color_t trans_color = {0, 0, 0, 0};
 
 		while(y < height) {
 			uint16_t meta = s3util_le16p(data_ptr);
@@ -245,7 +245,7 @@ void s3dat_unpack_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_e
 
 			uint8_t datalen = meta & 0xFF;
 			while(datalen > 0) {
-				image->data.bmp->data[y*width+x] = s3dat_internal_ex(data_ptr, color_type);
+				image->data.bmp->data[y*width+x] = s3util_native_to_8b(data_ptr, color_type);
 				data_ptr += pixel_size;
 				datalen--;
 				x++;

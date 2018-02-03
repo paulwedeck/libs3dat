@@ -150,8 +150,8 @@ s3dat_ref_t* s3dat_new_bitmap(s3dat_t* parent, uint16_t width, uint16_t height, 
 
 	ref->data.bmp->width = width;
 	ref->data.bmp->height = height;
-	ref->data.bmp->type = s3dat_unknown_color;
-	ref->data.bmp->data = s3util_alloc_func(s3dat_memset(parent), width*height*sizeof(s3dat_color_t), throws);
+	ref->data.bmp->type = s3util_unknown_color;
+	ref->data.bmp->data = s3util_alloc_func(s3dat_memset(parent), width*height*sizeof(s3util_color_t), throws);
 	if(*throws != NULL) {
 		s3dat_unref(ref);
 		s3util_add_to_stack(s3dat_memset(parent), throws, __FILE__, __func__, __LINE__);

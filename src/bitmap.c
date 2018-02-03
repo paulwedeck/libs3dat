@@ -167,7 +167,7 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 
 	uint8_t stat = 0;
 	for(uint32_t y = 0;y != bitmap->height;y++) {
-		s3dat_color_t* color;
+		s3util_color_t* color;
 
 		for(uint32_t x = 0;x != bitmap->width;x++) {
 			color = bitmap->data+(y*bitmap->width+x);
@@ -225,7 +225,7 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 		for(uint32_t x = 0;x != bitmap->width;x++) {
 			if(bitmap->data[y*bitmap->width+x].alpha > 127) {
 				stat = 2;
-				s3dat_internal_8b_to_native(bitmap->data+(y*bitmap->width+x), data, bitmap->type);
+				s3util_internal_8b_to_native(bitmap->data + (y * bitmap->width + x), data, bitmap->type);
 				data += pixel_size;
 				current_data++;
 			} else {
@@ -256,72 +256,9 @@ void s3dat_pack_bitmap(s3dat_t* handle, s3dat_bitmap_t* bitmap, s3dat_content_ty
 	}
 }
 
-s3dat_color_t s3dat_internal_ex(void* addr, s3dat_color_type type) {
-	s3dat_color_t color = {0, 0, 0, 0xFF};
-	if(type == s3dat_alpha1) return color;
+s3util_color_t s3dat_internal_error_color = {0, 0, 0, 0};
 
-	
-	double d58 = 255.0/31.0;
-	double d68 = 255.0/63.0;
-
-	if(type == s3dat_gray5) {
-		color.red = color.green = color.blue = (int)((*((uint8_t*)addr) & 0x1F)*d58);
-		return color;
-	}
-
-	uint16_t raw = s3util_le16p(addr);
-
-	if(type == s3dat_rgb555) {
-		color.red = (uint8_t)(((raw >> 10) & 0x1F)*d58);
-		color.green = (uint8_t)(((raw >> 5) & 0x1F)*d58);
-	} else {
-		color.red = (uint8_t)(((raw >> 11)& 0x1F)*d58);
-		color.green = (uint8_t)(((raw >> 5) & 0x3F)*d68);
-	}
-	color.blue = (uint8_t)((raw & 0x1F)*d58);
-
-	return color;
-}
-
-void s3dat_internal_8b_to_native(s3dat_color_t* color, void* to, s3dat_color_type type) {
-	if(type == s3dat_alpha1) return;
-
-	uint8_t* ptr8 = to;
-	uint16_t* ptr16 = to;
-
-	double d85 = 31.0/255.0;
-	double d86 = 63.0/255.0;
-
-	if(type == s3dat_gray5) {
-		uint8_t gray5 = ((color->red+color->green+color->blue)/3)*d85;
-		*ptr8 = (gray5 & 0x1F);
-		return;
-	}
-
-	uint16_t red, green;
-
-	uint16_t blue = (uint16_t)(color->blue*d85);
-
-	if(type == s3dat_rgb555) {
-		red = color->red*d85;
-		green = color->green*d85;
-
-		red = (red) << 10;
-		green = (green) << 5;
-	} else {
-		red = color->red*d85;
-		green = color->green*d86;
-
-		red = (red) << 11;
-		green = (green) << 5;
-	}
-
-	*ptr16 = s3util_le16(red + green + blue);
-}
-
-s3dat_color_t s3dat_internal_error_color = {0, 0, 0, 0};
-
-s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3util_exception_t** throws) {
+s3util_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uint8_t brightness, uint32_t x, s3util_exception_t** throws) {
 	if(palette > handle->palette_index->len) {
 		s3util_throw(s3dat_memset(handle), throws, S3UTIL_EXCEPTION_OUT_OF_RANGE, __FILE__, __func__, __LINE__);
 		return s3dat_internal_error_color;
@@ -339,7 +276,7 @@ s3dat_color_t s3dat_extract_palette_color(s3dat_t* handle, uint16_t palette, uin
 		return s3dat_internal_error_color;
 	}
 
-	return s3dat_internal_ex(&color, handle->green_6b ? s3dat_rgb565 : s3dat_rgb555);
+	return s3util_native_to_8b(&color, handle->green_6b ? s3util_rgb565 : s3util_rgb555);
 }
 
 uint16_t s3dat_width(s3dat_ref_t* bmp) {
@@ -373,7 +310,7 @@ uint32_t* s3dat_gui_meta(s3dat_ref_t* bmp) {
 	return &bmp->data.bmp->gui_type;
 }
 
-s3dat_color_t* s3dat_bmpdata(s3dat_ref_t* bmp) {
+s3util_color_t* s3dat_bmpdata(s3dat_ref_t* bmp) {
 	if(!s3dat_is_bitmap(bmp)) return NULL;
 	return bmp->data.bmp->data;
 }

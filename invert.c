@@ -6,7 +6,7 @@ void invert_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_excepti
 
 	int pixel_count = s3dat_width(res->res)*s3dat_height(res->res);
 
-	s3dat_color_t* bmp_data = s3dat_bmpdata(res->res);
+	s3util_color_t* bmp_data = s3dat_bmpdata(res->res);
 	for(uint16_t i = 0;i != pixel_count;i++) {
 		bmp_data[i].red = 256-bmp_data[i].red;
 		bmp_data[i].green = 256-bmp_data[i].green;
