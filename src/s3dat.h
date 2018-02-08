@@ -102,6 +102,11 @@ void s3dat_init_name(s3dat_t* handle, char* name); //name must be vaild until s3
 void s3dat_init_fd(s3dat_t* handle, uint32_t* file); //file must be vaild until s3dat_readfile/s3dat_writefile has ended
 bool s3dat_init_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, bool use_openclose_func); // io_arg mst be valid until s3dat_readfile/s3dat_writefile has ended
 
+// use this if you want to write a dat file
+// never call s3dat_readfile or s3dat_extract on a s3dat_t that has or will call this functions, it will cause memory leaks and undefinded behavior
+bool s3dat_setindexlen(s3dat_t* handle, s3dat_content_type type, uint16_t indexlen);
+bool s3dat_setseqindexlen(s3dat_t* handle, s3dat_content_type type, uint16_t index, uint16_t seqindexlen); // only strings can use more than 8 bit.
+
 void s3dat_writefile(s3dat_t* handle, s3util_exception_t** throws);
 void s3dat_readfile(s3dat_t* handle, s3util_exception_t** throws);
 

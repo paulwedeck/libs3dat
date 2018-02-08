@@ -34,6 +34,9 @@ target_link_libraries(s3dat s3util)
 add_executable(cli cli.c)
 target_link_libraries(cli s3dat)
 
+add_executable(gen_gui gen_gui.c)
+target_link_libraries(gen_gui s3dat m)
+
 add_executable(invert invert.c)
 target_link_libraries(invert s3dat)
 

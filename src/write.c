@@ -121,8 +121,8 @@ void s3dat_write_packed(s3dat_t* handle, s3dat_res_t* res, uint32_t* pos, uint32
 	s3dat_unref(res->res);
 }
 
-void s3dat_internal_export_seq_index(s3dat_t* handle, s3dat_seq_index_t* index, uint32_t* seq_pos, uint32_t pos, uint32_t* append_pos, s3util_exception_t** throws) {
-	s3dat_res_t res = {0, 0, index->type, NULL};
+void s3dat_internal_export_seq_index(s3dat_t* handle, s3dat_seq_index_t* index, s3dat_content_type type, uint32_t* seq_pos, uint32_t pos, uint32_t* append_pos, s3util_exception_t** throws) {
+	s3dat_res_t res = {0, 0, type, NULL};
 
 	for(uint16_t s = 0;s != index->len;s++) {
 		res.first_index = s;
@@ -144,10 +144,10 @@ void s3dat_internal_export_seq_index(s3dat_t* handle, s3dat_seq_index_t* index, 
 	}
 }
 
-void s3dat_internal_export_index(s3dat_t* handle, s3dat_index_t* index, uint32_t pos, uint32_t* append_pos, s3util_exception_t** throws) {
+void s3dat_internal_export_index(s3dat_t* handle, s3dat_index_t* index, s3dat_content_type type, uint32_t pos, uint32_t* append_pos, s3util_exception_t** throws) {
 	uint32_t data_positions[index->len];
 
-	s3dat_res_t res = {0, 0, index->type, NULL};
+	s3dat_res_t res = {0, 0, type, NULL};
 
 	for(uint16_t i = 0;i != index->len;i++) {
 		res.first_index = i;
@@ -156,10 +156,47 @@ void s3dat_internal_export_index(s3dat_t* handle, s3dat_index_t* index, uint32_t
 		S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 	}
 
-	s3dat_internal_write_index(handle, pos, index->type, index->len, data_positions, throws);
+	s3dat_internal_write_index(handle, pos, type, index->len, data_positions, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
 	s3dat_internal_seek_func(handle, *append_pos, S3UTIL_SEEK_SET, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
+}
+
+void s3dat_writefile_name(s3dat_t* handle, char* name, s3util_exception_t** throws) {
+	s3dat_init_name(handle, name);
+	s3dat_writefile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
+}
+
+void s3dat_writefile_fd(s3dat_t* handle, uint32_t* file, s3util_exception_t** throws) {
+	s3dat_init_fd(handle, file);
+	s3dat_writefile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
+}
+
+void s3dat_writefile_func(s3dat_t* handle, void* arg,
+	bool (*read_func) (void*, void*, size_t),
+	bool (*write_func) (void*, void*, size_t),
+	size_t (*size_func) (void*),
+	size_t (*pos_func) (void*),
+	bool (*seek_func) (void*, uint32_t, int),
+	void* (*open_func) (void*, bool),
+	void (*close_func) (void*),
+	void* (*fork_func) (void*),
+	s3util_exception_t** throws) {
+	s3dat_init_func(handle, arg, read_func, write_func, size_func, pos_func, seek_func, open_func, close_func, fork_func);
+	s3dat_writefile(handle, throws);
+	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
+}
+
+void s3dat_writefile_ioset(s3dat_t* handle, void* io_arg, s3util_ioset_t* ioset, bool use_openclose_func,  s3util_exception_t** throws) {
+	if(!s3dat_init_ioset(handle, io_arg, ioset, use_openclose_func)) {
+		s3util_throw(s3dat_memset(handle), throws, S3UTIL_EXCEPTION_IOSET, __FILE__, __func__, __LINE__);
+		return;
+	}
+
+	s3dat_writefile(handle, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 }
 
@@ -249,25 +286,25 @@ void s3dat_writefile(s3dat_t* handle, s3util_exception_t** throws) {
 	s3dat_internal_seek_func(handle, append_pos, S3UTIL_SEEK_SET, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_index(handle, handle->landscape_index, landscape_pos, &append_pos, throws);
+	s3dat_internal_export_index(handle, handle->landscape_index, s3dat_landscape, landscape_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_index(handle, handle->gui_index, gui_pos, &append_pos, throws);
+	s3dat_internal_export_index(handle, handle->gui_index, s3dat_gui, gui_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_seq_index(handle, handle->settler_index, settler_seq_pos, settler_pos, &append_pos, throws);
+	s3dat_internal_export_seq_index(handle, handle->settler_index, s3dat_settler, settler_seq_pos, settler_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_seq_index(handle, handle->torso_index, torso_seq_pos, torso_pos, &append_pos, throws);
+	s3dat_internal_export_seq_index(handle, handle->torso_index, s3dat_torso, torso_seq_pos, torso_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_seq_index(handle, handle->shadow_index, shadow_seq_pos, shadow_pos, &append_pos, throws);
+	s3dat_internal_export_seq_index(handle, handle->shadow_index, s3dat_shadow, shadow_seq_pos, shadow_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_index(handle, handle->animation_index, animation_pos, &append_pos, throws);
+	s3dat_internal_export_index(handle, handle->animation_index, s3dat_animation, animation_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
-	s3dat_internal_export_index(handle, handle->palette_index, palette_pos, &append_pos, throws);
+	s3dat_internal_export_index(handle, handle->palette_index, s3dat_palette, palette_pos, &append_pos, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
 	s3dat_internal_seek_func(handle, 48, S3UTIL_SEEK_SET, throws);

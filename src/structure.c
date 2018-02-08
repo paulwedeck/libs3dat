@@ -578,6 +578,77 @@ uint32_t s3dat_seqaddr(s3dat_t* handle, uint16_t seq, uint32_t index, s3dat_cont
 		return 0;
 	}
 }
+bool s3dat_setindexlen(s3dat_t* handle, s3dat_content_type type, uint16_t indexlen) {
+	s3dat_index_t* index = NULL;
+	s3dat_seq_index_t* seqindex = NULL;
+
+	switch(type) {
+		case s3dat_settler:
+			seqindex = handle->settler_index;
+		break;
+		case s3dat_torso:
+			seqindex = handle->torso_index;
+		break;
+		case s3dat_shadow:
+			seqindex = handle->shadow_index;
+		break;
+		case s3dat_string:
+			seqindex = handle->string_index;
+		break;
+		case s3dat_landscape:
+			index = handle->landscape_index;
+		break;
+		case s3dat_gui:
+			index = handle->gui_index;
+		break;
+		case s3dat_animation:
+			index = handle->animation_index;
+		break;
+		case s3dat_palette:
+			index = handle->palette_index;
+		break;
+		default:
+		break;
+	}
+
+	if(index) {
+		index->len = indexlen;
+	} else if(seqindex) {
+		seqindex->sequences = s3util_alloc_func(s3dat_memset(handle), sizeof(s3dat_index_t)*indexlen, NULL);
+		if(seqindex->sequences == NULL) return false;
+		seqindex->len = indexlen;
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
+bool s3dat_setseqindexlen(s3dat_t* handle, s3dat_content_type type, uint16_t index, uint16_t seqindexlen) {
+	s3dat_seq_index_t* seqindex = NULL;
+
+	switch(type) {
+		case s3dat_settler:
+			seqindex = handle->settler_index;
+		break;
+		case s3dat_torso:
+			seqindex = handle->torso_index;
+		break;
+		case s3dat_shadow:
+			seqindex = handle->shadow_index;
+		break;
+		case s3dat_string:
+			seqindex = handle->string_index;
+		break;
+		default:
+			return false;
+		break;
+	}
+	if(seqindex->len <= index) return false;
+
+	seqindex->sequences[index].len = type == s3dat_string ? index : (index&0xFF);
+	return true;
+}
 
 uint32_t s3dat_palette_width(s3dat_t* handle) {
 	return handle->palette_line_length;

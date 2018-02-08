@@ -27,13 +27,15 @@ int main() {
 
 	int i = 0;
 	struct dirent* ent;
-	while((gfx_dir && (ent = readdir(gfx_dir)) != NULL) || (snd_dir && (ent = readdir(snd_dir)) != NULL)) {
+	bool gfx = false;
+
+	while((gfx_dir && (ent = readdir(gfx_dir)) != NULL && (gfx = true)) || (snd_dir && (ent = readdir(snd_dir)) != NULL && (gfx = false))) {
 		if(ent->d_name[0] == '.') continue;
 		if(i != 0) printf("\n");
 
 		int len = strlen(ent->d_name);
 		char name[len+5];
-		if(len > 15) {
+		if(gfx) {
 			name[0] = 'G';
 			name[1] = 'F';
 			name[2] = 'X';
