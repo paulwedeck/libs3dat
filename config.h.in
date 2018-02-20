@@ -1,7 +1,6 @@
 #ifndef S3DAT_CONFIG_H
 #define S3DAT_CONFIG_H
 
-#cmakedefine USE_ICONV
 #cmakedefine IS_BE
 #cmakedefine PRIVATE_FILENAME
 #cmakedefine STRING_BUFFER @STRING_BUFFER@

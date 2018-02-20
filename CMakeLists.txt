@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.2.2)
 project(libs3dat)
 
+option(PRIVATE_FILENAME "stop leaking complete path to file (should be enabled on distribution)" ON)
+
 add_subdirectory(libs3util)
 
 include(CPack)
@@ -8,8 +10,8 @@ include(CTest)
 include(TestBigEndian)
 
 set(CMAKE_C_FLAGS "-Wall")
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/bin")
 set(CPACK_PACKAGE_NAME "libs3dat")
@@ -18,9 +20,8 @@ set(STRING_BUFFER 1024)
 
 TEST_BIG_ENDIAN(IS_BE)
 
-option(PRIVATE_FILENAME "stop leaking complete path to file (should be enabled on distribution)" ON)
 
-configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.h)
+configure_file(config.h.in ${PROJECT_BINARY_DIR}/config.s3dat.h)
 
 include_directories(src ${PROJECT_BINARY_DIR} libs3util/src)
 
@@ -40,10 +41,21 @@ target_link_libraries(gen_gui s3dat m)
 add_executable(invert invert.c)
 target_link_libraries(invert s3dat)
 
+find_package(Qt5Widgets)
+
+if(Qt5Widgets_FOUND)
+	add_executable(search search.cpp)
+	target_link_libraries(search s3dat Qt5::Widgets)
+endif()
+
 find_package(glfw3)
 find_package(OpenGL)
 
 if(glfw3_FOUND AND OpenGL_FOUND)
+
+	add_executable(animation animation.c)
+	target_link_libraries(animation s3dat ${OPENGL_LIBRARIES} glfw m)
+	target_include_directories(animation PUBLIC ${OPENGL_INCLUDE_DIRS} ${glfw3_INCLUDE_DIRS})
 
 	add_executable(walk walk.c)
 	target_link_libraries(walk s3dat ${OPENGL_LIBRARIES} glfw m)

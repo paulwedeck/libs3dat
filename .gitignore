@@ -1,10 +1,12 @@
 build/
-SND/
-GFX/
-SND
-GFX
+SND*
+GFX*
 snd.raw
 src/config.h
 release/
 palette_dump*.data
 alloc.log
+
+#clion
+.idea
+cmake-build-*

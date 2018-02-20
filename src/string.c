@@ -95,7 +95,7 @@ void s3dat_utf8_encoding_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s
 			break;
 		}
 
-		s3util_exception_t* tmpex;
+		s3util_exception_t* tmpex = NULL;
 		s3util_iconv_dat_to_utf8(s3dat_memset(handle), charset, string->string_data, &utf8_str, &tmpex);
 
 		if(tmpex == NULL) {

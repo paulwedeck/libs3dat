@@ -1,6 +1,6 @@
 #include "s3dat_ext.h"
 
-#include "config.h"
+#include "config.s3dat.h"
 
 #include <stdio.h>
 #include <sys/stat.h>

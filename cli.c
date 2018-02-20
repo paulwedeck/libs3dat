@@ -81,7 +81,7 @@ int main() {
 				s3dat_ref_t* strings[8];
 				for(uint16_t l = 0;l != 8;l++) {
 					strings[l] = s3dat_extract_string(handle, s, l, &ex);
-					if(s3dat_catch_exception(&ex)) {
+					if(s3util_catch_exception(&ex)) {
 						printf("%s", s3dat_strdata(strings[l]));
 					}
 					if(l != 7) printf("|");
