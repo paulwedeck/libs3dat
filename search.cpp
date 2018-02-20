@@ -1,10 +1,6 @@
-#ifdef __cplusplus
 extern "C" {
 #include <s3dat_ext.h>
 }
-#else
-#include <s3dat_ext.h>
-#endif
 
 #include <dirent.h>
 
