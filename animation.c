@@ -113,8 +113,8 @@ int main(int argc, char** argv) {
 	uint32_t file = ani_len > 0 ? s3dat_frame(ani, 0)->settler_file : 0;
 
 
-	char img_name[31];
-	snprintf(img_name, 30, "GFX/Siedler3_%.2i.f8007e01f.dat", file);
+	char img_name[34];
+	snprintf(img_name, 34, "GFX/Siedler3_%.2i.f8007e01f.dat", file);
 	img_gfx = s3dat_new_malloc();
 	s3dat_readfile_name(img_gfx, img_name, &ex);
 	s3util_catch_exception(&ex);

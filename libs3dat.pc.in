@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+Requires: libs3util
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: libs3dat
+Description: A library that reads and writes dat files
+Version: @PROJECT_VERSION@
+Cflags: -I${includedir}/s3dat
+Libs: -L${libdir} -ls3dat

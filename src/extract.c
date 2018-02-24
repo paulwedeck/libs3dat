@@ -58,7 +58,7 @@ void s3dat_read_packed_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3u
 		return;
 	}
 
-	uint32_t raw_len;
+	uint32_t raw_len = 0;
 	uint32_t read_len;
 	void* data;
 

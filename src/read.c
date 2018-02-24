@@ -186,8 +186,8 @@ void s3dat_readfile(s3dat_t* handle, s3util_exception_t** throws) {
 	}
 }
 
-void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3util_exception_t** throws) {
-	s3dat_internal_seek_func(handle, index, S3UTIL_SEEK_SET, throws);
+void s3dat_internal_read_index(s3dat_t* handle, uint32_t index_pos, s3util_exception_t** throws) {
+	s3dat_internal_seek_func(handle, index_pos, S3UTIL_SEEK_SET, throws);
 	S3UTIL_HANDLE_EXCEPTION(s3dat_memset(handle), throws, __FILE__, __func__, __LINE__);
 
 	uint32_t index_type = S3DAT_INTERNAL_READ(32LE, handle, throws);
@@ -271,7 +271,7 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3util_exception
 		}
 
 		if(index_type == s3dat_settler || index_type == s3dat_torso || index_type == s3dat_shadow) {
-			s3dat_seq_index_t* index;
+			s3dat_seq_index_t* index = NULL;
 			switch(index_type) {
 				case s3dat_settler:
 					index = handle->settler_index;
@@ -326,7 +326,7 @@ void s3dat_internal_read_index(s3dat_t* handle, uint32_t index, s3util_exception
 			index->len = index_len;
 			index->sequences = indices;
 		} else {
-			s3dat_index_t* index;
+			s3dat_index_t* index = NULL;
 			switch(index_type) {
 				case s3dat_gui:
 					index = handle->gui_index;
