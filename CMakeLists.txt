@@ -73,7 +73,7 @@ if(glfw3_FOUND AND OpenGL_FOUND)
 endif()
 
 write_basic_package_version_file(${PROJECT_BINARY_DIR}/s3datConfigVersion.cmake COMPATIBILITY ExactVersion)
-configure_package_config_file(s3datConfig.cmake.in s3datConfig.cmake INSTALL_DESTINATION lib/cmake/s3dat PATH_VARS CMAKE_INSTALL_PREFIX PROJECT_BINARY_DIR)
+configure_package_config_file(s3datConfig.cmake.in s3datConfig.cmake INSTALL_DESTINATION lib/cmake/s3dat PATH_VARS CMAKE_INSTALL_PREFIX CMAKE_SOURCE_DIR)
 
 install(TARGETS s3dat EXPORT s3datTarget DESTINATION lib)
 install(EXPORT s3datTarget DESTINATION lib/cmake/s3dat)
