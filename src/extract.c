@@ -335,12 +335,20 @@ void s3dat_blend_handler(s3dat_extracthandler_t* me, s3dat_res_t* res, s3util_ex
 
 	s3dat_bitmap_t* bmp = res->res->data.bmp;
 
-	uint32_t pixel_count = bmp->width*bmp->height;
-	for(uint32_t i = 0;i != pixel_count;i++) {
-		if(bmp->data[i].red == 0
-			&& bmp->data[i].green == 0xce
-			&& (bmp->data[i].blue == 0xff || bmp->data[i].blue == 0xee)
-			&& bmp->data[i].alpha == 0xff) bmp->data[i].alpha = 0;
+	if(bmp->width != 32 || bmp->height != 32) return;
+
+	if(bmp->data[0].red == 0 && bmp->data[0].green == 0xce
+			&& (bmp->data[0].blue == 0xff || bmp->data[0].blue == 0xee)
+			&& bmp->data[0].alpha == 0xff) {
+		for(uint32_t y = 1;y != 17;y++) {
+			for(uint32_t x = 0;x != y/2;x++) {
+				bmp->data[(y+15)*32+x].alpha = 0;
+				bmp->data[(16-y)*32+x].alpha = 0;
+
+				bmp->data[(y+15)*32+31-x].alpha = 0;
+				bmp->data[(16-y)*32+31-x].alpha = 0;
+			}
+		}
 	}
 }
 
